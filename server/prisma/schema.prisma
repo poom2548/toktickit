@@ -19,3 +19,8 @@ datasource db {
 // Then run:  npx prisma migrate dev --name init
 // TODO(Issue 3): add the Category model below.
 // ---------------------------------------------------------------------------
+model Category {
+  id        Int      @id @default(autoincrement()) // ใช้ Int รันเลขอัตโนมัติ 
+  name      String   @unique                       // @unique ทำให้ชื่อหมวดหมู่ห้ามซ้ำกัน
+  createdAt DateTime @default(now())               // เก็บเวลาที่ถูกสร้างอัตโนมัติ
+}

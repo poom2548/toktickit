@@ -6,9 +6,28 @@ import { getPrisma } from "../src/prisma.js";
 // Hint: prisma.category.upsert({ where:{name}, update:{}, create:{name} }).
 async function main() {
   const prisma = getPrisma();
-  void prisma;
-  // TODO(Issue 3): upsert each category so the seed is idempotent.
-  console.log("TODO: implement the category seed.");
+  
+  // รายชื่อหมวดหมู่ทั้ง 4 หมวดที่ต้องการ
+  const categories = [
+    "Account and Access",
+    "Hardware",
+    "Software",
+    "Network"
+  ];
+
+  console.log("Start seeding categories...");
+
+  // วนลูปใช้ upsert เพื่อไม่ให้ข้อมูลซ้ำเวลารันหลายรอบ
+  for (const catName of categories) {
+    await prisma.category.upsert({
+      where: { name: catName },
+      update: {}, 
+      create: { name: catName },
+    });
+    console.log(`Upserted category: ${catName}`);
+  }
+
+  console.log("Seeding finished. ✅");
 }
 
 main()

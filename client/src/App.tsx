@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; //test git
+import { useState, useEffect } from "react"; 
 import { checkSystem, Category } from "./api.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.

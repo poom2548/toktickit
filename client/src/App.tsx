@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import { checkSystem, Category } from "./api.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.
@@ -21,7 +21,7 @@ export default function App() {
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/health");
+        const res = await fetch("/api/health"); 
         if (!res.ok) throw new Error("Network error");
         const data = await res.json();
         setHealthStatus(data);

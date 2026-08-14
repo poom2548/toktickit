@@ -1,13 +1,9 @@
 import { getPrisma } from "../src/prisma.js";
 
-// Issue 3 — seed the four supported categories.
-// The four names are: Account and Access, Hardware, Software, Network.
-// Requirement: running the seed twice must NOT create duplicates.
-// Hint: prisma.category.upsert({ where:{name}, update:{}, create:{name} }).
+// ย้าย prisma มาประกาศข้างนอก เพื่อให้ใช้ instance ตัวเดียวกันตลอดตามที่เพื่อนแนะนำ
+const prisma = getPrisma(); 
+
 async function main() {
-  const prisma = getPrisma();
-  
-  // รายชื่อหมวดหมู่ทั้ง 4 หมวดที่ต้องการ
   const categories = [
     "Account and Access",
     "Hardware",
@@ -17,24 +13,26 @@ async function main() {
 
   console.log("Start seeding categories...");
 
-  // วนลูปใช้ upsert เพื่อไม่ให้ข้อมูลซ้ำเวลารันหลายรอบ
+  // วนลูป upsert พร้อมใส่ await ให้ทำงานทีละรายการ
   for (const catName of categories) {
     await prisma.category.upsert({
       where: { name: catName },
       update: {}, 
       create: { name: catName },
     });
-    console.log(`Upserted category: ${catName}`);
+    console.log(`✅ Upserted category: ${catName}`);
   }
 
-  console.log("Seeding finished. ✅");
+  console.log("Seeding finished successfully. 🎉");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    // เพิ่มการจัดการ Error (Error handling) ตามที่เพื่อนแนะนำ
+    console.error("❌ Error during seeding:", e); 
     process.exit(1);
   })
   .finally(async () => {
-    await getPrisma().$disconnect();
+    // ปิดการเชื่อมต่อด้วย instance ตัวเดิม
+    await prisma.$disconnect(); 
   });

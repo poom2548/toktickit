@@ -34,3 +34,26 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 
 export default app;
+
+app.get("/api/categories", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    
+    // ดึงข้อมูล ID และ Name จากตาราง Category
+    const categories = await prisma.category.findMany({
+      select: { 
+        id: true, 
+        name: true 
+      },
+      orderBy: { 
+        id: 'asc' // เรียงลำดับตาม ID เสมอ (Predictable order)
+      },
+    });
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    // แสดง Error เป็น 500 ตามโจทย์
+    res.status(500).json({ error: "Internal server error" });
+  }
+});

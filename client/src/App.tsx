@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"; 
-import { checkSystem, Category } from "./api.js";
+import { useState, useEffect } from "react";
+import { Category } from "./api.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
 
-// เพิ่ม Type สำหรับ Issue 2
+// Type สำหรับ Issue 2
 type HealthStatus = {
   status: string;
   service: string;
@@ -13,7 +13,6 @@ type HealthStatus = {
 export default function App() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
-  void categories;
 
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -21,7 +20,7 @@ export default function App() {
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const res = await fetch("/api/health"); 
+        const res = await fetch("/api/health");
         if (!res.ok) throw new Error("Network error");
         const data = await res.json();
         setHealthStatus(data);
@@ -33,10 +32,17 @@ export default function App() {
   }, []);
 
   async function handleCheck() {
-    // TODO(Issue 4): set loading, call checkSystem(), then either
-    //   - success: store categories and show Online + the list, or
-    //   - error: show Offline + a useful message.
-    setState("loading");
+    setState("loading"); // Issue 4: set loading
+    try {
+      const res = await fetch("/api/categories");
+      if (!res.ok) throw new Error("Failed to fetch");
+      
+      const data = await res.json();
+      setCategories(data);
+      setState("success"); // Issue 4: success state
+    } catch (err) {
+      setState("error");   // Issue 4: error state
+    }
   }
 
   return (
@@ -65,7 +71,32 @@ export default function App() {
         {state === "loading" ? "Loading…" : "Check System"}
       </button>
 
-      {/* TODO(Issue 4): render loading / success (Online + categories) / error (Offline) states. */}
+      {/* ส่วนแสดงผลข้อมูล Issue 4 */}
+      <div className="mt-4">
+        {state === "loading" && (
+          <div className="alert alert-secondary">⏳ Loading categories...</div>
+        )}
+
+        {state === "error" && (
+          <div className="alert alert-danger" role="alert">
+            ❌ Offline: Unable to load categories.
+          </div>
+        )}
+
+        {state === "success" && (
+          <div>
+            <h5 className="text-success mt-3">✅ System is Online</h5>
+            <p>Available Categories:</p>
+            <ul className="list-group">
+              {categories.map((cat) => (
+                <li key={cat.id} className="list-group-item">
+                  {cat.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

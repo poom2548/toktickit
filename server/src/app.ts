@@ -1,21 +1,15 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
-// getPrisma() is your lazy database handle. Call it INSIDE a route when you
-// need the DB (Issue 4). It is intentionally unused until then.
-void getPrisma;
 
-// The Express app is exported separately from app.listen() (see index.ts) so
-// Supertest can import `app` without opening a port. Do not merge these files.
+// ตรงนี้เราใช้ "Named Export" แบบเดียว เพื่อไม่ให้เกิดอาการ Mismatch
 export const app = express();
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+app.use(cors());
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check
-// Make the test in tests/lab-01/health.test.ts pass.
-// It must return HTTP 200 with JSON: { status: "ok", service: "TokTickIT API" }
 // ---------------------------------------------------------------------------
 app.get("/api/health", (_req: Request, res: Response) => {
   res.status(200).json({
@@ -26,15 +20,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 
 // ---------------------------------------------------------------------------
 // Issue 4 — Category list
-// Add:  GET /api/categories
-//   -> read categories from PostgreSQL via getPrisma().category.findMany(...)
-//   -> return each { id, name } in a predictable (id) order
-//   -> on failure, respond 500 with a safe message (no internal details)
-// TODO(Issue 4): implement the route here.
 // ---------------------------------------------------------------------------
-
-export default app;
-
 app.get("/api/categories", async (_req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
@@ -46,14 +32,13 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
         name: true 
       },
       orderBy: { 
-        id: 'asc' // เรียงลำดับตาม ID เสมอ (Predictable order)
+        id: 'asc' // เรียงลำดับตาม ID เสมอ
       },
     });
 
     res.status(200).json(categories);
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    // แสดง Error เป็น 500 ตามโจทย์
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
+

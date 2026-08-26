@@ -13,7 +13,13 @@
 | API-03 | AC-04 | API | Soft-remove attachment | 200 OK; file metadata kept but cannot download | `server/tests/lab-02/attachments.api.test.ts` | Todo |
 | API-04 | AC-05 | API | Search tickets by keyword | 200 OK; returns matching tickets | `server/tests/lab-02/my-tickets.api.test.ts` | Todo |
 | E2E-01 | AC-01, AC-05 | E2E | Complete responsive submission flow | Confirmation shows official number | `e2e/lab-02/requester-ticket-flow.spec.ts` | Todo |
-
+| API-05 | File Upload | API | Upload file > 5MB | 413 Payload Too Large | `server/tests/.../attachments.api.test.ts` | Todo |
+| API-06 | File Upload | API | Upload invalid MIME type (.exe) | 400 Bad Request | `server/tests/.../attachments.api.test.ts` | Todo |
+| API-07 | File Upload | API | Upload > 5 files total | 400 Bad Request | `server/tests/.../attachments.api.test.ts` | Todo |
+| API-08 | Security | API | Spoofed missing X-Requester-Id | 401 Unauthorized | `server/tests/.../tickets.api.test.ts` | Todo |
+| API-09 | Pagination | API | Request page=-1 or invalid limit | 400 Bad Request | `server/tests/.../my-tickets.api.test.ts` | Todo |
+| UI-03 | Accessibility | UI | Check contrast and aria-labels | Pass visual & axe-core check | `client/src/.../CreateTicket.test.tsx` | Todo |
+| E2E-02 | Responsive | E2E | View My Tickets on Mobile width | Table turns into Cards, no scroll | `e2e/lab-02/responsive.spec.ts` | Todo |
 ## 3. Acceptance-Criterion Traceability
 | Acceptance Criterion | Linked Tests |
 |---|---|

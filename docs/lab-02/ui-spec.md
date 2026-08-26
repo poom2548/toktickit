@@ -32,3 +32,12 @@
 - [ ] ชื่อไฟล์แนบยาวๆ สามารถอ่านได้ชัดเจน (Readable attachment names)
 - [ ] ป้ายสถานะ (Badges) ของ Priority และ Status ใช้สไตล์สีสม่ำเสมอกัน
 - [ ] หน้า My Tickets ใช้งานได้ดีทั้งแบบตารางบน Desktop และแบบการ์ดบน Mobile
+
+## 5. Typography, Spacing & Accessibility (a11y)
+- **Typography:** ขนาดฟอนต์พื้นฐาน 16px, ระยะห่างบรรทัด (Line-height) 1.5 เพื่อให้อ่านง่าย
+- **Spacing:** ใช้มาตราส่วนแบบ 8px (เช่น 8px, 16px, 24px) สำหรับช่องไฟ (Padding/Margin)
+- **Contrast:** สีตัวอักษรและพื้นหลังต้องผ่านมาตรฐาน WCAG AA (Contrast Ratio ขั้นต่ำ 4.5:1)
+- **Keyboard Navigation:** ทุกปุ่มและฟิลด์ต้องสามารถใช้ปุ่ม `Tab` เข้าถึงได้ และต้องแสดง Focus state (กรอบสี Secondary green) ให้เห็นชัดเจน
+- **Screen Reader:** ปุ่มที่มีแค่ไอคอน (เช่น ปุ่มลบไฟล์) ต้องมี `aria-label` กำกับเสมอ
+- **Data Truncation:** หากชื่อไฟล์แนบยาวเกินพื้นที่ ให้ตัดทอนด้วย `...` (CSS: `text-overflow: ellipsis`) 
+- **Table to Card:** ในหน้าจอ Mobile (< 768px) ตารางแสดงรายการตั๋วจะถูกเปลี่ยนรูปแบบ (Transform) ไปแสดงผลแบบ Card แทนเพื่อป้องกันการเลื่อนหน้าจอแนวนอน

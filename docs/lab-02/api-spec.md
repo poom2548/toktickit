@@ -1,6 +1,7 @@
 # Lab 2 REST API Specification
 
 เอกสารนี้กำหนดโครงสร้างและพฤติกรรมของ API สำหรับแอปพลิเคชัน TokTickIT ใน Lab 2 (Requester-facing application) โดยใช้ `requesterId` ส่งมาใน Request เพื่อจำลองบริบทของผู้ใช้งาน (เนื่องจากยังไม่มีระบบ Authentication จริง)
+*หมายเหตุ: เพื่อป้องกันการสวมรอย (Spoofing) การส่ง `requesterId` จะต้องถูกส่งผ่าน HTTP Header ที่ชื่อว่า `X-Requester-Id` ในทุกๆ Request แทนการส่งผ่าน Query Param หรือ Body โดยตรง*
 
 ## 1. Reference Data APIs
 
@@ -84,23 +85,18 @@
   - `sortDirection` (Optional): `asc` หรือ `desc`
   - `page` (Optional): หน้าปัจจุบัน (Default: 1)
   - `limit` (Optional): จำนวนต่อหน้า (Default: 10)
+- **Default Pagination:** หากไม่ส่งค่ามา จะใช้ `page=1` และ `limit=10` เสมอ
 - **Response (200 OK):**
   ```json
   {
-    "data": [
-      {
-        "id": 101,
-        "ticketNumber": "TKT-2025-001234",
-        "summary": "Laptop battery drains quickly",
-        "status": "New",
-        "createdAt": "2025-05-12T09:14:00Z"
-      }
-    ],
+    "data": [ ... ],
     "pagination": {
-      "page": 1,
-      "limit": 10,
-      "total": 42,
-      "totalPages": 5
+      "currentPage": 1,
+      "itemsPerPage": 10,
+      "totalItems": 42,
+      "totalPages": 5,
+      "hasNextPage": true,
+      "hasPrevPage": false
     }
   }
   ```
@@ -154,6 +150,18 @@
   ```
 - **Error Responses:** `403 Forbidden` หากพยายามลบไฟล์ของคนอื่น
 
+---
+## Standard Error Response Schema
+กรณีที่เกิด Error ระดับฟิลด์ (400 Bad Request) ระบบจะส่งกลับมาในรูปแบบ:
+```json
+{
+  "error": "Validation Failed",
+  "details": [
+    { "field": "summary", "message": "Summary must not exceed 100 characters" },
+    { "field": "categoryId", "message": "Category is required" }
+  ]
+}
+```
 ---
 
 ## 4. HTTP Status Codes

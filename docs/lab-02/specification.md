@@ -35,10 +35,16 @@
 - **BR-01:** หมายเลขตั๋ว (Ticket Number) ต้องถูกสร้างจากระบบ Backend อัตโนมัติและไม่ซ้ำกัน
 - **BR-02:** ตั๋วปัญหาที่ถูกสร้างใหม่ จะเริ่มต้นด้วยสถานะ (Current Status) ว่า "New" เสมอ
 - **BR-03:** Lab 2 ใช้ Development Requester เป็นเพียงเครื่องมือทดสอบเท่านั้น ไม่ใช่การ Authentication จริง
-- **BR-04:** ข้อความ Summary และ Description เป็นฟิลด์บังคับ (Required)
-- **BR-05:** ไฟล์แนบต้องเป็นประเภท JPG/JPEG, PNG, WEBP, หรือ PDF เท่านั้น และขนาดไม่เกิน 5 MB ต่อไฟล์
-- **BR-06:** ตั๋ว 1 ใบ อนุญาตให้มีไฟล์แนบที่เปิดใช้งานอยู่ (Active) สูงสุด 5 ไฟล์
-- **BR-07:** การลบไฟล์แนบต้องใช้ระบบ Soft-removal (ไฟล์ถูกตั้งสถานะลบ แต่ไม่หายไปจากระบบ)
+- **BR-04 (Required Fields):** Summary, Description, Category, Requested Priority และ Related System เป็นฟิลด์บังคับ (Required) 
+  - ความยาวสูงสุด (Max length): Summary ไม่เกิน 100 ตัวอักษร, Description ไม่เกิน 1000 ตัวอักษร
+- **BR-05 (Enum Values):** 
+  - `Requested Priority` รองรับค่า: Low, Medium, High
+  - `Current Status` รองรับค่า: New, Open, In Progress, Resolved, Closed
+- **BR-06 (Attachment Security):** การตรวจสอบประเภทไฟล์ต้องเช็คจาก MIME Type ฝั่ง Backend ด้วย ไม่ใช่แค่เช็คนามสกุลไฟล์ฝั่งหน้าบ้าน
+- **BR-07 (Soft-removal Policy):** 
+  - ไฟล์ที่ถูก Soft-remove จะไม่ถูกลบออกจาก Storage จริง (เก็บไว้ถาวร หรือจนกว่าจะถึงรอบเคลียร์ข้อมูลรายปี)
+  - เก็บ Metadata ระบุว่าลบโดยใคร (`deletedBy`) และลบเมื่อไหร่ (`deletedAt`)
+  - มีเพียงบทบาท `Admin` (ในอนาคต) เท่านั้นที่สามารถกู้คืนหรือลบถาวร (Hard delete) ได้
 - **BR-08:** ไฟล์แนบที่ถูก Soft-remove ห้ามแสดงผลให้พรีวิวหรือให้ดาวน์โหลดโดยเด็ดขาด
 - **BR-09:** ตั๋วหนึ่งใบเป็นกรรมสิทธิ์ของผู้ใช้งาน (Requester) เพียงคนเดียวเท่านั้น ไม่สามารถดูข้ามสิทธิ์ได้
 

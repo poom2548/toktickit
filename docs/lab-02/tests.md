@@ -9,14 +9,14 @@
 |---|---|---|---|---|---|---|
 | API-01 | AC-01 | API | Create valid ticket | 201; one saved Ticket; number returned | `server/tests/lab-02/create-ticket.api.test.ts` | Todo |
 | API-02 | AC-03 | API | Access other user's ticket | 403 Forbidden; empty response | `server/tests/lab-02/ticket-detail.api.test.ts` | Todo |
-| API-03 | AC-04, BR-07 | API | Soft-remove attachment | 200 OK; metadata (`deletedAt`, `deletedBy`) recorded, download blocked | `server/tests/lab-02/attachments.api.test.ts` | Todo |
+| API-03 | AC-04, BR-07 | API | Soft-remove attachment | 200 OK; The system hides the file and correctly records deletedAt and deletedBy (the value must match the provided X-Requester-Id). | `server/tests/lab-02/attachments.api.test.ts` | Todo |
 | API-04 | AC-05 | API | Search tickets by keyword | 200 OK; returns matching tickets | `server/tests/lab-02/my-tickets.api.test.ts` | Todo |
 | API-05 | BR-05 | API | Upload file > 5MB | 413 Payload Too Large | `server/tests/lab-02/attachments.api.test.ts` | Todo |
 | API-06 | BR-06 | API | Upload invalid MIME type (.exe) | 400 Bad Request (blocked by Backend) | `server/tests/lab-02/attachments.api.test.ts` | Todo |
 | API-07 | BR-06 | API | Upload > 5 files total | 400 Bad Request | `server/tests/lab-02/attachments.api.test.ts` | Todo |
 | API-08 | Security | API | Missing `X-Requester-Id` header | 401 Unauthorized | `server/tests/lab-02/tickets.api.test.ts` | Todo |
 | API-09 | Pagination | API | Request page=-1 or invalid limit | 400 Bad Request | `server/tests/lab-02/my-tickets.api.test.ts` | Todo |
-| API-10 | BR-07 | API | Requester attempts Hard-delete or Restore | 403 Forbidden (requires Admin role) | `server/tests/lab-02/attachments.api.test.ts` | Todo |
+| API-10 | BR-07 | API | Requester attempts Hard-delete or Restore | 403 Forbidden (requires Admin role) | `server/tests/lab-02/attachments.api.test.ts` | Deferred |
 | UI-01 | AC-01, BR-04 | UI | Submit without Summary | Field message appears; API not called | `client/src/.../CreateTicket.test.tsx` | Todo |
 | UI-02 | AC-02 | UI | Open My Tickets without Requester | Redirects to Requester Selection | `client/src/.../MyTickets.test.tsx` | Todo |
 | UI-03 | a11y | UI | Check contrast and aria-labels | Pass visual & axe-core check | `client/src/.../CreateTicket.test.tsx` | Todo |

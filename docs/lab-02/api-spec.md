@@ -1,7 +1,6 @@
 # Lab 2 REST API Specification
 
-เอกสารนี้กำหนดโครงสร้างและพฤติกรรมของ API สำหรับแอปพลิเคชัน TokTickIT ใน Lab 2 (Requester-facing application) โดยใช้ `requesterId` ส่งมาใน Request เพื่อจำลองบริบทของผู้ใช้งาน (เนื่องจากยังไม่มีระบบ Authentication จริง)
-*หมายเหตุ: เพื่อป้องกันการสวมรอย (Spoofing) การส่ง `requesterId` จะต้องถูกส่งผ่าน HTTP Header ที่ชื่อว่า `X-Requester-Id` ในทุกๆ Request แทนการส่งผ่าน Query Param หรือ Body โดยตรง*
+*หมายเหตุสำคัญ: เพื่อความปลอดภัยและป้องกันการสวมรอย ทุก Endpoint ที่ต้องการตรวจสอบสิทธิ์ผู้ใช้งาน จะต้องส่งไอดีผ่าน **HTTP Header** ที่ชื่อว่า `X-Requester-Id` เสมอ (ห้ามส่งผ่าน Request Body หรือ Query Parameters เด็ดขาด)*
 
 ## 1. Reference Data APIs
 
@@ -17,7 +16,6 @@
 
 ### 1.2 Retrieve Active Categories
 - **Endpoint:** `GET /api/categories`
-- **Description:** ดึงข้อมูลหมวดหมู่ทั้งหมด
 - **Response (200 OK):**
   ```json
   [
@@ -30,7 +28,6 @@
 
 ### 1.3 Retrieve Active Related Systems
 - **Endpoint:** `GET /api/related-systems`
-- **Description:** ดึงข้อมูลระบบที่เกี่ยวข้องทั้งหมด
 - **Response (200 OK):**
   ```json
   [
@@ -49,11 +46,9 @@
 
 ### 2.1 Create a Ticket
 - **Endpoint:** `POST /api/tickets`
-- **Description:** สร้างตั๋วปัญหาใหม่
 - **Request Body:**
   ```json
   {
-    "requesterId": 1,
     "summary": "Laptop battery drains quickly",
     "requestedPriority": "MEDIUM",
     "categoryId": 2,
@@ -61,7 +56,7 @@
     "description": "My laptop battery is draining much faster than usual..."
   }
   ```
-- **Validation Rules:** `requesterId`, `summary`, และ `description` เป็นฟิลด์บังคับ ห้ามเป็นค่าว่าง
+- **Validation Rules:** `summary` (ไม่เกิน 100 อักษร), และ `description` (ไม่เกิน 1,000 อักษร) เป็นฟิลด์บังคับ
 - **Response (201 Created):**
   ```json
   {
@@ -71,21 +66,15 @@
     "createdAt": "2025-05-12T09:14:00Z"
   }
   ```
-- **Error Responses:**
-  - `400 Bad Request`: ข้อมูลไม่ครบถ้วน หรือ Validation ไม่ผ่าน
 
 ### 2.2 Retrieve Selected Requester's Tickets (List)
 - **Endpoint:** `GET /api/tickets`
-- **Description:** ดึงรายการตั๋วของผู้ใช้งานคนปัจจุบัน รองรับ ค้นหา, กรอง, จัดเรียง, และแบ่งหน้า
+- **Description:** ดึงรายการตั๋วของผู้ใช้งานคนปัจจุบัน (ตาม X-Requester-Id)
 - **Query Parameters:**
-  - `requesterId` (Required): ไอดีของผู้ใช้งาน (ใช้กรองให้แสดงเฉพาะตั๋วของตัวเอง)
-  - `search` (Optional): คำค้นหาสำหรับฟิลด์ Ticket Number หรือ Summary
+  - `search` (Optional): คำค้นหา
   - `categoryId`, `requestedPriority`, `currentStatus` (Optional): ตัวกรองข้อมูล
-  - `sortBy` (Optional): ฟิลด์สำหรับจัดเรียง (เช่น `createdAt`)
-  - `sortDirection` (Optional): `asc` หรือ `desc`
-  - `page` (Optional): หน้าปัจจุบัน (Default: 1)
-  - `limit` (Optional): จำนวนต่อหน้า (Default: 10)
-- **Default Pagination:** หากไม่ส่งค่ามา จะใช้ `page=1` และ `limit=10` เสมอ
+  - `sortBy` / `sortDirection` (Optional): จัดเรียงข้อมูล
+  - `page` (Default: 1), `limit` (Default: 10): ตัวแบ่งหน้า
 - **Response (200 OK):**
   ```json
   {
@@ -103,12 +92,8 @@
 
 ### 2.3 Retrieve One Owned Ticket
 - **Endpoint:** `GET /api/tickets/:id`
-- **Description:** ดึงข้อมูลรายละเอียดของตั๋ว 1 ใบ
-- **Query Parameters:** `?requesterId=1` (จำเป็นต้องส่งมาเพื่อเช็คสิทธิ์)
-- **Response (200 OK):** โครงสร้างข้อมูลตั๋วแบบเต็ม (พร้อมข้อมูลผู้แจ้ง, หมวดหมู่)
-- **Error Responses:**
-  - `403 Forbidden`: หากพยายามเข้าดูตั๋วที่ไม่ได้เป็นของ `requesterId` ที่ระบุ
-  - `404 Not Found`: ไม่พบตั๋ว
+- **Response (200 OK):** ข้อมูลตั๋ว 1 ใบพร้อมรายละเอียด
+- **Error Responses:** `403 Forbidden` หากดูตั๋วที่ไม่ใช่ของตนเอง
 
 ---
 
@@ -116,61 +101,48 @@
 
 ### 3.1 Upload an Attachment
 - **Endpoint:** `POST /api/tickets/:ticketId/attachments`
-- **Description:** อัปโหลดไฟล์แนบเข้าตั๋วที่ระบุ
-- **Request:** `multipart/form-data`
-  - `file`: ไฟล์ข้อมูล
-  - `requesterId`: ไอดีผู้ใช้ (สำหรับตรวจสอบสิทธิ์ว่าตั๋วนี้เป็นของเขาหรือไม่)
+- **Request:** `multipart/form-data` (ส่งแค่ตัว `file` ไม่ต้องส่ง `requesterId`)
 - **Validation Rules:**
-  - อนุญาตเฉพาะ .jpg, .jpeg, .png, .webp, .pdf
-  - ขนาดไฟล์สูงสุด 5 MB
-  - ตั๋ว 1 ใบมีไฟล์รวมกัน (Active) ได้ไม่เกิน 5 ไฟล์
+  - ขนาดไฟล์สูงสุด 5 MB และตั๋ว 1 ใบมีไฟล์รวมกันไม่เกิน 5 ไฟล์
+  - **การตรวจสอบประเภทไฟล์ Backend ต้องตรวจจากเนื้อหา "MIME Type" ของจริงเท่านั้น ห้ามเชื่อเพียงแค่นามสกุลไฟล์ (File Extension) ที่หน้าบ้านส่งมาเด็ดขาด**
 - **Response (201 Created):** คืนค่า Metadata ของไฟล์แนบ
-- **Error Responses:**
-  - `400 Bad Request`: ผิดประเภทไฟล์, ไฟล์ใหญ่เกิน, หรือโควต้าไฟล์เต็ม
-  - `403 Forbidden`: ไม่มีสิทธิ์อัปโหลดไฟล์ในตั๋วนี้
 
 ### 3.2 Retrieve Attachment Metadata
 - **Endpoint:** `GET /api/tickets/:ticketId/attachments`
-- **Query:** `?requesterId=1`
 - **Response (200 OK):** รายการไฟล์แนบ (ซ่อนไฟล์ที่ถูก Soft-removed)
 
 ### 3.3 Download an Active Attachment
 - **Endpoint:** `GET /api/attachments/:id/download`
-- **Query:** `?requesterId=1`
 - **Response (200 OK):** File Stream สำหรับดาวน์โหลด
-- **Error Responses:**
-  - `403 Forbidden`: ไม่มีสิทธิ์ดาวน์โหลด, หรือไฟล์นั้นถูก Soft-removed ไปแล้ว
 
 ### 3.4 Soft-remove an Attachment
 - **Endpoint:** `DELETE /api/attachments/:id`
-- **Query/Body:** `requesterId=1`
 - **Response (200 OK):**
   ```json
   { "message": "Attachment removed successfully" }
   ```
-- **Error Responses:** `403 Forbidden` หากพยายามลบไฟล์ของคนอื่น
 
 ---
-## Standard Error Response Schema
-กรณีที่เกิด Error ระดับฟิลด์ (400 Bad Request) ระบบจะส่งกลับมาในรูปแบบ:
+
+## 4. Standard Error Response Schema
+กรณีที่เกิด Error ระดับฟิลด์ ระบบจะส่งกลับมาในรูปแบบ:
 ```json
 {
   "error": "Validation Failed",
   "details": [
-    { "field": "summary", "message": "Summary must not exceed 100 characters" },
-    { "field": "categoryId", "message": "Category is required" }
+    { "field": "summary", "message": "Summary must not exceed 100 characters" }
   ]
 }
 ```
----
 
-## 4. HTTP Status Codes
+## 5. HTTP Status Codes
 | Status | Condition |
 |---|---|
 | **200 OK** | สำเร็จ (ดึงข้อมูล, ลบข้อมูล, ดาวน์โหลด) |
 | **201 Created** | สร้างทรัพยากรสำเร็จ (สร้างตั๋ว, อัปโหลดไฟล์) |
 | **400 Bad Request** | ข้อมูลส่งมาผิดรูปแบบ, Validation ไม่ผ่าน |
+| **401 Unauthorized** | ไม่ได้ส่ง HTTP Header `X-Requester-Id` มาใน Request หรือข้อมูลไม่ถูกต้อง |
 | **403 Forbidden** | Ownership Failure (พยายามเข้าถึงตั๋ว/ไฟล์ ของคนอื่น) |
 | **404 Not Found** | ไม่พบข้อมูลตั๋วหรือไฟล์ที่ร้องขอ |
 | **413 Payload Too Large** | อัปโหลดไฟล์ขนาดเกิน 5 MB |
-| **500 Internal Server Error** | เซิร์ฟเวอร์มีปัญหา (ควรหุ้ม Error ด้วยข้อความปลอดภัย) |
+| **500 Internal Server Error** | เซิร์ฟเวอร์มีปัญหา |

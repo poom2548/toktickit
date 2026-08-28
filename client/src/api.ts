@@ -1,4 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_BASE = "/api";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 export interface Category {
   id: number;
@@ -10,12 +14,34 @@ export interface SystemStatus {
   categories: Category[];
 }
 
-// Issue 2 + Issue 4 — call the backend.
-// Steps: fetch `${API_URL}/api/health`; if not ok, throw.
-//        then fetch `${API_URL}/api/categories`; if not ok, throw.
-//        return { online: true, categories }.
-// Throwing on failure lets the UI show a single Offline/error state.
+/** A requester returned by GET /api/requesters/active */
+export interface Requester {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// ---------------------------------------------------------------------------
+// System check (Issue 2 + Issue 4)
+// ---------------------------------------------------------------------------
 export async function checkSystem(): Promise<SystemStatus> {
-  // TODO(Issue 2 & 4): implement the two fetch calls described above.
-  throw new Error("checkSystem not implemented yet");
+  const healthRes = await fetch(`${API_BASE}/health`);
+  if (!healthRes.ok) throw new Error("Health check failed");
+
+  const categoriesRes = await fetch(`${API_BASE}/categories`);
+  if (!categoriesRes.ok) throw new Error("Failed to fetch categories");
+
+  const categories: Category[] = await categoriesRes.json();
+  return { online: true, categories };
+}
+
+// ---------------------------------------------------------------------------
+// Requester API (Issue 2)
+// ---------------------------------------------------------------------------
+
+/** Fetch all active requesters for the Dev Requester Selector. */
+export async function getActiveRequesters(): Promise<Requester[]> {
+  const res = await fetch(`${API_BASE}/requesters/active`);
+  if (!res.ok) throw new Error("Failed to fetch active requesters");
+  return res.json() as Promise<Requester[]>;
 }

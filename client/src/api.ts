@@ -22,6 +22,38 @@ export interface Requester {
 }
 
 // ---------------------------------------------------------------------------
+// Auth header helper
+// ---------------------------------------------------------------------------
+
+/** localStorage key where the active requester context is stored. */
+const STORAGE_KEY = "toktickit_requester";
+
+/**
+ * Reads the active requester from localStorage and returns the
+ * `X-Requester-Id` HTTP header object ready to be spread into `fetch()`.
+ *
+ * Returns an empty object when no requester is stored so that public-route
+ * callers are unaffected.
+ *
+ * @example
+ * const res = await fetch(`${API_BASE}/tickets`, {
+ *   headers: { ...getRequesterHeaders(), "Content-Type": "application/json" },
+ * });
+ */
+export function getRequesterHeaders(): { "X-Requester-Id": string } | Record<string, never> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as { id?: unknown };
+    const id = Number(parsed?.id);
+    if (!id || isNaN(id)) return {};
+    return { "X-Requester-Id": String(id) };
+  } catch {
+    return {};
+  }
+}
+
+// ---------------------------------------------------------------------------
 // System check (Issue 2 + Issue 4)
 // ---------------------------------------------------------------------------
 export async function checkSystem(): Promise<SystemStatus> {

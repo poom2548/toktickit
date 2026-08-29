@@ -75,9 +75,22 @@ export default function App() {
     setCategories([]);
   }
 
-  // ---- If no requester is selected → show the selector ----
+  // ---- If no requester is selected → show the selector (dev only) ----
   if (!requester) {
-    return <DevRequesterSelector onSelect={setRequester} />;
+    // DevRequesterSelector must not be accessible in production.
+    // `import.meta.env.MODE` is "development" in `vite dev` and "production"
+    // in `vite build`, so this guard is evaluated at runtime after Vite
+    // replaces the env variable at build time.
+    if (import.meta.env.MODE !== "production") {
+      return <DevRequesterSelector onSelect={setRequester} />;
+    }
+
+    // Production fallback — show a neutral unauthenticated state.
+    return (
+      <div className="container py-5 text-center" style={{ maxWidth: 480 }}>
+        <p className="text-muted">You are not authenticated. Please contact your administrator.</p>
+      </div>
+    );
   }
 
   // ---- Main dashboard ----

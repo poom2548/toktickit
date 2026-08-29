@@ -156,6 +156,13 @@ export async function createTicket(
     // --- Create ticket inside a transaction to safely generate ticketNumber ---
     const ticket = await prisma.$transaction(async (tx) => {
       // Count ALL existing tickets to determine next sequential number
+      // TODO: Fix race condition for ticket generation.
+      // Using count() + 1 inside a transaction is still susceptible to a
+      // TOCTOU (time-of-check/time-of-use) race: two concurrent transactions
+      // can both read the same count before either commits, producing duplicate
+      // ticketNumber values. The correct fix is to use a DB-level auto-increment
+      // sequence (e.g. a dedicated `TicketSequence` table with SELECT FOR UPDATE,
+      // or a Prisma raw query against a PostgreSQL SEQUENCE).
       const count = await tx.ticket.count();
       const ticketNumber = `TKT-${String(count + 1).padStart(4, "0")}`;
 

@@ -1,6 +1,21 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../prisma.js";
 
+// ---------------------------------------------------------------------------
+// Type Augmentation — Express Locals
+// ---------------------------------------------------------------------------
+// Extends Express's built-in `res.locals` interface so TypeScript knows that
+// `requesterId` is a `number` when set by authMiddleware. Without this,
+// strict-mode TS raises an implicit-any error on every read/write of the field.
+declare global {
+  namespace Express {
+    interface Locals {
+      requesterId: number;
+    }
+  }
+}
+
+
 /**
  * Auth Middleware — Issue 2
  *

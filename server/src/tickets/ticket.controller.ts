@@ -11,10 +11,13 @@ interface ValidationError {
   message: string;
 }
 
+const VALID_PRIORITIES = ["Low", "Medium", "High"] as const;
+type Priority = (typeof VALID_PRIORITIES)[number];
+
 function validateTicketBody(body: Record<string, unknown>): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  const { summary, description, categoryId, relatedSystemId } = body;
+  const { summary, description, categoryId, relatedSystemId, requestedPriority } = body;
 
   if (!summary || typeof summary !== "string" || summary.trim() === "") {
     errors.push({ field: "summary", message: "Summary is required." });
@@ -36,8 +39,20 @@ function validateTicketBody(body: Record<string, unknown>): ValidationError[] {
     errors.push({ field: "relatedSystemId", message: "A valid relatedSystemId is required." });
   }
 
+  if (
+    !requestedPriority ||
+    typeof requestedPriority !== "string" ||
+    !(VALID_PRIORITIES as readonly string[]).includes(requestedPriority)
+  ) {
+    errors.push({
+      field: "requestedPriority",
+      message: "Priority must be one of: Low, Medium, or High.",
+    });
+  }
+
   return errors;
 }
+
 
 // ---------------------------------------------------------------------------
 // GET /api/tickets
@@ -122,11 +137,12 @@ export async function createTicket(
       return;
     }
 
-    const { summary, description, categoryId, relatedSystemId } = req.body as {
+    const { summary, description, categoryId, relatedSystemId, requestedPriority } = req.body as {
       summary: string;
       description: string;
       categoryId: number;
       relatedSystemId: number;
+      requestedPriority: Priority;
     };
 
     // --- Verify FKs exist ---
@@ -153,18 +169,14 @@ export async function createTicket(
       return;
     }
 
-    // --- Create ticket inside a transaction to safely generate ticketNumber ---
+    // --- Create ticket inside a transaction using a PostgreSQL SEQUENCE ---
+    // Using nextval('ticket_number_seq') guarantees a unique, monotonically
+    // increasing number even under high concurrency — no TOCTOU race possible.
     const ticket = await prisma.$transaction(async (tx) => {
-      // Count ALL existing tickets to determine next sequential number
-      // TODO: Fix race condition for ticket generation.
-      // Using count() + 1 inside a transaction is still susceptible to a
-      // TOCTOU (time-of-check/time-of-use) race: two concurrent transactions
-      // can both read the same count before either commits, producing duplicate
-      // ticketNumber values. The correct fix is to use a DB-level auto-increment
-      // sequence (e.g. a dedicated `TicketSequence` table with SELECT FOR UPDATE,
-      // or a Prisma raw query against a PostgreSQL SEQUENCE).
-      const count = await tx.ticket.count();
-      const ticketNumber = `TKT-${String(count + 1).padStart(4, "0")}`;
+      const result = await tx.$queryRaw<[{ nextval: bigint }]>`
+        SELECT nextval('ticket_number_seq')
+      `;
+      const ticketNumber = `TKT-${String(Number(result[0].nextval)).padStart(4, "0")}`;
 
       return tx.ticket.create({
         data: {
@@ -172,6 +184,7 @@ export async function createTicket(
           summary: summary.trim(),
           description: description.trim(),
           status: "New",
+          requestedPriority,
           requesterId,
           categoryId: Number(categoryId),
           relatedSystemId: Number(relatedSystemId),
@@ -188,3 +201,4 @@ export async function createTicket(
     next(err);
   }
 }
+

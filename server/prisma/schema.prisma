@@ -46,16 +46,17 @@ model Requester {
 // Ticket — the core entity
 // ---------------------------------------------------------------------------
 model Ticket {
-  id              Int      @id @default(autoincrement())
-  ticketNumber    String   @unique          // e.g. TKT-0001
-  summary         String                   // max 100 chars (validated in controller)
-  description     String                   // max 1000 chars (validated in controller)
-  status          String   @default("New")
-  requesterId     Int
-  categoryId      Int
-  relatedSystemId Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  ticketNumber      String   @unique          // e.g. TKT-0001
+  summary           String                   // max 100 chars (validated in controller)
+  description       String                   // max 1000 chars (validated in controller)
+  status            String   @default("New")
+  requestedPriority String   @default("Low") // Low | Medium | High (validated in controller)
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   requester     Requester     @relation(fields: [requesterId], references: [id])
   category      Category      @relation(fields: [categoryId], references: [id])

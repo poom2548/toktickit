@@ -38,6 +38,23 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
+// Issue 3 — Related Systems list (used by Create Ticket form)
+// ---------------------------------------------------------------------------
+app.get("/api/related-systems", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const systems = await prisma.relatedSystem.findMany({
+      select: { id: true, name: true },
+      orderBy: { id: "asc" },
+    });
+    res.status(200).json(systems);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch related systems" });
+  }
+});
+
+
+// ---------------------------------------------------------------------------
 // Issue 2 — Requester routes (public — no auth required)
 // GET /api/requesters/active
 // ---------------------------------------------------------------------------

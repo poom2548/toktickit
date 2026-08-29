@@ -77,3 +77,92 @@ export async function getActiveRequesters(): Promise<Requester[]> {
   if (!res.ok) throw new Error("Failed to fetch active requesters");
   return res.json() as Promise<Requester[]>;
 }
+
+// ---------------------------------------------------------------------------
+// Ticket API (Issue 3)
+// ---------------------------------------------------------------------------
+
+export type Priority = "Low" | "Medium" | "High";
+
+export interface RelatedSystem {
+  id: number;
+  name: string;
+}
+
+export interface CreateTicketPayload {
+  categoryId: number;
+  relatedSystemId: number;
+  requestedPriority: Priority;
+  summary: string;
+  description: string;
+}
+
+export interface Ticket {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  status: string;
+  requestedPriority: Priority;
+  categoryId: number;
+  relatedSystemId: number;
+  createdAt: string;
+  updatedAt: string;
+  category?: { id: number; name: string };
+  relatedSystem?: { id: number; name: string };
+}
+
+/**
+ * Typed API error — thrown by createTicket on HTTP 400.
+ * Carries the field-level `details` array from the server's error response
+ * so the form component can map errors directly to specific fields.
+ */
+export class ApiError extends Error {
+  status: number;
+  details: Array<{ field: string; message: string }>;
+
+  constructor(
+    message: string,
+    status: number,
+    details: Array<{ field: string; message: string }> = []
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.details = details;
+  }
+}
+
+/** Fetch all related systems for the Create Ticket form dropdown. */
+export async function getRelatedSystems(): Promise<RelatedSystem[]> {
+  const res = await fetch(`${API_BASE}/related-systems`);
+  if (!res.ok) throw new Error("Failed to fetch related systems");
+  return res.json() as Promise<RelatedSystem[]>;
+}
+
+/**
+ * Submit a new ticket.
+ * - On success (201) returns the created Ticket.
+ * - On validation failure (400) throws ApiError with field-level details.
+ */
+export async function createTicket(payload: CreateTicketPayload): Promise<Ticket> {
+  const res = await fetch(`${API_BASE}/tickets`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getRequesterHeaders(),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as {
+      error?: string;
+      details?: Array<{ field: string; message: string }>;
+    };
+    throw new ApiError(body.error ?? "Request failed", res.status, body.details ?? []);
+  }
+
+  return res.json() as Promise<Ticket>;
+}
+

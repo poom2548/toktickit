@@ -11,16 +11,71 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Issue 3 — Create and seed IT request categories
-// Define a Category model with:
-//   id        Int      @id @default(autoincrement())
-//   name      String   @unique
-//   createdAt DateTime @default(now())
-// Then run:  npx prisma migrate dev --name init
-// TODO(Issue 3): add the Category model below.
+// Category — IT request categories (Issue 3)
 // ---------------------------------------------------------------------------
 model Category {
-  id        Int      @id @default(autoincrement()) // ใช้ Int รันเลขอัตโนมัติ 
-  name      String   @unique                       // @unique ทำให้ชื่อหมวดหมู่ห้ามซ้ำกัน
-  createdAt DateTime @default(now())               // เก็บเวลาที่ถูกสร้างอัตโนมัติ
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// RelatedSystem — the system the ticket is related to
+// ---------------------------------------------------------------------------
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// Requester — the person raising tickets (Issue 2: Dev Requester Context)
+// ---------------------------------------------------------------------------
+model Requester {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+// ---------------------------------------------------------------------------
+// Ticket — the core entity
+// ---------------------------------------------------------------------------
+model Ticket {
+  id              Int      @id @default(autoincrement())
+  ticketNumber    String   @unique          // e.g. TKT-0001
+  summary         String                   // max 100 chars (validated in controller)
+  description     String                   // max 1000 chars (validated in controller)
+  status          String   @default("New")
+  requesterId     Int
+  categoryId      Int
+  relatedSystemId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  requester     Requester     @relation(fields: [requesterId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
+  attachments   Attachment[]
+}
+
+// ---------------------------------------------------------------------------
+// Attachment — files attached to a ticket (soft-delete enabled)
+// ---------------------------------------------------------------------------
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  filename  String
+  mimetype  String
+  size      Int
+  isRemoved Boolean  @default(false)
+  deletedAt DateTime?
+  deletedBy String?
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
 }

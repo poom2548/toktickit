@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Category, Requester } from "./api.js";
 import DevRequesterSelector from "./DevRequesterSelector.js";
 import CreateTicketForm from "./CreateTicketForm.js";
+import MyTicketsPage from "./MyTicketsPage.js";
 
 
 // UI states for the main dashboard
@@ -38,6 +39,8 @@ export default function App() {
   const [healthError, setHealthError] = useState<string | null>(null);
   // ---- Create Ticket form toggle (Issue 3) ----
   const [showCreateForm, setShowCreateForm] = useState(false);
+  // ---- My Tickets page toggle (Issue 4) ----
+  const [showMyTickets, setShowMyTickets] = useState(false);
 
 
   useEffect(() => {
@@ -79,6 +82,7 @@ export default function App() {
     setHealthError(null);
     setCategories([]);
     setShowCreateForm(false);
+    setShowMyTickets(false);
   }
 
   // ---- If no requester is selected → show the selector (dev only) ----
@@ -101,23 +105,68 @@ export default function App() {
 
   // ---- Main dashboard ----
   return (
-    <div className="container py-5" style={{ maxWidth: 720 }}>
-      {/* Header row with Switch User + New Ticket buttons */}
+    <div className="container py-5" style={{ maxWidth: 900 }}>
+      {/* Header row */}
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h1 className="h3 mb-0">
           TokTickIT <span className="text-success">IT Service Desk</span>
         </h1>
-        <div className="d-flex gap-2 align-items-center">
+        <div className="d-flex gap-2 align-items-center flex-wrap">
+          {/* New Ticket button — hidden when create form is already open */}
           {!showCreateForm && (
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"
               style={{ background: "#006B3C", border: "none", borderRadius: 8 }}
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setShowMyTickets(false);
+                setShowCreateForm(true);
+              }}
             >
               ➕ New Ticket
             </button>
           )}
+
+          {/* My Tickets toggle — hidden while already on that page or create form */}
+          {!showMyTickets && !showCreateForm && (
+            <button
+              type="button"
+              className="btn btn-sm fw-semibold text-white"
+              style={{ background: "#0d6efd", border: "none", borderRadius: 8 }}
+              onClick={async () => {
+                setShowCreateForm(false);
+                // Pre-fetch categories if not yet loaded so filter dropdown is ready
+                if (categories.length === 0) {
+                  try {
+                    const res = await fetch("/api/categories");
+                    if (res.ok) setCategories(await res.json());
+                  } catch {
+                    // ignore — MyTicketsPage will still work without categories in filter
+                  }
+                }
+                setShowMyTickets(true);
+              }}
+            >
+              🎟️ My Tickets
+            </button>
+          )}
+
+          {/* Back button — shown while in My Tickets or Create Ticket views */}
+          {(showMyTickets || showCreateForm) && (
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              style={{ borderRadius: 8 }}
+              onClick={() => {
+                setShowMyTickets(false);
+                setShowCreateForm(false);
+              }}
+            >
+              ← Back
+            </button>
+          )}
+
+          {/* Switch user */}
           <button
             type="button"
             className="btn btn-outline-secondary btn-sm"
@@ -129,14 +178,29 @@ export default function App() {
         </div>
       </div>
 
-      {/* Create Ticket Form (shown when user clicks "New Ticket") */}
-      {showCreateForm ? (
+      {/* ── My Tickets page (Issue 4) ── */}
+      {showMyTickets && (
+        <MyTicketsPage
+          requester={requester}
+          categories={categories}
+          onNewTicket={() => {
+            setShowMyTickets(false);
+            setShowCreateForm(true);
+          }}
+        />
+      )}
+
+      {/* ── Create Ticket form (Issue 3) ── */}
+      {showCreateForm && (
         <CreateTicketForm
           requester={requester}
           categories={categories}
           onDone={() => setShowCreateForm(false)}
         />
-      ) : (
+      )}
+
+      {/* ── Dashboard (default view) ── */}
+      {!showMyTickets && !showCreateForm && (
         <>
           {/* Health banner */}
           <div className="mb-4">
@@ -192,4 +256,3 @@ export default function App() {
     </div>
   );
 }
-

@@ -58,9 +58,20 @@ function validateTicketBody(body: Record<string, unknown>): ValidationError[] {
 // GET /api/tickets
 // ---------------------------------------------------------------------------
 
+const VALID_STATUSES = ["New", "In Progress", "Resolved", "Closed"] as const;
+
 /**
- * Returns a paginated list of tickets owned by the authenticated requester.
- * Query params: page (default 1), limit (default 10)
+ * Returns a paginated, filterable list of tickets for the authenticated requester.
+ *
+ * Query params:
+ *   search     — case-insensitive substring match on summary OR description
+ *   categoryId — filter by category ID
+ *   priority   — filter by requestedPriority (Low | Medium | High)
+ *   status     — filter by status (New | In Progress | Resolved | Closed)
+ *   page       — page number, default 1
+ *   limit      — items per page, default 10, max 50
+ *
+ * Always returns 200 OK; empty results produce data: [] with valid pagination.
  */
 export async function getTickets(
   req: Request,
@@ -71,13 +82,47 @@ export async function getTickets(
     const prisma = getPrisma();
     const requesterId: number = res.locals.requesterId;
 
+    // ── Pagination ──────────────────────────────────────────────────────────
     const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10) || 1);
-    const limit = Math.max(1, Math.min(100, parseInt(String(req.query.limit ?? "10"), 10) || 10));
+    const limit = Math.max(1, Math.min(50, parseInt(String(req.query.limit ?? "10"), 10) || 10));
     const skip = (page - 1) * limit;
 
-    const [tickets, total] = await Promise.all([
+    // ── Filters ─────────────────────────────────────────────────────────────
+    const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+    const rawCategoryId = req.query.categoryId;
+    const categoryId =
+      rawCategoryId !== undefined && !isNaN(Number(rawCategoryId))
+        ? Number(rawCategoryId)
+        : undefined;
+    const priority =
+      typeof req.query.priority === "string" &&
+      (VALID_PRIORITIES as readonly string[]).includes(req.query.priority)
+        ? req.query.priority
+        : undefined;
+    const status =
+      typeof req.query.status === "string" &&
+      (VALID_STATUSES as readonly string[]).includes(req.query.status)
+        ? req.query.status
+        : undefined;
+
+    // Build where clause — always scoped to the authenticated requester
+    const where = {
+      requesterId,
+      ...(categoryId !== undefined && { categoryId }),
+      ...(priority !== undefined && { requestedPriority: priority }),
+      ...(status !== undefined && { status }),
+      ...(search !== undefined && search.length > 0 && {
+        OR: [
+          { summary: { contains: search, mode: "insensitive" as const } },
+          { description: { contains: search, mode: "insensitive" as const } },
+        ],
+      }),
+    };
+
+    // ── Query ───────────────────────────────────────────────────────────────
+    const [tickets, totalItems] = await Promise.all([
       prisma.ticket.findMany({
-        where: { requesterId },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -90,16 +135,16 @@ export async function getTickets(
           },
         },
       }),
-      prisma.ticket.count({ where: { requesterId } }),
+      prisma.ticket.count({ where }),
     ]);
 
     res.status(200).json({
       data: tickets,
       pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
       },
     });
   } catch (err) {

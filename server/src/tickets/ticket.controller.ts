@@ -247,3 +247,58 @@ export async function createTicket(
   }
 }
 
+// ---------------------------------------------------------------------------
+// GET /api/tickets/:id
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the full ticket details including its active attachments.
+ * Validates ownership against the authenticated requester.
+ */
+export async function getTicketById(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    const requesterId: number = res.locals.requesterId;
+    const ticketId = parseInt(req.params.id, 10);
+
+    if (isNaN(ticketId)) {
+      const err: AppError = Object.assign(new Error("Invalid ticket id"), { status: 400 });
+      return next(err);
+    }
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: { select: { id: true, name: true } },
+        relatedSystem: { select: { id: true, name: true } },
+        attachments: {
+          where: { isRemoved: false },
+          select: { id: true, filename: true, mimetype: true, size: true, createdAt: true },
+        },
+      },
+    });
+
+    if (!ticket) {
+      const err: AppError = Object.assign(new Error("Ticket not found"), { status: 404 });
+      return next(err);
+    }
+
+    // --- Ownership check ---
+    if (ticket.requesterId !== requesterId) {
+      const err: AppError = Object.assign(
+        new Error("Forbidden: you do not own this ticket"),
+        { status: 403 }
+      );
+      return next(err);
+    }
+
+    res.status(200).json(ticket);
+  } catch (err) {
+    next(err);
+  }
+}
+

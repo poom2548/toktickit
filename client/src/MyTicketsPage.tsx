@@ -75,9 +75,13 @@ function formatDate(iso: string) {
 // ---------------------------------------------------------------------------
 // Desktop Table Row
 // ---------------------------------------------------------------------------
-function TicketTableRow({ ticket }: { ticket: Ticket }) {
+function TicketTableRow({ ticket, onClick }: { ticket: Ticket; onClick: (id: number) => void }) {
   return (
-    <tr>
+    <tr
+      onClick={() => onClick(ticket.id)}
+      style={{ cursor: "pointer" }}
+      className="ticket-row"
+    >
       <td className="text-muted small" style={{ whiteSpace: "nowrap" }}>
         {ticket.ticketNumber}
       </td>
@@ -109,12 +113,13 @@ function TicketTableRow({ ticket }: { ticket: Ticket }) {
 // ---------------------------------------------------------------------------
 // Mobile Card
 // ---------------------------------------------------------------------------
-function TicketCard({ ticket }: { ticket: Ticket }) {
+function TicketCard({ ticket, onClick }: { ticket: Ticket; onClick: (id: number) => void }) {
   return (
     <div
-      className="card mb-2 border-0 shadow-sm"
-      style={{ borderRadius: 10 }}
+      className="card mb-2 border-0 shadow-sm ticket-card"
+      style={{ borderRadius: 10, cursor: "pointer" }}
       data-testid="ticket-card"
+      onClick={() => onClick(ticket.id)}
     >
       <div className="card-body py-3 px-3">
         {/* Ticket number + date */}
@@ -326,6 +331,7 @@ interface Props {
   requester: Requester;
   categories: Category[];
   onNewTicket: () => void;
+  onViewTicket: (id: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +348,7 @@ interface Props {
  * - Pagination controls
  * - "No tickets found" empty state
  */
-export default function MyTicketsPage({ requester: _requester, categories, onNewTicket }: Props) {
+export default function MyTicketsPage({ requester: _requester, categories, onNewTicket, onViewTicket }: Props) {
   // ── Filter state ──────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -520,7 +526,7 @@ export default function MyTicketsPage({ requester: _requester, categories, onNew
                   </thead>
                   <tbody>
                     {tickets.map((ticket) => (
-                      <TicketTableRow key={ticket.id} ticket={ticket} />
+                      <TicketTableRow key={ticket.id} ticket={ticket} onClick={onViewTicket} />
                     ))}
                   </tbody>
                 </table>
@@ -532,7 +538,7 @@ export default function MyTicketsPage({ requester: _requester, categories, onNew
           {tickets.length > 0 && (
             <div className="d-md-none" data-testid="card-view">
               {tickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} />
+                <TicketCard key={ticket.id} ticket={ticket} onClick={onViewTicket} />
               ))}
             </div>
           )}

@@ -68,15 +68,16 @@ model Ticket {
 // Attachment — files attached to a ticket (soft-delete enabled)
 // ---------------------------------------------------------------------------
 model Attachment {
-  id        Int      @id @default(autoincrement())
-  ticketId  Int
-  filename  String
-  mimetype  String
-  size      Int
-  isRemoved Boolean  @default(false)
-  deletedAt DateTime?
-  deletedBy String?
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  ticketId    Int
+  filename    String
+  mimetype    String
+  size        Int
+  storagePath String   @default("")   // on-disk path; empty for legacy rows
+  isRemoved   Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  createdAt   DateTime @default(now())
 
   ticket Ticket @relation(fields: [ticketId], references: [id])
 }

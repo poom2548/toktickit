@@ -110,6 +110,7 @@ export interface Ticket {
   updatedAt: string;
   category?: { id: number; name: string };
   relatedSystem?: { id: number; name: string };
+  attachments?: Attachment[];
 }
 
 /**
@@ -235,4 +236,85 @@ export async function getTickets(params: GetTicketsParams = {}): Promise<TicketL
   }
 
   return res.json() as Promise<TicketListResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Ticket Detail & Attachments API (Issue 5)
+// ---------------------------------------------------------------------------
+
+export interface Attachment {
+  id: number;
+  ticketId: number;
+  filename: string;
+  mimetype: string;
+  size: number;
+  createdAt: string;
+}
+
+export async function getTicketById(ticketId: number): Promise<Ticket> {
+  const res = await fetch(`${API_BASE}/tickets/${ticketId}`, {
+    headers: { ...getRequesterHeaders() },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new ApiError(body.error ?? "Failed to fetch ticket", res.status);
+  }
+  return res.json() as Promise<Ticket>;
+}
+
+export async function uploadAttachment(ticketId: number, file: File): Promise<Attachment> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE}/tickets/${ticketId}/attachments`, {
+    method: "POST",
+    headers: {
+      ...getRequesterHeaders(),
+    },
+    body: formData, // fetch will automatically set the correct Content-Type with boundary
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new ApiError(body.error ?? "Failed to upload attachment", res.status);
+  }
+  return res.json() as Promise<Attachment>;
+}
+
+export async function removeAttachment(attachmentId: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: { ...getRequesterHeaders() },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new ApiError(body.error ?? "Failed to remove attachment", res.status);
+  }
+}
+
+/**
+ * Helper to fetch the attachment file as a blob using the auth header,
+ * then trigger a download in the browser.
+ */
+export async function downloadAttachment(attachmentId: number, filename: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/attachments/${attachmentId}/download`, {
+    headers: { ...getRequesterHeaders() },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new ApiError(body.error ?? "Failed to download attachment", res.status);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

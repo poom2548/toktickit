@@ -528,3 +528,293 @@ describe("Empty state — no tickets found", () => {
     expect(screen.queryByRole("button", { name: /clear filters/i })).not.toBeInTheDocument();
   });
 });
+
+// ===========================================================================
+// API Error Handling
+// ===========================================================================
+
+describe("API error handling — getTickets rejects", () => {
+  it("displays the error banner and hides ticket content on a generic Network Error", async () => {
+    const { getTickets } = await import("../../src/api");
+    vi.mocked(getTickets).mockRejectedValue(new Error("Network Error"));
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    // Error banner must appear with the descriptive message from the catch block
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /unable to load tickets/i
+    );
+
+    // Loading spinner must be gone
+    expect(screen.queryByText(/loading tickets/i)).not.toBeInTheDocument();
+
+    // Neither layout view should be rendered after a failed fetch
+    expect(screen.queryByTestId("table-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-view")).not.toBeInTheDocument();
+
+    // Pagination must not appear either
+    expect(screen.queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /next/i })).not.toBeInTheDocument();
+  });
+
+  it("displays the error banner on a simulated 401 Unauthorized rejection", async () => {
+    const { getTickets } = await import("../../src/api");
+    // Simulate the ApiError that getTickets() throws on a non-2xx response
+    const authError = new Error("Unauthorized: X-Requester-Id header is required");
+    vi.mocked(getTickets).mockRejectedValue(authError);
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    // The component's catch block renders a generic user-friendly message
+    // regardless of the underlying error type — assert that message
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /unable to load tickets/i
+    );
+
+    // Ticket content must not be rendered on auth failure
+    expect(screen.queryByTestId("table-view")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("card-view")).not.toBeInTheDocument();
+  });
+
+  it("still renders the filter bar so the user can retry after an API error", async () => {
+    const { getTickets } = await import("../../src/api");
+    vi.mocked(getTickets).mockRejectedValue(new Error("Network Error"));
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    // Filter bar must remain visible so the user can change filters and retry
+    expect(
+      screen.getByRole("button", { name: /apply filters/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /reset filters/i })
+    ).toBeInTheDocument();
+  });
+
+  it("clears the error banner and reloads successfully after the user submits a new search", async () => {
+    const user = userEvent.setup();
+    const { getTickets } = await import("../../src/api");
+    const mockFn = vi.mocked(getTickets);
+
+    // First call fails, second call (after retry with a new search term) succeeds
+    mockFn
+      .mockRejectedValueOnce(new Error("Network Error"))
+      .mockResolvedValue({
+        data: [makeTicket()],
+        pagination: makePagination({ totalItems: 1 }),
+      });
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    // Wait for the error banner to appear from the first (failed) call
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    // Type a new search term to change the applied state, then re-submit.
+    // Simply clicking Apply without changing any input would not change
+    // the appliedSearch state (still ""), so useEffect would not re-fire.
+    const searchInput = screen.getByRole("searchbox", { hidden: true });
+    await user.clear(searchInput);
+    await user.type(searchInput, "retry search");
+
+    await user.click(screen.getByRole("button", { name: /apply filters/i }));
+
+    // Error banner must disappear and ticket data must now be visible
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("table-view")).toBeInTheDocument();
+    expect(within(screen.getByTestId("table-view")).getByText("TKT-0001")).toBeInTheDocument();
+  });
+});
+
+// ===========================================================================
+// Pagination — hidden in empty / single-page state
+// ===========================================================================
+
+describe("Pagination controls — visibility rules", () => {
+  it("hides Previous and Next buttons when totalPages is 0 (empty result set)", async () => {
+    const { getTickets } = await import("../../src/api");
+    vi.mocked(getTickets).mockResolvedValue({
+      data: [],
+      pagination: makePagination({ totalItems: 0, totalPages: 0 }),
+    });
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    // Wait for the empty state to render (spinner gone, data resolved)
+    await waitFor(() => {
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+    });
+
+    // Pagination controls must be completely absent — not just disabled
+    expect(
+      screen.queryByRole("button", { name: /previous/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /next/i })
+    ).not.toBeInTheDocument();
+
+    // Page indicator text must also not appear
+    expect(screen.queryByText(/page \d+ of \d+/i)).not.toBeInTheDocument();
+  });
+
+  it("hides Previous and Next buttons when totalPages is 1 (single page of results)", async () => {
+    const { getTickets } = await import("../../src/api");
+    vi.mocked(getTickets).mockResolvedValue({
+      data: [makeTicket()],
+      // Exactly 1 page — PaginationControls should render nothing
+      pagination: makePagination({ totalItems: 1, totalPages: 1 }),
+    });
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByText(/loading tickets/i)).not.toBeInTheDocument()
+    );
+
+    // Ticket renders correctly
+    expect(screen.getByTestId("table-view")).toBeInTheDocument();
+
+    // But no pagination controls since there is only one page
+    expect(
+      screen.queryByRole("button", { name: /previous/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /next/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/page \d+ of \d+/i)).not.toBeInTheDocument();
+  });
+
+  it("shows Previous and Next buttons and the page indicator when totalPages >= 2", async () => {
+    const { getTickets } = await import("../../src/api");
+    vi.mocked(getTickets).mockResolvedValue({
+      data: Array.from({ length: 10 }, (_, i) =>
+        makeTicket({ id: i + 1, ticketNumber: `TKT-${String(i + 1).padStart(4, "0")}` })
+      ),
+      pagination: makePagination({ totalItems: 25, totalPages: 3, currentPage: 2 }),
+    });
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByText(/loading tickets/i)).not.toBeInTheDocument()
+    );
+
+    // Both nav buttons must be present and the page indicator must be correct
+    expect(screen.getByRole("button", { name: /previous/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+    expect(screen.getByText(/page 2 of 3/i)).toBeInTheDocument();
+  });
+
+  it("disables Previous on the first page and Next on the last page", async () => {
+    const user = userEvent.setup();
+    const { getTickets } = await import("../../src/api");
+    const mockFn = vi.mocked(getTickets);
+
+    // First call: page 1 of 3
+    mockFn.mockResolvedValueOnce({
+      data: [makeTicket()],
+      pagination: makePagination({ totalItems: 25, totalPages: 3, currentPage: 1 }),
+    });
+
+    render(
+      <MyTicketsPage
+        requester={REQUESTER}
+        categories={CATEGORIES}
+        onNewTicket={vi.fn()}
+      />
+    );
+
+    // Wait for page 1 to render
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /previous/i })).toBeInTheDocument()
+    );
+
+    // On page 1 → Previous must be disabled, Next must be enabled
+    expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
+
+    // Set up the mock for the next click (page 2)
+    mockFn.mockResolvedValueOnce({
+      data: [makeTicket()],
+      pagination: makePagination({ totalItems: 25, totalPages: 3, currentPage: 2 }),
+    });
+
+    await user.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/page 2 of 3/i)).toBeInTheDocument()
+    );
+
+    // Set up the mock for the second click (page 3 — last page)
+    mockFn.mockResolvedValueOnce({
+      data: [makeTicket()],
+      pagination: makePagination({ totalItems: 25, totalPages: 3, currentPage: 3 }),
+    });
+
+    await user.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/page 3 of 3/i)).toBeInTheDocument()
+    );
+
+    // On the last page → Previous must be enabled, Next must be disabled
+    expect(screen.getByRole("button", { name: /previous/i })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+  });
+});

@@ -166,3 +166,73 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
   return res.json() as Promise<Ticket>;
 }
 
+// ---------------------------------------------------------------------------
+// Ticket List API (Issue 4)
+// ---------------------------------------------------------------------------
+
+/** Pagination metadata returned by GET /api/tickets */
+export interface PaginationMeta {
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+/** Full response envelope for GET /api/tickets */
+export interface TicketListResponse {
+  data: Ticket[];
+  pagination: PaginationMeta;
+}
+
+/** Optional query parameters for GET /api/tickets */
+export interface GetTicketsParams {
+  search?: string;
+  categoryId?: number;
+  priority?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Fetch the current requester's tickets with optional search, filter, and pagination.
+ *
+ * Only defined, non-empty params are appended to the query string so the
+ * server receives clean input (no stray `&search=` keys).
+ */
+export async function getTickets(params: GetTicketsParams = {}): Promise<TicketListResponse> {
+  const qs = new URLSearchParams();
+
+  if (params.search && params.search.trim().length > 0) {
+    qs.set("search", params.search.trim());
+  }
+  if (params.categoryId !== undefined) {
+    qs.set("categoryId", String(params.categoryId));
+  }
+  if (params.priority) {
+    qs.set("priority", params.priority);
+  }
+  if (params.status) {
+    qs.set("status", params.status);
+  }
+  if (params.page !== undefined) {
+    qs.set("page", String(params.page));
+  }
+  if (params.limit !== undefined) {
+    qs.set("limit", String(params.limit));
+  }
+
+  const query = qs.toString();
+  const url = query ? `${API_BASE}/tickets?${query}` : `${API_BASE}/tickets`;
+
+  const res = await fetch(url, {
+    headers: { ...getRequesterHeaders() },
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new ApiError(body.error ?? "Failed to fetch tickets", res.status);
+  }
+
+  return res.json() as Promise<TicketListResponse>;
+}

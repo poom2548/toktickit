@@ -3,7 +3,7 @@ import { Category, Requester } from "./api.js";
 import DevRequesterSelector from "./DevRequesterSelector.js";
 import CreateTicketForm from "./CreateTicketForm.js";
 import MyTicketsPage from "./MyTicketsPage.js";
-
+import TicketDetailPage from "./TicketDetailPage.js";
 
 // UI states for the main dashboard
 type UiState = "idle" | "loading" | "success" | "error";
@@ -37,11 +37,10 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
-  // ---- Create Ticket form toggle (Issue 3) ----
+  // ---- View toggles ----
   const [showCreateForm, setShowCreateForm] = useState(false);
-  // ---- My Tickets page toggle (Issue 4) ----
   const [showMyTickets, setShowMyTickets] = useState(false);
-
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!requester) return; // Don't poll health until a requester is selected
@@ -83,25 +82,24 @@ export default function App() {
     setCategories([]);
     setShowCreateForm(false);
     setShowMyTickets(false);
+    setSelectedTicketId(null);
   }
 
   // ---- If no requester is selected → show the selector (dev only) ----
   if (!requester) {
-    // DevRequesterSelector must not be accessible in production.
-    // `import.meta.env.MODE` is "development" in `vite dev` and "production"
-    // in `vite build`, so this guard is evaluated at runtime after Vite
-    // replaces the env variable at build time.
     if (import.meta.env.MODE !== "production") {
       return <DevRequesterSelector onSelect={setRequester} />;
     }
 
-    // Production fallback — show a neutral unauthenticated state.
     return (
       <div className="container py-5 text-center" style={{ maxWidth: 480 }}>
         <p className="text-muted">You are not authenticated. Please contact your administrator.</p>
       </div>
     );
   }
+
+  // Hide dashboard controls when a full-screen view is active
+  const isDashboardView = !showMyTickets && !showCreateForm && !selectedTicketId;
 
   // ---- Main dashboard ----
   return (
@@ -112,14 +110,15 @@ export default function App() {
           TokTickIT <span className="text-success">IT Service Desk</span>
         </h1>
         <div className="d-flex gap-2 align-items-center flex-wrap">
-          {/* New Ticket button — hidden when create form is already open */}
-          {!showCreateForm && (
+          {/* New Ticket button */}
+          {!showCreateForm && !selectedTicketId && (
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"
               style={{ background: "#006B3C", border: "none", borderRadius: 8 }}
               onClick={() => {
                 setShowMyTickets(false);
+                setSelectedTicketId(null);
                 setShowCreateForm(true);
               }}
             >
@@ -127,22 +126,20 @@ export default function App() {
             </button>
           )}
 
-          {/* My Tickets toggle — hidden while already on that page or create form */}
-          {!showMyTickets && !showCreateForm && (
+          {/* My Tickets toggle */}
+          {isDashboardView && (
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"
               style={{ background: "#0d6efd", border: "none", borderRadius: 8 }}
               onClick={async () => {
                 setShowCreateForm(false);
-                // Pre-fetch categories if not yet loaded so filter dropdown is ready
+                setSelectedTicketId(null);
                 if (categories.length === 0) {
                   try {
                     const res = await fetch("/api/categories");
                     if (res.ok) setCategories(await res.json());
-                  } catch {
-                    // ignore — MyTicketsPage will still work without categories in filter
-                  }
+                  } catch {}
                 }
                 setShowMyTickets(true);
               }}
@@ -151,15 +148,21 @@ export default function App() {
             </button>
           )}
 
-          {/* Back button — shown while in My Tickets or Create Ticket views */}
-          {(showMyTickets || showCreateForm) && (
+          {/* Back button */}
+          {!isDashboardView && (
             <button
               type="button"
               className="btn btn-outline-secondary btn-sm"
               style={{ borderRadius: 8 }}
               onClick={() => {
-                setShowMyTickets(false);
-                setShowCreateForm(false);
+                // If coming back from ticket detail, go back to my tickets. Otherwise dashboard.
+                if (selectedTicketId) {
+                  setSelectedTicketId(null);
+                  setShowMyTickets(true);
+                } else {
+                  setShowMyTickets(false);
+                  setShowCreateForm(false);
+                }
               }}
             >
               ← Back
@@ -178,14 +181,30 @@ export default function App() {
         </div>
       </div>
 
+      {/* ── Ticket Detail Page (Issue 5) ── */}
+      {selectedTicketId !== null && (
+        <TicketDetailPage
+          ticketId={selectedTicketId}
+          requester={requester}
+          onBack={() => {
+            setSelectedTicketId(null);
+            setShowMyTickets(true);
+          }}
+        />
+      )}
+
       {/* ── My Tickets page (Issue 4) ── */}
-      {showMyTickets && (
+      {showMyTickets && selectedTicketId === null && (
         <MyTicketsPage
           requester={requester}
           categories={categories}
           onNewTicket={() => {
             setShowMyTickets(false);
             setShowCreateForm(true);
+          }}
+          onViewTicket={(id) => {
+            setShowMyTickets(false);
+            setSelectedTicketId(id);
           }}
         />
       )}
@@ -200,7 +219,7 @@ export default function App() {
       )}
 
       {/* ── Dashboard (default view) ── */}
-      {!showMyTickets && !showCreateForm && (
+      {isDashboardView && (
         <>
           {/* Health banner */}
           <div className="mb-4">

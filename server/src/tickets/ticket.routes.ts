@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { getTickets, createTicket } from "./ticket.controller.js";
+import { getTickets, createTicket, getTicketById } from "./ticket.controller.js";
 
 export const ticketRouter = Router();
 
@@ -12,3 +12,6 @@ ticketRouter.get("/", getTickets);
 
 // POST /api/tickets — create a new ticket
 ticketRouter.post("/", createTicket);
+
+// GET /api/tickets/:id — get ticket details and active attachments
+ticketRouter.get("/:id", getTicketById);

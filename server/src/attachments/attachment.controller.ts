@@ -202,13 +202,19 @@ export async function downloadAttachment(
     // Ownership check via parent ticket
     await assertTicketOwnership(attachment.ticketId, requesterId);
 
-    // Stream the file
+    // Stream the file — with an explicit error callback per review feedback (AC-03)
     res.download(attachment.storagePath, attachment.filename, (err) => {
       if (err) {
-        // File missing on disk or other streaming error
-        next(
-          Object.assign(new Error("File could not be served"), { status: 500 })
+        // Log the disk-level error so it appears in server logs for debugging
+        console.error(
+          `[downloadAttachment] Failed to stream attachment id=${attachment.id} ` +
+          `path="${attachment.storagePath}":`,
+          err
         );
+        // Avoid sending headers twice if streaming already started
+        if (!res.headersSent) {
+          next(Object.assign(new Error("File could not be served"), { status: 500 }));
+        }
       }
     });
   } catch (err) {

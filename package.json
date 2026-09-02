@@ -1,0 +1,29 @@
+{
+  "name": "toktickit",
+  "version": "1.0.0",
+  "description": "1. เข้าไปยังโฟลเดอร์ `server`: `cd server`\r 2. ติดตั้ง Dependencies: `npm install`\r 3. **การตั้งค่า Environment Variables:**\r    - คัดลอกไฟล์ `.env.example` แล้วเปลี่ยนชื่อเป็น `.env`\r    - **คำเตือนความปลอดภัย:** ห้าม Commit ไฟล์ `.env` หรือไฟล์ความลับใดๆ ขึ้น GitHub เด็ดขาด\r    - ตั้งค่า `DATABASE_URL` ให้ตรงกับ PostgreSQL ของคุณ\r 4. ตรวจสอบความถูกต้องของ Prisma Schema: `npx prisma validate`\r 5. ตรวจสอบการเชื่อมต่อโดยใช้ `npx prisma migrate status`\r 6. เริ่มต้นรัน Backend Server: `npm run dev`",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poom2548/toktickit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/poom2548/toktickit/issues"
+  },
+  "homepage": "https://github.com/poom2548/toktickit#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.4.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -43,18 +43,16 @@ test.describe('Responsive Screenshots', () => {
       // We are on the Create Ticket form — use the "← Back" button to return to My Tickets
       await page.getByRole('button', { name: /Back/i }).click();
       await page.waitForLoadState('networkidle');
-      
+
       // Look for the first ticket link/row in the table/list
       // This is a generic selector to find a ticket row/card and click it
       const firstTicket = page.locator('table tbody tr').first().or(page.locator('.ticket-card').first()).or(page.locator('a[href*="/tickets/"]').first());
-      if (await firstTicket.count() > 0) {
-        await firstTicket.click();
-        await page.waitForLoadState('networkidle');
-        await page.screenshot({ path: `artifacts/lab-02/screenshots/ticket-detail/${viewport.name}.png`, fullPage: true });
-      } else {
-        // If no tickets exist, just screenshot the empty details view or handle failure gracefully
-        console.warn(`No tickets found to screenshot for Ticket Detail on ${viewport.name}`);
-      }
+
+      // Strictly assert a ticket exists — test must fail if none are found
+      await expect(firstTicket).toBeVisible();
+      await firstTicket.click();
+      await page.waitForLoadState('networkidle');
+      await page.screenshot({ path: `artifacts/lab-02/screenshots/ticket-detail/${viewport.name}.png`, fullPage: true });
     });
   });
 });

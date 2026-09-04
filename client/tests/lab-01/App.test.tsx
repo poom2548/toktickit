@@ -9,7 +9,14 @@ describe("App", () => {
   // ล้างค่าข้อมูลที่จำลองไว้ทุกครั้งก่อนเริ่มเทสต์ข้อใหม่
   beforeEach(() => {
     vi.resetAllMocks();
+    // Seed a requester into localStorage so the App renders the dashboard
+    // (not the DevRequesterSelector) — the dashboard is what these tests target.
+    localStorage.setItem(
+      "toktickit_requester",
+      JSON.stringify({ id: 1, name: "Alice Johnson", email: "alice@example.com" })
+    );
   });
+
 
   // WORKED EXAMPLE — provided for you.
   it("renders the TokTickIT heading", async () => {

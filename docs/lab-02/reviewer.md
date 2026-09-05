@@ -16,6 +16,22 @@
 
 ### Reviewer comments I received & How I responded
 
+### PR Links
+#### Issue 1
+https://github.com/poom2548/toktickit/pull/19
+#### Issue 2
+https://github.com/poom2548/toktickit/pull/20
+#### Issue 3
+https://github.com/poom2548/toktickit/pull/21
+#### Issue 4
+https://github.com/poom2548/toktickit/pull/22
+#### Issue 5
+https://github.com/poom2548/toktickit/pull/23
+#### Issue 6
+https://github.com/poom2548/toktickit/pull/25
+#### Lab2-staging 
+https://github.com/poom2548/toktickit/pull/26
+
 #### Issue 1: Sprint specification and test plan
 * **Reviewer comment received:**
   > "จุดที่เสนอแนะให้ปรับปรุง (Suggestions):
@@ -125,6 +141,12 @@
   1. บังคับแคปหน้าจอ (Strict Assertion): แก้ไขไฟล์ responsive-screenshots.spec.ts โดยลบเงื่อนไข if/else และ console.warn ออก แล้วเปลี่ยนไปใช้ await expect(firstTicket).toBeVisible(); แทน เพื่อบังคับให้เทสต์ต้องเจอ Ticket เสมอก่อนคลิกเข้าไปแคปหน้าจอ หากไม่เจอ เทสต์จะแจ้ง Error ทันที
   2. จัดการไฟล์ขยะ (Clean Test Artifacts): เพิ่มกฎ server/uploads/*.pdf ลงในไฟล์ .gitignore เพื่อป้องกันไฟล์จำลองจากการเทสต์หลุดเข้าไปในโฟลเดอร์รันไทม์ และทำการล้างไฟล์ PDF ที่ติดเข้าไปใน Git (Untrack) ออกเรียบร้อยแล้ว
   3. เพิ่มเนื้อหาในไฟล์ reviewer.md
+#### Lab2-staging
+* **Reviewer comment received:**
+ตรวจสอบแล้วครบถ้วน 
+* **How I responded:**
+-
+
 ## Pull Requests I reviewed for my partner
 Issue 1
 My comment: 
@@ -206,4 +228,59 @@ Issue 5
 My comment:ตรวจแล้วครบถ้วนแล้ว
 
 Partner's response: -
+
+Lab2-staging
+
+My comment: สรุปจุดที่ต้องแก้ไข
+1. ขาดระบบป้องกันการดูข้อมูลข้ามสิทธิ์ (Critical)สิ่งที่ผิด: หน้า TicketDetail.tsx ขาดระบบตรวจสอบเวลาผู้ใช้เปลี่ยนตัวละคร (Development Requester) กลางคัน ทำให้ผู้ใช้สามารถแอบดูตั๋วที่ตัวเองไม่ใช่เจ้าของได้สิ่งที่ต้องแก้: ให้เพิ่ม useEffect ใน TicketDetail.tsx เพื่อดึงค่าจาก localStorage มาเทียบกับ ticket.requesterId ถ้าไอดีไม่ตรงกัน ให้ใช้คำสั่ง Redirect เตะผู้ใช้กลับไปหน้า My Tickets ทันที
+
+2. ขาดการจำกัดโควต้าอัปโหลดไฟล์ (Critical)สิ่งที่ผิด: API อัปโหลดไฟล์ใน attachment.controller.ts ขาดการเช็คเงื่อนไข "ห้ามอัปโหลดเกิน 5 ไฟล์ต่อตั๋ว 1 ใบ" ทำให้ตอนนี้อัปโหลดได้ไม่จำกัด สิ่งที่ต้องแก้: ในคอนโทรลเลอร์ ให้เพิ่มโค้ดนับจำนวนไฟล์ที่ isRemoved: false ของตั๋วใบนั้น ถ้าพบว่ามี $\ge$ 5 ไฟล์ ให้ Block แล้วเตะ Error 400 Bad Request ออกไป
+
+3. ขาดไฟล์ Unit Test ฝั่งเซิร์ฟเวอร์ (High)สิ่งที่ผิด: โปรเจกต์ไม่มีการเขียน Unit Test ฝั่งหลังบ้าน (Backend) เลย โดยเฉพาะการจำลองเคส Error ต่างๆสิ่งที่ต้องแก้: ให้สร้างไฟล์เทสต์ (เช่น server/src/__tests__/ หรือตามโครงสร้างโปรเจกต์) เพื่อเขียนเทสต์ดักเคส 401 (ไม่ส่ง Auth Header), 403 (ไม่มีสิทธิ์), และ 404 (หาข้อมูลไม่พบ)
+
+4. E2E เทสต์ไม่ได้แคปหน้าจอ Responsive (Medium)สิ่งที่ผิด: สคริปต์ Playwright ในโฟลเดอร์ E2E ไม่ได้ถูกตั้งค่าให้ตั้งขนาดหน้าจอและแคปรูป (Desktop, Tablet, Mobile) ตามที่ตกลงกันไว้สิ่งที่ต้องแก้: ให้เพิ่มการตั้งค่า Viewport ในไฟล์ playwright.config.ts หรือในตัวไฟล์เทสต์เอง แล้วเรียกใช้คำสั่ง page.screenshot(...) ให้เซฟรูปลงโฟลเดอร์ให้ครบทุกขนาด
+
+5. ไฟล์เอกสารสรุปงานหายไป (Low)สิ่งที่ผิด: ลืมสร้าง/อัปโหลดไฟล์เอกสารส่งงาน 2 ไฟล์สิ่งที่ต้องแก้: สร้างไฟล์ ai-use.md (ประวัติการใช้ AI) และ reviewer.md (บันทึกการรีวิว) เอาไปวางไว้ในโฟลเดอร์ docs/lab-02/ ให้ครบถ้วน
+
+Partner's response:ได้ดำเนินการแก้ไขและปรับปรุงโค้ดตามข้อเสนอแนะจากการรีวิวครบถ้วนทุกจุดใน Commit ล่าสุดแล้ว โดยมีรายละเอียดการแก้ไขทั้งหมดดังนี้
+
+    Context Switch Protection (client/src/components/TicketDetail.tsx)
+
+        เพิ่ม useEffect สำหรับตรวจสอบ Requester ID ปัจจุบันจาก localStorage (toktickit_requester) เทียบกับ ticket.requesterId
+
+        หากพบว่าไอดีไม่ตรงกัน หรือได้รับ Error 403 Forbidden ระบบจะเรียกฟังก์ชัน onBack() เพื่อพากลับสู่หน้า My Tickets อัตโนมัติทันทีโดยไม่ค้างอยู่ที่หน้า Access Denied
+
+    5-Attachment Limit Enforcement (server/src/controllers/attachment.controller.ts)
+
+        เพิ่มการตรวจสอบโควต้าจำนวนไฟล์แนบที่ยัง Active (isRemoved: false) ของตั๋วใบนั้น ๆ ก่อนบันทึกลงฐานข้อมูล
+
+        หากพบว่ามีไฟล์แนบตั้งแต่ 5 ไฟล์ขึ้นไป ระบบจะสั่งลบไฟล์ชั่วคราวทิ้งทันทีด้วย fs.unlinkSync(req.file.path) เพื่อป้องกันไฟล์ขยะตกค้าง และส่ง Error 400 Bad Request พร้อมข้อความ Attachment limit of 5 exceeded
+
+    Backend Unit Tests (server/src/__tests__/ticket-auth.test.ts)
+
+        สร้างชุดทดสอบด้วย Vitest และ Supertest พร้อม Mocking ฝั่ง Service Layer เพื่อความรวดเร็วและแยกส่วนจากฐานข้อมูลจริง
+
+        ครอบคลุมสถานะ Error 3 รูปแบบ รวม 7 เคสย่อย (ผลการรันผ่านทั้งหมด):
+
+            HTTP 401: เมื่อไม่มีการส่ง Header X-Requester-Id สำหรับเข้าถึงตั๋วหรือดาวน์โหลดไฟล์
+
+            HTTP 403: เมื่อร้องขอตั๋วหรือไฟล์แนบที่เป็นของ Requester คนอื่น
+
+            HTTP 404: เมื่อร้องขอตั๋วหรือไฟล์แนบที่ไม่มีอยู่จริง รวมถึงไฟล์ที่ถูก Soft-remove ไปแล้ว
+
+    E2E Test & Responsive Screenshots (e2e/lab-02/requester-ticket-flow.spec.ts)
+
+        นำการหน่วงเวลาแบบคงที่ (waitForTimeout(600)) ในขั้นตอนค้นหาออก และเปลี่ยนมาใช้ Auto-retrying assertion (expect(...).toBeVisible()) ตามข้อกำหนด
+
+        เพิ่มคำสั่งปรับขนาด Viewport และถ่ายภาพแบบ Full-page บันทึกลงโฟลเดอร์ artifacts/lab-02/screenshots/ticket-detail/ ครบ 3 ขนาด:
+
+            Desktop (1280x720)
+
+            Tablet (768x1024)
+
+            Mobile (375x667)
+
+    Documentation (docs/lab-02/)
+
+        จัดเตรียมและตรวจสอบความสมบูรณ์ของเอกสาร docs/lab-02/ai-use.md และ docs/lab-02/reviewer.md ครบถ้วนตามมาตรฐานของแล็บ
 

@@ -33,10 +33,10 @@
 | **AC-05** (Search functionality) | API-04, E2E-01 |
 
 ## 4. Responsive and Visual Checklist
-- [ ] **Desktop (≥ 992 px):** โครงสร้างหลายคอลัมน์แสดงผลได้ดี ความกว้างเหมาะสม
-- [ ] **Tablet (768-991 px):** ปรับเป็น 2 คอลัมน์ ช่อง Summary และ Description มีพื้นที่เพียงพอ
-- [ ] **Mobile (< 768 px):** ฟิลด์เรียงซ้อนกันแนวตั้ง (Stack), ปุ่มกดง่าย, ไม่มีแนวนอนเลื่อน (No horizontal scroll)
-- [ ] **General:** ไม่มีการแสดงผลทับซ้อน ข้อความไม่ตกขอบ และสีถูกต้องตาม Zen Green Theme
+- [x] **Desktop (≥ 992 px):** โครงสร้างหลายคอลัมน์แสดงผลได้ดี ความกว้างเหมาะสม
+- [x] **Tablet (768-991 px):** ปรับเป็น 2 คอลัมน์ ช่อง Summary และ Description มีพื้นที่เพียงพอ
+- [x] **Mobile (< 768 px):** ฟิลด์เรียงซ้อนกันแนวตั้ง (Stack), ปุ่มกดง่าย, ไม่มีแนวนอนเลื่อน (No horizontal scroll)
+- [x] **General:** ไม่มีการแสดงผลทับซ้อน ข้อความไม่ตกขอบ และสีถูกต้องตาม Zen Green Theme
 
 ## 5. Test Commands
 - **Unit & API Tests:** `npm run test` (ในโฟลเดอร์ `server` และ `client`)

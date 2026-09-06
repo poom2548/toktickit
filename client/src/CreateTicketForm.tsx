@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import {
   Category,
   RelatedSystem,
@@ -8,6 +8,7 @@ import {
   Requester,
   getRelatedSystems,
   createTicket,
+  uploadAttachment,
 } from "./api.js";
 
 
@@ -94,6 +95,171 @@ function FieldError({ message }: { message?: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Attachment constants & helpers
+// ---------------------------------------------------------------------------
+
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const ALLOWED_EXTENSIONS = ".jpg,.jpeg,.png,.webp,.pdf";
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_ATTACHMENTS = 5;
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/**
+ * Returns a validation error message for a given file, or null when the file
+ * is acceptable. Called before adding a file to the staged list.
+ */
+function validateFile(file: File, currentCount: number): string | null {
+  if (currentCount >= MAX_ATTACHMENTS) {
+    return `You may attach at most ${MAX_ATTACHMENTS} files per ticket.`;
+  }
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return `"${file.name}" is not allowed. Only JPG, PNG, WEBP, and PDF files are accepted.`;
+  }
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return `"${file.name}" exceeds the 5 MB size limit (${formatBytes(file.size)}).`;
+  }
+  return null;
+}
+
+/** File icon based on MIME type */
+function fileIcon(mime: string): string {
+  if (mime === "application/pdf") return "📄";
+  return "🖼️";
+}
+
+// ---------------------------------------------------------------------------
+// AttachmentSection sub-component
+// ---------------------------------------------------------------------------
+
+interface AttachmentSectionProps {
+  stagedFiles: File[];
+  attachmentError: string | null;
+  onAdd: (files: FileList) => void;
+  onRemove: (index: number) => void;
+  disabled: boolean;
+}
+
+function AttachmentSection({
+  stagedFiles,
+  attachmentError,
+  onAdd,
+  onRemove,
+  disabled,
+}: AttachmentSectionProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      onAdd(e.target.files);
+      // Reset input so the same file can be re-selected after removal
+      e.target.value = "";
+    }
+  }
+
+  return (
+    <div className="mb-4">
+      <label className="form-label fw-semibold">Attachments</label>
+
+      {/* Drop zone / click-to-browse area */}
+      <div
+        style={{
+          border: `2px dashed ${attachmentError ? "#dc3545" : "#adb5bd"}`,
+          borderRadius: 8,
+          padding: "16px",
+          textAlign: "center",
+          background: "#fafafa",
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.6 : 1,
+          transition: "border-color 0.2s",
+        }}
+        onClick={() => !disabled && inputRef.current?.click()}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-label="Select files to attach"
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && !disabled) {
+            inputRef.current?.click();
+          }
+        }}
+      >
+        <span style={{ fontSize: 28 }}>📎</span>
+        <p className="mb-1 mt-1 small fw-semibold" style={{ color: "#495057" }}>
+          Click to browse files
+        </p>
+        <p className="mb-0 small text-muted">
+          JPG, PNG, WEBP, PDF — max 5 MB each, up to {MAX_ATTACHMENTS} files
+        </p>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept={ALLOWED_EXTENSIONS}
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+          disabled={disabled || stagedFiles.length >= MAX_ATTACHMENTS}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      </div>
+
+      {/* Inline validation error */}
+      {attachmentError && (
+        <p role="alert" className="mb-0 mt-1 small" style={{ color: "#8b0000" }}>
+          {attachmentError}
+        </p>
+      )}
+
+      {/* Staged file list */}
+      {stagedFiles.length > 0 && (
+        <ul className="list-group mt-2" style={{ borderRadius: 8 }}>
+          {stagedFiles.map((file, idx) => (
+            <li
+              key={`${file.name}-${idx}`}
+              className="list-group-item d-flex align-items-center gap-2 py-2 px-3"
+              style={{ fontSize: 14 }}
+            >
+              <span>{fileIcon(file.type)}</span>
+              <span
+                className="flex-grow-1 text-truncate"
+                style={{ maxWidth: "65%" }}
+                title={file.name}
+              >
+                {file.name}
+              </span>
+              <span className="text-muted small ms-auto me-2" style={{ whiteSpace: "nowrap" }}>
+                {formatBytes(file.size)}
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                style={{ borderRadius: 6, padding: "2px 8px", lineHeight: 1.4 }}
+                onClick={() => onRemove(idx)}
+                disabled={disabled}
+                aria-label={`Remove ${file.name}`}
+              >
+                ✕ Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* File count indicator */}
+      <div className="text-end mt-1">
+        <small className="text-muted">
+          {stagedFiles.length} / {MAX_ATTACHMENTS} files staged
+        </small>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -117,6 +283,10 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
   const [errors, setErrors] = useState<FormErrors>({});
   const [formState, setFormState] = useState<FormState>("idle");
   const [createdTicket, setCreatedTicket] = useState<Ticket | null>(null);
+
+  // Attachment staging state
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   // Use categories from prop when available, fall back to self-fetched list
   const categories = categoriesProp.length > 0 ? categoriesProp : localCategories;
@@ -165,6 +335,32 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
   }
 
   // ---------------------------------------------------------------------------
+  // Attachment handlers
+  // ---------------------------------------------------------------------------
+  function handleAddFiles(fileList: FileList) {
+    setAttachmentError(null);
+    const toAdd: File[] = [];
+    let firstError: string | null = null;
+
+    for (const file of Array.from(fileList)) {
+      const err = validateFile(file, stagedFiles.length + toAdd.length);
+      if (err) {
+        firstError = err;
+        break; // Report the first violation and stop processing
+      }
+      toAdd.push(file);
+    }
+
+    if (firstError) setAttachmentError(firstError);
+    if (toAdd.length > 0) setStagedFiles((prev) => [...prev, ...toAdd]);
+  }
+
+  function handleRemoveFile(index: number) {
+    setStagedFiles((prev) => prev.filter((_, i) => i !== index));
+    setAttachmentError(null);
+  }
+
+  // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
   function handleChange(
@@ -191,7 +387,7 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
       return; // Do NOT call the API
     }
 
-    // 2. Call API
+    // 2. Create ticket
     setFormState("submitting");
     setErrors({});
 
@@ -204,9 +400,22 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
         description: values.description.trim(),
       });
 
+      // 3. Upload staged attachments sequentially
+      for (const file of stagedFiles) {
+        try {
+          await uploadAttachment(ticket.id, file);
+        } catch {
+          // Non-fatal: log and continue uploading remaining files.
+          // The ticket has already been created successfully.
+          console.warn(`Failed to upload attachment "${file.name}"`);
+        }
+      }
+
       setCreatedTicket(ticket);
       setFormState("success");
       setValues(EMPTY_VALUES);
+      setStagedFiles([]);
+      setAttachmentError(null);
     } catch (err) {
       setFormState("idle");
       if (err instanceof ApiError && err.status === 400) {
@@ -430,6 +639,15 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
               </small>
             </div>
           </div>
+
+          {/* ── Attachments ── */}
+          <AttachmentSection
+            stagedFiles={stagedFiles}
+            attachmentError={attachmentError}
+            onAdd={handleAddFiles}
+            onRemove={handleRemoveFile}
+            disabled={isSubmitting}
+          />
 
           {/* ── Actions ── */}
           <div className="d-flex gap-2">

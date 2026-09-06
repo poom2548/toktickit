@@ -26,12 +26,12 @@
 - **Mobile (< 768 px):** ทุกฟิลด์ต้องเรียงซ้อนกันแนวตั้ง (Stack vertically) ปุ่มกดง่ายด้วยนิ้ว และห้ามเกิดแถบเลื่อนหน้าจอแนวนอนเด็ดขาด (No horizontal page scrolling)
 
 ## 4. Visual Inspection Checklist (จุดที่ต้องตรวจก่อนส่งงาน)
-- [ ] ไม่มีการตัดคำผิดพลาด หรือตัวอักษรตกขอบ (No clipped labels)
-- [ ] ข้อความและกล่องแจ้งเตือนไม่ซ้อนทับกัน (No overlapping messages)
-- [ ] ไม่มีปุ่มหรือฟิลด์โดนบัง (No hidden buttons)
-- [ ] ชื่อไฟล์แนบยาวๆ สามารถอ่านได้ชัดเจน (Readable attachment names)
-- [ ] ป้ายสถานะ (Badges) ของ Priority และ Status ใช้สไตล์สีสม่ำเสมอกัน
-- [ ] หน้า My Tickets ใช้งานได้ดีทั้งแบบตารางบน Desktop และแบบการ์ดบน Mobile
+- [x] ไม่มีการตัดคำผิดพลาด หรือตัวอักษรตกขอบ (No clipped labels)
+- [x] ข้อความและกล่องแจ้งเตือนไม่ซ้อนทับกัน (No overlapping messages)
+- [x] ไม่มีปุ่มหรือฟิลด์โดนบัง (No hidden buttons)
+- [x] ชื่อไฟล์แนบยาวๆ สามารถอ่านได้ชัดเจน (Readable attachment names)
+- [x] ป้ายสถานะ (Badges) ของ Priority และ Status ใช้สไตล์สีสม่ำเสมอกัน
+- [x] หน้า My Tickets ใช้งานได้ดีทั้งแบบตารางบน Desktop และแบบการ์ดบน Mobile
 
 ## 5. Typography, Spacing & Accessibility (a11y)
 - **Typography:** ขนาดฟอนต์พื้นฐาน 16px, ระยะห่างบรรทัด (Line-height) 1.5 เพื่อให้อ่านง่าย

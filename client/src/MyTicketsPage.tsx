@@ -328,7 +328,7 @@ function PaginationControls({ pagination, onPage }: PaginationControlsProps) {
 // Props
 // ---------------------------------------------------------------------------
 interface Props {
-  requester: Requester;
+  
   categories: Category[];
   onNewTicket: () => void;
   onViewTicket: (id: number) => void;
@@ -348,7 +348,7 @@ interface Props {
  * - Pagination controls
  * - "No tickets found" empty state
  */
-export default function MyTicketsPage({ requester: _requester, categories, onNewTicket, onViewTicket }: Props) {
+export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }: Props) {
   // ── Filter state ──────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");

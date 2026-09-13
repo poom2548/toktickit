@@ -13,7 +13,7 @@ import {
 
 
 // ---------------------------------------------------------------------------
-// Zen Green colour tokens (mirrors DevRequesterSelector)
+// Zen Green colour tokens (from Lab 2)
 // ---------------------------------------------------------------------------
 const ZEN = {
   primary: "#006B3C",          // Primary Green (submit button)
@@ -46,8 +46,6 @@ interface FormErrors {
 }
 
 interface Props {
-  /** The currently authenticated requester (used for display + auth header). */
-  requester: Requester;
   /** Available categories fetched by the parent (App.tsx already has them). */
   categories: Category[];
   /** Called when the user clicks Cancel or after a successful submission. */
@@ -273,7 +271,7 @@ function AttachmentSection({
  * - Submit button disabled + spinner while awaiting the API response
  * - Dark red inline error messages below invalid fields (client + server)
  */
-export default function CreateTicketForm({ requester, categories: categoriesProp, onDone }: Props) {
+export default function CreateTicketForm({ categories: categoriesProp, onDone }: Props) {
   const [systems, setSystems] = useState<RelatedSystem[]>([]);
   const [systemsError, setSystemsError] = useState<string | null>(null);
   // Self-fetch categories if parent hasn't loaded them yet (e.g. "Check System" never clicked)
@@ -508,23 +506,6 @@ export default function CreateTicketForm({ requester, categories: categoriesProp
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* ── Requester (read-only) ── */}
-          <div className="mb-3">
-            <label htmlFor="requester" className="form-label fw-semibold">
-              Requester
-            </label>
-            <input
-              id="requester"
-              type="text"
-              className="form-control"
-              value={`${requester.name} (${requester.email})`}
-              readOnly
-              tabIndex={-1}
-              style={{ background: ZEN.primaryLight, cursor: "default" }}
-              aria-label="Requester (read-only)"
-            />
-          </div>
-
           {/* ── Category ── */}
           <div className="mb-3">
             <RequiredLabel htmlFor="categoryId">Category</RequiredLabel>

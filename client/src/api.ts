@@ -37,7 +37,7 @@ const STORAGE_KEY = "toktickit_requester";
  *
  * @example
  * const res = await fetch(`${API_BASE}/tickets`, {
- *   headers: { ...getRequesterHeaders(), "Content-Type": "application/json" },
+ *   headers: {  "Content-Type": "application/json" },
  * });
  */
 export function getRequesterHeaders(): { "X-Requester-Id": string } | Record<string, never> {
@@ -151,7 +151,7 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...getRequesterHeaders(),
+      
     },
     body: JSON.stringify(payload),
   });
@@ -269,9 +269,6 @@ export async function uploadAttachment(ticketId: number, file: File): Promise<At
 
   const res = await fetch(`${API_BASE}/tickets/${ticketId}/attachments`, {
     method: "POST",
-    headers: {
-      ...getRequesterHeaders(),
-    },
     body: formData, // fetch will automatically set the correct Content-Type with boundary
   });
 

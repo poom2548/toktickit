@@ -49,7 +49,7 @@ const ALLOWED_MIME_TYPES = new Set([
  */
 async function assertTicketOwnership(
   ticketId: number,
-  requesterId: number
+  requesterId: string
 ): Promise<void> {
   const prisma = getPrisma();
   const ticket = await prisma.ticket.findUnique({
@@ -62,7 +62,7 @@ async function assertTicketOwnership(
     throw err;
   }
 
-  if (ticket.requesterId !== requesterId) {
+  if (ticket.requesterId !== String(requesterId)) {
     const err: AppError = Object.assign(
       new Error("Forbidden: you do not own this ticket"),
       { status: 403 }
@@ -89,7 +89,7 @@ export async function uploadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
     const ticketId = parseInt(req.params.ticketId, 10);
 
     if (isNaN(ticketId)) {
@@ -173,7 +173,7 @@ export async function downloadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {
@@ -237,7 +237,7 @@ export async function removeAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {

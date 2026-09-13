@@ -1,80 +1,142 @@
-import { getPrisma } from "../src/prisma.js";
+import { PrismaClient, Role, Priority, TicketStatus } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
-const prisma = getPrisma();
+const prisma = new PrismaClient()
 
 async function main() {
-  // -------------------------------------------------------------------------
-  // Categories
-  // -------------------------------------------------------------------------
-  const categories = [
-    "Account and Access",
-    "Hardware",
-    "Software",
-    "Network",
-  ];
+  console.log('🌱 Seeding database...')
 
-  console.log("🌱 Seeding categories...");
+  const devPassword = await bcrypt.hash('Dev@123456', 12)
+  const initPassword = await bcrypt.hash('InitPass@1', 12)
+
+  const usersToSeed = [
+    { name: 'Alice Requester', email: 'alice@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
+    { name: 'Bob Requester', email: 'bob@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
+    { name: 'Carol Requester', email: 'carol@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
+    { name: 'Dave Requester', email: 'dave@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
+    { name: 'Eve Requester (inactive)', email: 'eve@toktick.dev', role: Role.REQUESTER, isActive: false, requiresPasswordChange: true },
+    { name: 'Frank IT', email: 'frank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
+    { name: 'Grace IT', email: 'grace@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
+    { name: 'Hank IT', email: 'hank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
+    { name: 'Ivy IT (inactive)', email: 'ivy@toktick.dev', role: Role.IT_STAFF, isActive: false, requiresPasswordChange: true },
+    { name: 'Admin One', email: 'admin@toktick.dev', role: Role.ADMINISTRATOR, isActive: true, requiresPasswordChange: false },
+  ]
+
+  const createdUsers = []
+  for (const u of usersToSeed) {
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: {
+        name: u.name,
+        email: u.email,
+        passwordHash: u.requiresPasswordChange ? initPassword : devPassword,
+        role: u.role,
+        isActive: u.isActive,
+        requiresPasswordChange: u.requiresPasswordChange,
+      },
+    })
+    createdUsers.push(user)
+  }
+  
+  const alice = createdUsers.find(u => u.email === 'alice@toktick.dev')!
+  const bob = createdUsers.find(u => u.email === 'bob@toktick.dev')!
+  const carol = createdUsers.find(u => u.email === 'carol@toktick.dev')!
+  const dave = createdUsers.find(u => u.email === 'dave@toktick.dev')!
+  const frank = createdUsers.find(u => u.email === 'frank@toktick.dev')!
+  const grace = createdUsers.find(u => u.email === 'grace@toktick.dev')!
+  
+  // Seed categories
+  const categories = ["Account and Access", "Hardware", "Software", "Network"]
+  const createdCats = []
   for (const catName of categories) {
-    await prisma.category.upsert({
+    const c = await prisma.category.upsert({
       where: { name: catName },
       update: {},
       create: { name: catName },
-    });
-    console.log(`  ✅ Category: ${catName}`);
+    })
+    createdCats.push(c)
   }
-
-  // -------------------------------------------------------------------------
-  // Related Systems
-  // -------------------------------------------------------------------------
-  const relatedSystems = [
-    "ERP System",
-    "HR Portal",
-    "CRM",
-    "IT Helpdesk Portal",
-    "Email Server",
-  ];
-
-  console.log("🌱 Seeding related systems...");
+  
+  // Seed related systems
+  const relatedSystems = ["ERP System", "HR Portal", "CRM", "IT Helpdesk Portal", "Email Server"]
+  const createdSys = []
   for (const sysName of relatedSystems) {
-    await prisma.relatedSystem.upsert({
+    const s = await prisma.relatedSystem.upsert({
       where: { name: sysName },
       update: {},
       create: { name: sysName },
-    });
-    console.log(`  ✅ RelatedSystem: ${sysName}`);
+    })
+    createdSys.push(s)
   }
 
-  // -------------------------------------------------------------------------
-  // Requesters (Issue 2 — Dev Requester Context)
-  // Exactly 5 requesters: 4 active, 1 inactive.
-  // -------------------------------------------------------------------------
-  const requesters = [
-    { name: "Alice Johnson", email: "alice@example.com",  isActive: true  },
-    { name: "Bob Smith",     email: "bob@example.com",    isActive: true  },
-    { name: "Carol White",   email: "carol@example.com",  isActive: true  },
-    { name: "David Lee",     email: "david@example.com",  isActive: true  },
-    { name: "Eve Inactive",  email: "eve@example.com",    isActive: false },
-  ];
-
-  console.log("🌱 Seeding requesters...");
-  for (const req of requesters) {
-    await prisma.requester.upsert({
-      where: { email: req.email },
-      update: { name: req.name, isActive: req.isActive },
-      create: req,
-    });
-    const label = req.isActive ? "active" : "inactive";
-    console.log(`  ✅ Requester [${label}]: ${req.name} <${req.email}>`);
+  // --- Tickets ---
+  const ticketsToSeed = [
+    { ticketNumber: 'TKT-001', summary: 'Cannot access VPN', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: alice.id, ownerId: frank.id, categoryId: createdCats[3].id, sysId: createdSys[0].id },
+    { ticketNumber: 'TKT-002', summary: 'Need new laptop', requestedPriority: Priority.MEDIUM, itPriority: Priority.LOW, status: TicketStatus.NEW, requesterId: bob.id, ownerId: null, categoryId: createdCats[1].id, sysId: createdSys[1].id },
+    { ticketNumber: 'TKT-003', summary: 'Password reset', requestedPriority: Priority.HIGH, itPriority: Priority.CRITICAL, status: TicketStatus.RESOLVED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[0].id, sysId: createdSys[0].id },
+    { ticketNumber: 'TKT-004', summary: 'Software install error', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.OPEN, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[2].id },
+    { ticketNumber: 'TKT-005', summary: 'Network down', requestedPriority: Priority.CRITICAL, itPriority: Priority.CRITICAL, status: TicketStatus.WAITING_FOR_REQUESTER, requesterId: alice.id, ownerId: grace.id, categoryId: createdCats[3].id, sysId: createdSys[0].id },
+    { ticketNumber: 'TKT-006', summary: 'Email sync issue', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.CLOSED, requesterId: bob.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[4].id },
+    { ticketNumber: 'TKT-007', summary: 'Broken monitor', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.REOPENED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id },
+    { ticketNumber: 'TKT-008', summary: 'Cannot access HR portal', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.CANCELLED, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[0].id, sysId: createdSys[1].id },
+    { ticketNumber: 'TKT-009', summary: 'Need CRM access', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.OPEN, requesterId: alice.id, ownerId: null, categoryId: createdCats[0].id, sysId: createdSys[2].id },
+    { ticketNumber: 'TKT-010', summary: 'Laptop randomly shuts down', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: bob.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id }
+  ]
+  
+  const createdTickets = []
+  for (const t of ticketsToSeed) {
+    const ticket = await prisma.ticket.upsert({
+      where: { ticketNumber: t.ticketNumber },
+      update: {},
+      create: {
+        ticketNumber: t.ticketNumber,
+        summary: t.summary,
+        description: 'Description for ' + t.summary,
+        requestedPriority: t.requestedPriority,
+        itPriority: t.itPriority,
+        status: t.status,
+        requesterId: t.requesterId,
+        ownerId: t.ownerId,
+        categoryId: t.categoryId,
+        relatedSystemId: t.sysId,
+      },
+    })
+    createdTickets.push(ticket)
   }
 
-  console.log("\n🎉 Seeding finished successfully.");
+  // --- Public Comments ---
+  const tkt1 = createdTickets[0]
+  if (tkt1) {
+    const existingComments = await prisma.publicComment.count({ where: { ticketId: tkt1.id } })
+    if (existingComments === 0) {
+      await prisma.publicComment.createMany({
+        data: [
+          { ticketId: tkt1.id, authorId: frank.id, content: "We have received your ticket and are investigating the issue." },
+          { ticketId: tkt1.id, authorId: alice.id, content: "Thank you for the quick response." },
+          { ticketId: tkt1.id, authorId: frank.id, content: "Could you provide more details about when this started?" }
+        ]
+      })
+    }
+  }
+
+  // --- Internal Notes ---
+  const tkt5 = createdTickets[4] // WAITING_FOR_REQUESTER
+  if (tkt5) {
+    const existingNotes = await prisma.internalNote.count({ where: { ticketId: tkt5.id } })
+    if (existingNotes === 0) {
+      await prisma.internalNote.createMany({
+        data: [
+          { ticketId: tkt5.id, authorId: grace.id, content: "Escalated to network team — awaiting their response." },
+          { ticketId: tkt5.id, authorId: grace.id, content: "Replicated locally on dev machine. Root cause identified." }
+        ]
+      })
+    }
+  }
+
+  console.log('✅ Seeding complete.')
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Error during seeding:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error(e); process.exit(1) })
+  .finally(async () => { await prisma.$disconnect() })

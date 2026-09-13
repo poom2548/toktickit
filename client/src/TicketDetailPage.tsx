@@ -20,11 +20,11 @@ const ZEN = {
 
 interface Props {
   ticketId: number;
-  requester: Requester;
+  
   onBack: () => void;
 }
 
-export default function TicketDetailPage({ ticketId, requester, onBack }: Props) {
+export default function TicketDetailPage({ ticketId, onBack }: Props) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,13 +39,7 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
   const [removingId, setRemovingId] = useState<number | null>(null);
 
   // ── Requester change guard ────────────────────────────────────────────────
-  const initialRequesterId = useRef(requester.id);
-  useEffect(() => {
-    if (requester.id !== initialRequesterId.current) {
-      // User changed active requester mid-session; redirect to avoid stale/unauthorized data
-      onBack();
-    }
-  }, [requester.id, onBack]);
+  
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {

@@ -80,7 +80,7 @@ export async function getTickets(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
 
     // ── Pagination ──────────────────────────────────────────────────────────
     const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10) || 1);
@@ -94,16 +94,8 @@ export async function getTickets(
       rawCategoryId !== undefined && !isNaN(Number(rawCategoryId))
         ? Number(rawCategoryId)
         : undefined;
-    const priority =
-      typeof req.query.priority === "string" &&
-      (VALID_PRIORITIES as readonly string[]).includes(req.query.priority)
-        ? req.query.priority
-        : undefined;
-    const status =
-      typeof req.query.status === "string" &&
-      (VALID_STATUSES as readonly string[]).includes(req.query.status)
-        ? req.query.status
-        : undefined;
+    const priority = typeof req.query.priority === "string" && VALID_PRIORITIES.includes(req.query.priority as any) ? (req.query.priority.toUpperCase() as any) : undefined;
+    const status = typeof req.query.status === "string" && VALID_STATUSES.includes(req.query.status as any) ? (req.query.status.toUpperCase().replace(" ", "_") as any) : undefined;
 
     // Build where clause — always scoped to the authenticated requester
     const where = {
@@ -169,7 +161,7 @@ export async function createTicket(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
 
     // --- Validation ---
     const errors = validateTicketBody(req.body as Record<string, unknown>);
@@ -228,8 +220,8 @@ export async function createTicket(
           ticketNumber,
           summary: summary.trim(),
           description: description.trim(),
-          status: "New",
-          requestedPriority,
+          status: "NEW",
+          requestedPriority: requestedPriority.toUpperCase() as any,
           requesterId,
           categoryId: Number(categoryId),
           relatedSystemId: Number(relatedSystemId),
@@ -262,7 +254,7 @@ export async function getTicketById(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = String(res.locals.requesterId);
     const ticketId = parseInt(req.params.id, 10);
 
     if (isNaN(ticketId)) {
@@ -288,7 +280,7 @@ export async function getTicketById(
     }
 
     // --- Ownership check ---
-    if (ticket.requesterId !== requesterId) {
+    if (ticket.requesterId !== String(requesterId)) {
       const err: AppError = Object.assign(
         new Error("Forbidden: you do not own this ticket"),
         { status: 403 }

@@ -10,6 +10,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_REQUESTER
+  RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String    @unique
+  passwordHash          String
+  role                  Role
+  isActive              Boolean   @default(true)
+  requiresPasswordChange Boolean  @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  submittedTickets      Ticket[]  @relation("TicketRequester")
+  ownedTickets          Ticket[]  @relation("TicketOwner")
+  publicComments        PublicComment[]
+  internalNotes         InternalNote[]
+}
+
 // ---------------------------------------------------------------------------
 // Category — IT request categories (Issue 3)
 // ---------------------------------------------------------------------------
@@ -32,6 +73,7 @@ model RelatedSystem {
 
 // ---------------------------------------------------------------------------
 // Requester — the person raising tickets (Issue 2: Dev Requester Context)
+// Will be removed after migration
 // ---------------------------------------------------------------------------
 model Requester {
   id        Int      @id @default(autoincrement())
@@ -39,7 +81,6 @@ model Requester {
   email     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  tickets   Ticket[]
 }
 
 // ---------------------------------------------------------------------------
@@ -50,18 +91,23 @@ model Ticket {
   ticketNumber      String   @unique          // e.g. TKT-0001
   summary           String                   // max 100 chars (validated in controller)
   description       String                   // max 1000 chars (validated in controller)
-  status            String   @default("New")
-  requestedPriority String   @default("Low") // Low | Medium | High (validated in controller)
-  requesterId       Int
+  status            TicketStatus @default(NEW)
+  requestedPriority Priority   @default(LOW)
+  itPriority        Priority?
+  requesterId       String
+  ownerId           String?
   categoryId        Int
   relatedSystemId   Int
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  requester     Requester     @relation(fields: [requesterId], references: [id])
+  requester     User          @relation("TicketRequester", fields: [requesterId], references: [id])
+  owner         User?         @relation("TicketOwner", fields: [ownerId], references: [id])
   category      Category      @relation(fields: [categoryId], references: [id])
   relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
   attachments   Attachment[]
+  publicComments PublicComment[]
+  internalNotes  InternalNote[]
 }
 
 // ---------------------------------------------------------------------------
@@ -80,4 +126,34 @@ model Attachment {
   createdAt   DateTime @default(now())
 
   ticket Ticket @relation(fields: [ticketId], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// PublicComment — public comments on tickets
+// ---------------------------------------------------------------------------
+model PublicComment {
+  id          String    @id @default(cuid())
+  ticketId    Int
+  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  content     String
+  createdAt   DateTime  @default(now())
+
+  @@index([ticketId])
+}
+
+// ---------------------------------------------------------------------------
+// InternalNote — internal notes for IT staff
+// ---------------------------------------------------------------------------
+model InternalNote {
+  id          String    @id @default(cuid())
+  ticketId    Int
+  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  content     String
+  createdAt   DateTime  @default(now())
+
+  @@index([ticketId])
 }

@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
-import { Category, Requester } from "./api.js";
-import DevRequesterSelector from "./DevRequesterSelector.js";
+import { Category } from "./api.js";
 import CreateTicketForm from "./CreateTicketForm.js";
 import MyTicketsPage from "./MyTicketsPage.js";
 import TicketDetailPage from "./TicketDetailPage.js";
 
 // UI states for the main dashboard
 type UiState = "idle" | "loading" | "success" | "error";
-
-// localStorage key where the active requester is stored
-const STORAGE_KEY = "toktickit_requester";
 
 type HealthStatus = {
   status: string;
@@ -21,17 +17,6 @@ type HealthStatus = {
 // ---------------------------------------------------------------------------
 
 export default function App() {
-  // ---- Requester context (Issue 2) ----
-  const [requester, setRequester] = useState<Requester | null>(() => {
-    // Read from localStorage on first render
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as Requester) : null;
-    } catch {
-      return null;
-    }
-  });
-
   // ---- Dashboard state ----
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -43,8 +28,6 @@ export default function App() {
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!requester) return; // Don't poll health until a requester is selected
-
     const fetchHealth = async () => {
       try {
         const res = await fetch("/api/health");
@@ -58,7 +41,7 @@ export default function App() {
       }
     };
     fetchHealth();
-  }, [requester]);
+  }, []);
 
   async function handleCheck() {
     setState("loading");
@@ -71,31 +54,6 @@ export default function App() {
     } catch {
       setState("error");
     }
-  }
-
-  function handleSwitchUser() {
-    localStorage.removeItem(STORAGE_KEY);
-    setRequester(null);
-    setState("idle");
-    setHealthStatus(null);
-    setHealthError(null);
-    setCategories([]);
-    setShowCreateForm(false);
-    setShowMyTickets(false);
-    setSelectedTicketId(null);
-  }
-
-  // ---- If no requester is selected → show the selector (dev only) ----
-  if (!requester) {
-    if (import.meta.env.MODE !== "production") {
-      return <DevRequesterSelector onSelect={setRequester} />;
-    }
-
-    return (
-      <div className="container py-5 text-center" style={{ maxWidth: 480 }}>
-        <p className="text-muted">You are not authenticated. Please contact your administrator.</p>
-      </div>
-    );
   }
 
   // Hide dashboard controls when a full-screen view is active
@@ -169,15 +127,6 @@ export default function App() {
             </button>
           )}
 
-          {/* Switch user */}
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm"
-            onClick={handleSwitchUser}
-            title="Change the active dev requester"
-          >
-            👤 {requester.name} &nbsp;<span className="opacity-50">✕</span>
-          </button>
         </div>
       </div>
 
@@ -185,7 +134,6 @@ export default function App() {
       {selectedTicketId !== null && (
         <TicketDetailPage
           ticketId={selectedTicketId}
-          requester={requester}
           onBack={() => {
             setSelectedTicketId(null);
             setShowMyTickets(true);
@@ -196,7 +144,6 @@ export default function App() {
       {/* ── My Tickets page (Issue 4) ── */}
       {showMyTickets && selectedTicketId === null && (
         <MyTicketsPage
-          requester={requester}
           categories={categories}
           onNewTicket={() => {
             setShowMyTickets(false);
@@ -212,7 +159,6 @@ export default function App() {
       {/* ── Create Ticket form (Issue 3) ── */}
       {showCreateForm && (
         <CreateTicketForm
-          requester={requester}
           categories={categories}
           onDone={() => setShowCreateForm(false)}
         />

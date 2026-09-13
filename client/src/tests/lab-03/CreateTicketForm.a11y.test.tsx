@@ -2,12 +2,12 @@
 ﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import CreateTicketForm from "../../src/CreateTicketForm";
+import CreateTicketForm from "../../CreateTicketForm";
 
 // ---------------------------------------------------------------------------
 // Mocks (same as UI tests — we only test keyboard/a11y behaviour here)
 // ---------------------------------------------------------------------------
-vi.mock("../../src/api", () => ({
+vi.mock("../../api", () => ({
   getRelatedSystems: vi.fn().mockResolvedValue([
     { id: 1, name: "ERP System" },
     { id: 2, name: "HR Portal" },
@@ -113,6 +113,10 @@ describe("CreateTicketForm — Accessibility (a11y) Tests", () => {
     await user.tab();
     expect(document.activeElement).toBe(screen.getByLabelText(/description/i));
 
+    // Tab to dropzone
+    await user.tab();
+    expect(document.activeElement).toHaveAttribute("aria-label", "Select files to attach");
+
     // Tab to Submit button
     await user.tab();
     expect(document.activeElement).toBe(
@@ -130,7 +134,7 @@ describe("CreateTicketForm — Accessibility (a11y) Tests", () => {
 
   it("pressing Enter while Submit button is focused triggers form submission", async () => {
     const user = userEvent.setup();
-    const api = await import("../../src/api");
+    const api = await import("../../api");
     const createTicketMock = vi.mocked(api.createTicket);
 
     render(

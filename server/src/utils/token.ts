@@ -9,8 +9,7 @@ export interface TokenPayload {
 }
 
 export function signToken(payload: TokenPayload): string {
-  // Use process.env.JWT_SECRET directly in case it is loaded late
-  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h' })
+  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: EXPIRY as jwt.SignOptions['expiresIn'] })
 }
 
 export function verifyToken(token: string): TokenPayload {

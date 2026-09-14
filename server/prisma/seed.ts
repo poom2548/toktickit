@@ -14,7 +14,7 @@ async function main() {
     { name: 'Bob Requester', email: 'bob@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
     { name: 'Carol Requester', email: 'carol@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
     { name: 'Dave Requester', email: 'dave@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
-    { name: 'Eve Requester (inactive)', email: 'eve@toktick.dev', role: Role.REQUESTER, isActive: false, requiresPasswordChange: true },
+    { name: 'Eve Requester', email: 'eve@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: true },
     { name: 'Frank IT', email: 'frank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
     { name: 'Grace IT', email: 'grace@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
     { name: 'Hank IT', email: 'hank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },

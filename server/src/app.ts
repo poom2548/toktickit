@@ -5,11 +5,15 @@ import { requesterRouter } from "./requesters/requester.routes.js";
 import { ticketRouter } from "./tickets/ticket.routes.js";
 import { attachmentRouter } from "./attachments/attachment.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+import cookieParser from "cookie-parser";
+import authRouter from "./routes/auth.js";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+app.use("/auth", authRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check

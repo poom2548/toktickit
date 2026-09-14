@@ -54,7 +54,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockRequesterFindUnique.mockResolvedValue(VALID_REQUESTER);
   // Default to valid ticket ownership
-  mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: 1 });
+  mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: "1" });
   mockAttachmentCount.mockResolvedValue(0);
 });
 
@@ -76,7 +76,7 @@ describe("POST /api/tickets/:ticketId/attachments", () => {
 
   it("U2 — 403 cross-requester upload", async () => {
     // Ticket belongs to requester 2
-    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: 2 });
+    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: "2" });
 
     const res = await request(app)
       .post("/api/tickets/1/attachments")

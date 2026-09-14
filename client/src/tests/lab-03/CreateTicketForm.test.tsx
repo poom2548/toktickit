@@ -2,12 +2,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import CreateTicketForm from "../../src/CreateTicketForm";
+import CreateTicketForm from "../../CreateTicketForm";
 
 // ---------------------------------------------------------------------------
 // Mock the api module
 // ---------------------------------------------------------------------------
-vi.mock("../../src/api", () => ({
+vi.mock("../../api", () => ({
   getRelatedSystems: vi.fn().mockResolvedValue([
     { id: 1, name: "ERP System" },
     { id: 2, name: "HR Portal" },
@@ -50,7 +50,7 @@ const ON_DONE = vi.fn();
 
 // Helper to get the api mock functions cleanly
 async function getApiMocks() {
-  const api = await import("../../src/api");
+  const api = await import("../../api");
   return {
     createTicket: vi.mocked(api.createTicket),
     ApiError: api.ApiError,

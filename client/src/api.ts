@@ -1,3 +1,4 @@
+import { apiFetch } from "./utils/api";
 const API_BASE = "/api";
 
 // ---------------------------------------------------------------------------
@@ -25,42 +26,14 @@ export interface Requester {
 // Auth header helper
 // ---------------------------------------------------------------------------
 
-/** localStorage key where the active requester context is stored. */
-const STORAGE_KEY = "toktickit_requester";
-
-/**
- * Reads the active requester from localStorage and returns the
- * `X-Requester-Id` HTTP header object ready to be spread into `fetch()`.
- *
- * Returns an empty object when no requester is stored so that public-route
- * callers are unaffected.
- *
- * @example
- * const res = await fetch(`${API_BASE}/tickets`, {
- *   headers: {  "Content-Type": "application/json" },
- * });
- */
-export function getRequesterHeaders(): { "X-Requester-Id": string } | Record<string, never> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as { id?: unknown };
-    const id = Number(parsed?.id);
-    if (!id || isNaN(id)) return {};
-    return { "X-Requester-Id": String(id) };
-  } catch {
-    return {};
-  }
-}
-
 // ---------------------------------------------------------------------------
 // System check (Issue 2 + Issue 4)
 // ---------------------------------------------------------------------------
 export async function checkSystem(): Promise<SystemStatus> {
-  const healthRes = await fetch(`${API_BASE}/health`);
+  const healthRes = await apiFetch(`${API_BASE}/health`);
   if (!healthRes.ok) throw new Error("Health check failed");
 
-  const categoriesRes = await fetch(`${API_BASE}/categories`);
+  const categoriesRes = await apiFetch(`${API_BASE}/categories`);
   if (!categoriesRes.ok) throw new Error("Failed to fetch categories");
 
   const categories: Category[] = await categoriesRes.json();
@@ -71,12 +44,7 @@ export async function checkSystem(): Promise<SystemStatus> {
 // Requester API (Issue 2)
 // ---------------------------------------------------------------------------
 
-/** Fetch all active requesters for the Dev Requester Selector. */
-export async function getActiveRequesters(): Promise<Requester[]> {
-  const res = await fetch(`${API_BASE}/requesters/active`);
-  if (!res.ok) throw new Error("Failed to fetch active requesters");
-  return res.json() as Promise<Requester[]>;
-}
+
 
 // ---------------------------------------------------------------------------
 // Ticket API (Issue 3)
@@ -103,6 +71,7 @@ export interface Ticket {
   summary: string;
   description: string;
   status: string;
+  problemAppearsResolved?: boolean;
   requestedPriority: Priority;
   categoryId: number;
   relatedSystemId: number;
@@ -136,7 +105,7 @@ export class ApiError extends Error {
 
 /** Fetch all related systems for the Create Ticket form dropdown. */
 export async function getRelatedSystems(): Promise<RelatedSystem[]> {
-  const res = await fetch(`${API_BASE}/related-systems`);
+  const res = await apiFetch(`${API_BASE}/related-systems`);
   if (!res.ok) throw new Error("Failed to fetch related systems");
   return res.json() as Promise<RelatedSystem[]>;
 }
@@ -147,7 +116,7 @@ export async function getRelatedSystems(): Promise<RelatedSystem[]> {
  * - On validation failure (400) throws ApiError with field-level details.
  */
 export async function createTicket(payload: CreateTicketPayload): Promise<Ticket> {
-  const res = await fetch(`${API_BASE}/tickets`, {
+  const res = await apiFetch(`${API_BASE}/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -226,8 +195,8 @@ export async function getTickets(params: GetTicketsParams = {}): Promise<TicketL
   const query = qs.toString();
   const url = query ? `${API_BASE}/tickets?${query}` : `${API_BASE}/tickets`;
 
-  const res = await fetch(url, {
-    headers: { ...getRequesterHeaders() },
+  const res = await apiFetch(url, {
+    
   });
 
   if (!res.ok) {
@@ -252,8 +221,8 @@ export interface Attachment {
 }
 
 export async function getTicketById(ticketId: number): Promise<Ticket> {
-  const res = await fetch(`${API_BASE}/tickets/${ticketId}`, {
-    headers: { ...getRequesterHeaders() },
+  const res = await apiFetch(`${API_BASE}/tickets/${ticketId}`, {
+    
   });
 
   if (!res.ok) {
@@ -267,7 +236,7 @@ export async function uploadAttachment(ticketId: number, file: File): Promise<At
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${API_BASE}/tickets/${ticketId}/attachments`, {
+  const res = await apiFetch(`${API_BASE}/tickets/${ticketId}/attachments`, {
     method: "POST",
     body: formData, // fetch will automatically set the correct Content-Type with boundary
   });
@@ -280,9 +249,9 @@ export async function uploadAttachment(ticketId: number, file: File): Promise<At
 }
 
 export async function removeAttachment(attachmentId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/attachments/${attachmentId}`, {
+  const res = await apiFetch(`${API_BASE}/attachments/${attachmentId}`, {
     method: "DELETE",
-    headers: { ...getRequesterHeaders() },
+    
   });
 
   if (!res.ok) {
@@ -296,8 +265,8 @@ export async function removeAttachment(attachmentId: number): Promise<void> {
  * then trigger a download in the browser.
  */
 export async function downloadAttachment(attachmentId: number, filename: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/attachments/${attachmentId}/download`, {
-    headers: { ...getRequesterHeaders() },
+  const res = await apiFetch(`${API_BASE}/attachments/${attachmentId}/download`, {
+    
   });
 
   if (!res.ok) {
@@ -314,4 +283,48 @@ export async function downloadAttachment(attachmentId: number, filename: string)
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+// ---------------------------------------------------------------------------
+// Comments and Resolved Flag (Issue 4)
+// ---------------------------------------------------------------------------
+export interface PublicComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    id: string;
+    name: string;
+    role: string;
+  }
+}
+
+export async function getComments(ticketId: number): Promise<PublicComment[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`);
+  if (!res.ok) throw new Error("Failed to fetch comments");
+  const data = await res.json();
+  return data.comments;
+}
+
+export async function postComment(ticketId: number, content: string): Promise<PublicComment> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ content })
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to post comment");
+  }
+  return res.json();
+}
+
+export async function markResolved(ticketId: number): Promise<{ problemAppearsResolved: boolean }> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/resolved-flag`, {
+    method: "PATCH",
+    body: JSON.stringify({ problemAppearsResolved: true })
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to mark resolved");
+  }
+  return res.json();
 }

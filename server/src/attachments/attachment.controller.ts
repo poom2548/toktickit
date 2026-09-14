@@ -57,14 +57,9 @@ async function assertTicketOwnership(
     select: { requesterId: true },
   });
 
-  if (!ticket) {
-    const err: AppError = Object.assign(new Error("Ticket not found"), { status: 404 });
-    throw err;
-  }
-
-  if (ticket.requesterId !== String(requesterId)) {
+  if (!ticket || ticket.requesterId !== String(requesterId)) {
     const err: AppError = Object.assign(
-      new Error("Forbidden: you do not own this ticket"),
+      new Error("Access denied."),
       { status: 403 }
     );
     throw err;
@@ -89,7 +84,7 @@ export async function uploadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: string = String(res.locals.requesterId);
+    const requesterId: string = req.user!.id;
     const ticketId = parseInt(req.params.ticketId, 10);
 
     if (isNaN(ticketId)) {
@@ -173,7 +168,7 @@ export async function downloadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: string = String(res.locals.requesterId);
+    const requesterId: string = req.user!.id;
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {
@@ -186,7 +181,7 @@ export async function downloadAttachment(
     });
 
     if (!attachment) {
-      const err: AppError = Object.assign(new Error("Attachment not found"), { status: 404 });
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
       return next(err);
     }
 
@@ -237,7 +232,7 @@ export async function removeAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: string = String(res.locals.requesterId);
+    const requesterId: string = req.user!.id;
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {
@@ -252,7 +247,7 @@ export async function removeAttachment(
     });
 
     if (!attachment) {
-      const err: AppError = Object.assign(new Error("Attachment not found"), { status: 404 });
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
       return next(err);
     }
 

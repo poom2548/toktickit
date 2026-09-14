@@ -1,3 +1,4 @@
+import { apiFetch } from "./utils/api";
 import { useState, useEffect } from "react";
 import { Category } from "./api.js";
 import CreateTicketForm from "./CreateTicketForm.js";
@@ -30,7 +31,7 @@ export default function RequesterApp() {
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const res = await fetch("/api/health");
+        const res = await apiFetch("/api/health");
         if (!res.ok) throw new Error("Network error");
         const data = await res.json();
         setHealthStatus(data);
@@ -46,7 +47,7 @@ export default function RequesterApp() {
   async function handleCheck() {
     setState("loading");
     try {
-      const res = await fetch("/api/categories");
+      const res = await apiFetch("/api/categories");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setCategories(data);
@@ -95,7 +96,7 @@ export default function RequesterApp() {
                 setSelectedTicketId(null);
                 if (categories.length === 0) {
                   try {
-                    const res = await fetch("/api/categories");
+                    const res = await apiFetch("/api/categories");
                     if (res.ok) setCategories(await res.json());
                   } catch {}
                 }

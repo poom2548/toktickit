@@ -1,4 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+﻿import os
+import json
+
+code = r'''import { useState, useEffect, useRef } from "react";
 import {
   Ticket,
   getTicketById,
@@ -400,7 +403,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
                 </tr>
               ) : (
                 ticket.attachments.map((att) => (
-                  <tr key={att.id} data-testid={`attachment-row-${att.id}`}>
+                  <tr key={att.id} data-testid={ttachment-row-}>
                     <td>
                       <span className="text-truncate d-inline-block" style={{ maxWidth: 250 }}>
                         {att.filename}
@@ -441,3 +444,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
     </div>
   );
 }
+'''
+with open('src/TicketDetailPage.tsx', 'w', encoding='utf-8') as f:
+    f.write(code)
+print('Done writing TicketDetailPage.tsx')

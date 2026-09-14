@@ -3,7 +3,6 @@ import {
   Category,
   Ticket,
   PaginationMeta,
-  Requester,
   getTickets,
 } from "./api.js";
 

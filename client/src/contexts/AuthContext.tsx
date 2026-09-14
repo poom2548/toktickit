@@ -1,3 +1,4 @@
+import { apiFetch } from "../utils/api";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface AuthUser {
@@ -29,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refreshUser() {
     try {
-      const res = await fetch('/auth/me')
+      const res = await apiFetch('/auth/me')
       if (res.ok) {
         const data = await res.json()
         setUser(data)
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
-    const res = await fetch('/auth/login', {
+    const res = await apiFetch('/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await fetch('/auth/logout', { method: 'POST' })
+    await apiFetch('/auth/logout', { method: 'POST' })
     setUser(null)
   }
 

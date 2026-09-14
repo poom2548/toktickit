@@ -93,10 +93,13 @@ describe('POST /auth/logout', () => {
       .post('/auth/logout')
       .set('Cookie', cookie)
     expect(logoutRes.status).toBe(200)
+    
+    // Get the new cookie that clears the session
+    const clearedCookie = logoutRes.headers['set-cookie']
 
     const meRes = await request(app)
       .get('/auth/me')
-      .set('Cookie', cookie)
+      .set('Cookie', clearedCookie || [])
     expect(meRes.status).toBe(401)
   })
 })

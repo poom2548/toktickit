@@ -39,11 +39,25 @@ describe('Staff Ticket Detail API', () => {
     });
     const baseTicket = tickets[0];
     seededTicketId = baseTicket.id;
-    newStatusTicketId = baseTicket.id;
+
+    // Create a new NEW ticket
+    const newTicket = await prisma.ticket.create({
+      data: {
+        ticketNumber: "TKT-NEW-" + Date.now(),
+        summary: "Test new ticket",
+        description: "Test description",
+        status: "NEW",
+        categoryId: baseTicket.categoryId,
+        relatedSystemId: baseTicket.relatedSystemId,
+        requesterId: baseTicket.requesterId
+      }
+    });
+    newStatusTicketId = newTicket.id;
 
     // Create a new IN_PROGRESS ticket
     const inProgressTicket = await prisma.ticket.create({
       data: {
+        ticketNumber: "TKT-INPRG-" + Date.now(),
         summary: "Test in progress ticket",
         description: "Test description",
         status: "IN_PROGRESS",
@@ -57,6 +71,7 @@ describe('Staff Ticket Detail API', () => {
     // Create a new RESOLVED ticket
     const resolvedTicket = await prisma.ticket.create({
       data: {
+        ticketNumber: "TKT-RESOLV-" + Date.now(),
         summary: "Test resolved ticket",
         description: "Test description",
         status: "RESOLVED",
@@ -70,6 +85,7 @@ describe('Staff Ticket Detail API', () => {
     // Create a new CLOSED ticket
     const closedTicket = await prisma.ticket.create({
       data: {
+        ticketNumber: "TKT-CLOSE-" + Date.now(),
         summary: "Test closed ticket",
         description: "Test description",
         status: "CLOSED",
@@ -79,6 +95,14 @@ describe('Staff Ticket Detail API', () => {
       }
     });
     closedTicketId = closedTicket.id;
+  });
+
+  afterAll(async () => {
+    await prisma.ticket.deleteMany({
+      where: {
+        id: { in: [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id) }
+      }
+    });
   });
 
   describe('GET /staff/tickets/:id', () => {

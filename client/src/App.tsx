@@ -6,6 +6,7 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { ForbiddenPage } from './pages/ForbiddenPage'
 import { AppShell } from './components/AppShell'
 import RequesterApp from './RequesterApp'
+import { StaffTicketQueuePage } from './pages/staff/StaffTicketQueuePage'
 
 export default function App() {
   return (
@@ -27,7 +28,7 @@ export default function App() {
           <Route path="/staff/tickets" element={
             <ProtectedRoute allowedRoles={['IT_STAFF', 'ADMINISTRATOR']}>
               <AppShell>
-                <div>IT Staff Ticket Queue (Issue 5)</div>
+                <StaffTicketQueuePage />
               </AppShell>
             </ProtectedRoute>
           } />

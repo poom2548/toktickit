@@ -65,7 +65,7 @@ async function assertTicketOwnership(
 
   if (user.role !== "IT_STAFF" && user.role !== "ADMINISTRATOR" && ticket.requesterId !== String(user.id)) {
     const err: AppError = Object.assign(
-      new Error("Access denied."),
+      new Error("You do not own this ticket."),
       { status: 403 }
     );
     throw err;
@@ -187,7 +187,7 @@ export async function downloadAttachment(
     });
 
     if (!attachment) {
-      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      const err: AppError = Object.assign(new Error("Attachment not found"), { status: 404 });
       return next(err);
     }
 

@@ -5,7 +5,7 @@ import { isTransitionPermitted, PERMITTED_TRANSITIONS } from '../utils/statusTra
 const prisma = new PrismaClient()
 
 export async function getStaffTicketDetail(req: Request, res: Response): Promise<any> {
-  const ticketId = parseInt(req.params.id, 10)
+  const ticketId = parseInt(req.params.id, 10); console.log('requested id:', req.params.id, 'parsed:', ticketId)
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
 
   try {

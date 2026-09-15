@@ -278,11 +278,12 @@ export async function getTicketById(
       },
     });
 
-    if (!ticket || ticket.requesterId !== requesterId) {
-      const err: AppError = Object.assign(
-        new Error("Access denied."),
-        { status: 403 }
-      );
+    if (!ticket) {
+      const err: AppError = Object.assign(new Error("Ticket not found."), { status: 404 });
+      return next(err);
+    }
+    if (ticket.requesterId !== requesterId) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
       return next(err);
     }
 

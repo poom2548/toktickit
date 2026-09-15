@@ -253,7 +253,7 @@ export async function removeAttachment(
     });
 
     if (!attachment) {
-      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      const err: AppError = Object.assign(new Error("Attachment not found"), { status: 404 });
       return next(err);
     }
 

@@ -9,6 +9,8 @@ export const STATUS_LABELS: Record<string, string> = {
   CANCELLED:              'Cancelled',
 }
 
+import './badges.css'
+
 // CSS class determines color — defined in Zen Green token stylesheet
 // e.g., .badge--new { background: var(--zen-status-new-bg); color: var(--zen-status-new-text); }
 export function StatusBadge({ status }: { status: string }) {

@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { StatusBadge } from '../shared/StatusBadge'
 import { useAuth } from '../../contexts/AuthContext'
 
+import { TicketDetail } from '../../pages/staff/StaffTicketDetailPage'
+
 interface OperationalSectionProps {
-  ticket: any
-  onTicketUpdate: (updated: any) => void
+  ticket: TicketDetail
+  onTicketUpdate: (updated: TicketDetail) => void
 }
 
 const STATUS_LABELS: Record<string, string> = {

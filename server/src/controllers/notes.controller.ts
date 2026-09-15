@@ -6,7 +6,8 @@ const prisma = new PrismaClient()
 const MAX_NOTE_LENGTH = 2000
 
 export async function postInternalNote(req: Request, res: Response): Promise<any> {
-  const { id: ticketId } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const authorId = req.user!.id
   const { content } = req.body
 
@@ -43,7 +44,8 @@ export async function postInternalNote(req: Request, res: Response): Promise<any
 }
 
 export async function getInternalNotes(req: Request, res: Response): Promise<any> {
-  const { id: ticketId } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
 
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } })
   if (!ticket) {

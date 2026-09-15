@@ -5,11 +5,12 @@ import { isTransitionPermitted, PERMITTED_TRANSITIONS } from '../utils/statusTra
 const prisma = new PrismaClient()
 
 export async function getStaffTicketDetail(req: Request, res: Response): Promise<any> {
-  const { id } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
 
   try {
     const ticket = await prisma.ticket.findUnique({
-      where: { id },
+      where: { id: ticketId },
       include: {
         requester: {
           select: { id: true, name: true, email: true, role: true },
@@ -53,7 +54,8 @@ export async function getStaffTicketDetail(req: Request, res: Response): Promise
 }
 
 export async function updateTicketOwner(req: Request, res: Response): Promise<any> {
-  const { id: ticketId } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const { ownerId } = req.body
 
   if (ownerId !== null && typeof ownerId !== 'string') {
@@ -101,7 +103,8 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
 const VALID_IT_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const
 
 export async function updateTicketPriority(req: Request, res: Response): Promise<any> {
-  const { id: ticketId } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const { itPriority } = req.body
 
   if (itPriority !== null && !VALID_IT_PRIORITIES.includes(itPriority)) {
@@ -135,7 +138,8 @@ const VALID_STATUSES = [
 ] as const
 
 export async function updateTicketStatus(req: Request, res: Response): Promise<any> {
-  const { id: ticketId } = req.params
+  const ticketId = parseInt(req.params.id, 10)
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const { status: newStatus } = req.body
 
   if (!newStatus || !VALID_STATUSES.includes(newStatus)) {

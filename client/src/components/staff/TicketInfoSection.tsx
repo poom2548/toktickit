@@ -1,6 +1,7 @@
 import { PriorityBadge } from '../shared/PriorityBadge'
+import { TicketDetail } from '../../pages/staff/StaffTicketDetailPage'
 
-export function TicketInfoSection({ ticket }: { ticket: any }) {
+export function TicketInfoSection({ ticket }: { ticket: TicketDetail }) {
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString()
 
   return (

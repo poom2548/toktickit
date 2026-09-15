@@ -8,7 +8,7 @@ import { PublicCommentsPane } from '../../components/shared/PublicCommentsPane'
 import { InternalNotesPane } from '../../components/staff/InternalNotesPane'
 import { AttachmentsSection } from '../../components/staff/AttachmentsSection'
 
-interface TicketDetail {
+export interface TicketDetail {
   id: string
   ticketNumber: string
   summary: string

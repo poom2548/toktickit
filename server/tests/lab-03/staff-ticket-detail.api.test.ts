@@ -37,11 +37,48 @@ describe('Staff Ticket Detail API', () => {
     const tickets = await prisma.ticket.findMany({
       orderBy: { id: 'asc' },
     });
-    seededTicketId = tickets[0].id;
-    newStatusTicketId = tickets.find(t => t.status === 'NEW')?.id || seededTicketId;
-    inProgressTicketId = tickets.find(t => t.status === 'IN_PROGRESS')?.id || seededTicketId;
-    resolvedTicketId = tickets.find(t => t.status === 'RESOLVED')?.id || seededTicketId;
-    closedTicketId = tickets.find(t => t.status === 'CLOSED')?.id || seededTicketId;
+    const baseTicket = tickets[0];
+    seededTicketId = baseTicket.id;
+    newStatusTicketId = baseTicket.id;
+
+    // Create a new IN_PROGRESS ticket
+    const inProgressTicket = await prisma.ticket.create({
+      data: {
+        summary: "Test in progress ticket",
+        description: "Test description",
+        status: "IN_PROGRESS",
+        categoryId: baseTicket.categoryId,
+        relatedSystemId: baseTicket.relatedSystemId,
+        requesterId: baseTicket.requesterId
+      }
+    });
+    inProgressTicketId = inProgressTicket.id;
+
+    // Create a new RESOLVED ticket
+    const resolvedTicket = await prisma.ticket.create({
+      data: {
+        summary: "Test resolved ticket",
+        description: "Test description",
+        status: "RESOLVED",
+        categoryId: baseTicket.categoryId,
+        relatedSystemId: baseTicket.relatedSystemId,
+        requesterId: baseTicket.requesterId
+      }
+    });
+    resolvedTicketId = resolvedTicket.id;
+
+    // Create a new CLOSED ticket
+    const closedTicket = await prisma.ticket.create({
+      data: {
+        summary: "Test closed ticket",
+        description: "Test description",
+        status: "CLOSED",
+        categoryId: baseTicket.categoryId,
+        relatedSystemId: baseTicket.relatedSystemId,
+        requesterId: baseTicket.requesterId
+      }
+    });
+    closedTicketId = closedTicket.id;
   });
 
   describe('GET /staff/tickets/:id', () => {

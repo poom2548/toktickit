@@ -1,3 +1,4 @@
+import { apiFetch } from "./utils/api";
 import { useState, useEffect, useRef, FormEvent } from "react";
 import {
   Category,
@@ -5,7 +6,6 @@ import {
   Priority,
   Ticket,
   ApiError,
-  Requester,
   getRelatedSystems,
   createTicket,
   uploadAttachment,
@@ -296,7 +296,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
       .catch(() => setSystemsError("Unable to load related systems. Is the backend running?"));
 
     if (categoriesProp.length === 0) {
-      fetch("/api/categories")
+      apiFetch("/api/categories")
         .then((r) => r.json())
         .then((data: Category[]) => setLocalCategories(data))
         .catch(() => {/* categories will stay empty, form shows no options */});

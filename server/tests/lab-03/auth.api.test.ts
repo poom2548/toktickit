@@ -99,7 +99,7 @@ describe('POST /auth/logout', () => {
 
     const meRes = await request(app)
       .get('/auth/me')
-      .set('Cookie', clearedCookie || [])
+      .set('Cookie', (clearedCookie as any) || [])
     expect(meRes.status).toBe(401)
   })
 })

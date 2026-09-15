@@ -98,6 +98,7 @@ model Ticket {
   ownerId           String?
   categoryId        Int
   relatedSystemId   Int
+  problemAppearsResolved Boolean @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

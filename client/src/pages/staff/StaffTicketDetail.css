@@ -1,0 +1,142 @@
+.staff-ticket-detail {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ticket-info-section, .operational-section, .public-comments-pane, .internal-notes-pane, .attachments-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--zen-radius-md, 8px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.resolved-flag-indicator {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.ticket-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.field-row dt {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.25rem;
+}
+
+.field-row dd {
+  margin: 0;
+}
+
+.field-group {
+  margin-bottom: 1rem;
+}
+
+.field-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.owner-input-row, .field-group select, .field-group button {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.field-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Public Comments */
+.public-comments-pane {
+  background: var(--zen-bg-comment, #f0f7ff);
+  border-left: 4px solid var(--zen-color-comment, #3b82f6);
+}
+
+.pane-title--public { 
+  color: var(--zen-color-comment, #1d4ed8); 
+}
+
+/* Internal Notes */
+.internal-notes-pane {
+  background: var(--zen-bg-note, #fffbeb);
+  border-left: 4px solid var(--zen-color-note, #f59e0b);
+}
+
+.pane-title--internal { 
+  color: var(--zen-color-note-dark, #92400e); 
+}
+
+.pane-subtitle {
+  font-size: 0.875rem;
+  font-weight: normal;
+  margin-left: 0.75rem;
+  opacity: 0.75;
+}
+
+.comment-list, .note-list {
+  list-style: none;
+  padding: 0;
+}
+
+.comment-item, .note-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.comment-author, .note-author {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.comment-time, .note-time {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.comment-content, .note-content {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+}
+
+.attachment-list {
+  list-style: none;
+  padding: 0;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.attachment-name {
+  flex: 1;
+}
+
+.attachment-size {
+  color: #666;
+  font-size: 0.875rem;
+}

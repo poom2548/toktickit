@@ -6,15 +6,15 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-async function loginAndGetCookie(email: string, password: string) {
+async function loginAndGetCookie(email, password) {
   const res = await request(app).post('/auth/login').send({ email, password })
   return res.headers['set-cookie']
 }
 
 describe('Comments and Notes API', () => {
-  let aliceCookie: any
-  let aliceUserId: string
-  let aliceTicketId: number
+  let aliceCookie
+  let aliceUserId
+  let aliceTicketId
 
   beforeAll(async () => {
     aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
@@ -118,7 +118,7 @@ describe('Comments and Notes API', () => {
         .set('Cookie', cookie)
       expect(res.status).toBe(200)
       expect(Array.isArray(res.body.comments)).toBe(true)
-      const timestamps = res.body.comments.map((c: any) => new Date(c.createdAt).getTime())
+      const timestamps = res.body.comments.map((c) => new Date(c.createdAt).getTime())
       for (let i = 1; i < timestamps.length; i++) {
         expect(timestamps[i]).toBeGreaterThanOrEqual(timestamps[i - 1])
       }
@@ -134,6 +134,31 @@ describe('Comments and Notes API', () => {
   })
 
   describe('Internal Notes', () => {
+    it('POST /tickets/:id/notes allows IT_STAFF to post an internal note', async () => {
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const res = await request(app)
+        .post(`/api/tickets/${aliceTicketId}/notes`)
+        .set('Cookie', staffCookie)
+        .send({ content: 'Internal note by IT staff.' })
+
+      expect(res.status).toBe(201)
+      expect(res.body.content).toBe('Internal note by IT staff.')
+      expect(res.body.author.role).toBe('IT_STAFF')
+      expect(res.body).toHaveProperty('createdAt')
+    })
+
+    it('GET /tickets/:id/notes allows IT_STAFF to view internal notes', async () => {
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const res = await request(app)
+        .get(`/api/tickets/${aliceTicketId}/notes`)
+        .set('Cookie', staffCookie)
+
+      expect(res.status).toBe(200)
+      expect(Array.isArray(res.body.notes)).toBe(true)
+      const hasOurNote = res.body.notes.some((n) => n.content === 'Internal note by IT staff.')
+      expect(hasOurNote).toBe(true)
+    })
+
     it('POST /tickets/:id/notes returns 403 for REQUESTER (no note content in error)', async () => {
       const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
       const res = await request(app)

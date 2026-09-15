@@ -1,0 +1,88 @@
+/* Queue controls — horizontal on desktop, stacked on mobile */
+.queue-controls {
+  display: flex;
+  gap: var(--zen-space-3, 12px);
+  flex-wrap: wrap;
+  margin-bottom: var(--zen-space-4, 16px);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Desktop: show table, hide cards */
+@media (min-width: 1024px) {
+  .queue-table      { display: table; width: 100%; border-collapse: collapse; }
+  .queue-card-list  { display: none; }
+}
+
+/* Tablet and mobile: hide table, show cards */
+@media (max-width: 1023px) {
+  .queue-table      { display: none; }
+  .queue-card-list  { display: flex; flex-direction: column; gap: var(--zen-space-3, 12px); list-style: none; padding: 0; }
+}
+
+/* Prevent horizontal overflow on all viewports */
+.staff-queue-page {
+  overflow-x: hidden;
+  padding: var(--zen-space-4, 16px);
+}
+
+/* Skeleton loading rows */
+.skeleton-row {
+  height: 48px;
+  background: var(--zen-color-skeleton, #e5e7eb);
+  border-radius: var(--zen-radius-sm, 4px);
+  animation: pulse 1.5s ease-in-out infinite;
+  margin-bottom: var(--zen-space-2, 8px);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Summary column — truncate long text on desktop */
+.summary-cell {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--zen-radius-badge, 4px);
+  font-size: var(--zen-text-xs, 12px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Status badge colors — use Zen Green token variables from Lab 2 */
+.badge--new                 { background: var(--zen-badge-new-bg);       color: var(--zen-badge-new-text); }
+.badge--open                { background: var(--zen-badge-open-bg);      color: var(--zen-badge-open-text); }
+.badge--in-progress         { background: var(--zen-badge-progress-bg);  color: var(--zen-badge-progress-text); }
+.badge--waiting-for-requester { background: var(--zen-badge-waiting-bg); color: var(--zen-badge-waiting-text); }
+.badge--resolved            { background: var(--zen-badge-resolved-bg);  color: var(--zen-badge-resolved-text); }
+.badge--closed              { background: var(--zen-badge-closed-bg);    color: var(--zen-badge-closed-text); }
+.badge--reopened            { background: var(--zen-badge-reopened-bg);  color: var(--zen-badge-reopened-text); }
+.badge--cancelled           { background: var(--zen-badge-cancelled-bg); color: var(--zen-badge-cancelled-text); }
+
+/* Priority badge colors */
+.badge--low      { background: var(--zen-badge-low-bg);      color: var(--zen-badge-low-text); }
+.badge--medium   { background: var(--zen-badge-medium-bg);   color: var(--zen-badge-medium-text); }
+.badge--high     { background: var(--zen-badge-high-bg);     color: var(--zen-badge-high-text); }
+.badge--critical { background: var(--zen-badge-critical-bg); color: var(--zen-badge-critical-text); }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}

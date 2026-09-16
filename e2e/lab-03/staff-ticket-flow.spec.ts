@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('IT Staff can view the Ticket Queue and navigate to detail', async ({ page }) => {
-  await expect(page.locator('.queue-table, .queue-card-list')).toBeVisible()
+  await expect(page.locator('.queue-table, .queue-card-list').first()).toBeVisible()
   await page.click('button:has-text("Open Detail")')
   await expect(page).toHaveURL(/\/staff\/tickets\//)
 })

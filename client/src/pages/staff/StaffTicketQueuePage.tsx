@@ -55,7 +55,7 @@ export function StaffTicketQueuePage() {
       // The instructions mention `/staff/tickets?${params.toString()}`
       // The tests expect `/staff/tickets` in the fetch call exactly as specified.
       // Wait, is it /staff/tickets or /api/staff/tickets? The prompt says `/staff/tickets` for fetch
-      const res = await fetch(`/staff/tickets?${params.toString()}`, {
+      const res = await fetch(`/api/staff/tickets?${params.toString()}`, {
         credentials: 'include',
       })
 

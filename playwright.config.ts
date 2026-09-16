@@ -11,7 +11,7 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:5173',
     trace: 'on-first-retry',
     env: {
-      TEST_TICKET_ID: '1',
+      TEST_TICKET_ID: '9',
       NEW_TICKET_ID: '4',
       RESOLVED_FLAG_TICKET_ID: '2',
       TICKET_WITH_ATTACHMENT_ID: '3'

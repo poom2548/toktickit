@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = React.useCallback(async () => {
     try {
-      const res = await apiFetch('/auth/me')
+      const res = await apiFetch('/api/auth/me')
       if (res.ok) {
         const data = await res.json()
         setUser(data)
@@ -37,13 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // On mount: restore session via GET /auth/me
+  // On mount: restore session via GET /api/auth/me
   useEffect(() => {
     refreshUser().finally(() => setIsLoading(false))
   }, [])
 
   async function login(email: string, password: string) {
-    const res = await apiFetch('/auth/login', {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await apiFetch('/auth/logout', { method: 'POST' })
+    await apiFetch('/api/auth/logout', { method: 'POST' })
     setUser(null)
   }
 

@@ -14,8 +14,8 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use("/auth", authRouter);
-app.use("/staff", staffRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/staff", staffRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check

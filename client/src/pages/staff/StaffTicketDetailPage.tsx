@@ -50,7 +50,7 @@ export function StaffTicketDetailPage() {
   async function fetchTicket() {
     setFetchState('loading')
     try {
-      const res = await fetch(`/staff/tickets/${ticketId}`, { credentials: 'include' })
+      const res = await fetch(`/api/staff/tickets/${ticketId}`, { credentials: 'include' })
       if (res.status === 401) { window.location.href = '/login'; return }
       if (res.status === 403) { setFetchState('error'); setErrorMessage('forbidden'); return }
       if (res.status === 404) { setFetchState('not-found'); return }

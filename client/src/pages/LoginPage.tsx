@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
-  const { login, user } = useAuth()
+  const { login, user, isLoading: isAuthLoading } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -24,7 +24,7 @@ export function LoginPage() {
   }
 
   useEffect(() => {
-    if (user) {
+    if (!isAuthLoading && user) {
       if (user.requiresPasswordChange) {
         navigate('/change-password')
       } else {
@@ -36,7 +36,7 @@ export function LoginPage() {
         }
       }
     }
-  }, [user, navigate])
+  }, [user, navigate, isAuthLoading])
 
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>

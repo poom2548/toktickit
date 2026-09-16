@@ -3,28 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
-  const { login, user, isLoading: isAuthLoading } = useAuth()
+  const { login, user, isLoading } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
-    setIsLoading(true)
+    setIsSubmitting(true)
     try {
       await login(email, password)
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.')
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   useEffect(() => {
-    if (!isAuthLoading && user) {
+    if (!isLoading && user) {
       if (user.requiresPasswordChange) {
         navigate('/change-password')
       } else {
@@ -36,9 +36,9 @@ export function LoginPage() {
         }
       }
     }
-  }, [user, navigate, isAuthLoading])
+  }, [user, navigate, isLoading])
 
-  if (isAuthLoading) return <div className="text-center mt-5">Loading…</div>
+  if (isLoading) return <div>Loading…</div>
 
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
@@ -59,7 +59,7 @@ export function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSubmitting}
                 autoComplete="email"
               />
             </div>
@@ -73,7 +73,7 @@ export function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSubmitting}
                 autoComplete="current-password"
               />
             </div>
@@ -88,9 +88,9 @@ export function LoginPage() {
               type="submit" 
               className="btn text-white w-100 fw-semibold" 
               style={{ background: "#006B3C", borderRadius: 8 }}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading ? 'Signing in…' : 'Sign In'}
+              {isSubmitting ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
         </div>

@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // On mount: restore session via GET /auth/me
   useEffect(() => {
     refreshUser().finally(() => setIsLoading(false))
-  }, [refreshUser])
+  }, [])
 
   async function login(email: string, password: string) {
     const res = await apiFetch('/auth/login', {

@@ -38,6 +38,8 @@ export function LoginPage() {
     }
   }, [user, navigate, isAuthLoading])
 
+  if (isAuthLoading) return <div className="text-center mt-5">Loading…</div>
+
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
       <div className="card shadow-sm" style={{ width: '100%', maxWidth: '400px', borderRadius: 8 }}>

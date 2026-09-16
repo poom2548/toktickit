@@ -35,15 +35,16 @@ export function InternalNotesPane({ ticketId, notes, onNotesUpdate }: InternalNo
       })
       if (res.ok) {
         const newEntry = await res.json()
-        onNotesUpdate([...notes, newEntry])
+        setIsSubmitting(false)
         setNewNote('')
+        onNotesUpdate([...notes, newEntry])
       } else {
         const err = await res.json()
         setNoteError(err.error)
+        setIsSubmitting(false)
       }
     } catch {
       setNoteError('Failed to post note.')
-    } finally {
       setIsSubmitting(false)
     }
   }

@@ -35,15 +35,16 @@ export function PublicCommentsPane({ ticketId, comments, onCommentsUpdate }: Pub
       })
       if (res.ok) {
         const newEntry = await res.json()
-        onCommentsUpdate([...comments, newEntry])
+        setIsSubmitting(false)
         setNewComment('')
+        onCommentsUpdate([...comments, newEntry])
       } else {
         const err = await res.json()
         setCommentError(err.error)
+        setIsSubmitting(false)
       }
     } catch {
       setCommentError('Failed to post comment.')
-    } finally {
       setIsSubmitting(false)
     }
   }

@@ -38,14 +38,14 @@ test('IT Staff can post an Internal Note', async ({ page }) => {
   await page.goto(`/staff/tickets/${process.env.TEST_TICKET_ID || 1}`)
   await page.fill('textarea[id*="note"]', 'E2E test note — confirmed issue.')
   await page.click('button:has-text("Add Note")')
-  await expect(page.getByText('E2E test note — confirmed issue.')).toBeVisible()
+  await expect(page.getByText('E2E test note — confirmed issue.').first()).toBeVisible()
 })
 
 test('IT Staff can post a Public Comment', async ({ page }) => {
   await page.goto(`/staff/tickets/${process.env.TEST_TICKET_ID || 1}`)
   await page.fill('textarea[id*="comment"]', 'E2E test comment — update for requester.')
   await page.click('button:has-text("Post Comment")')
-  await expect(page.getByText('E2E test comment — update for requester.')).toBeVisible()
+  await expect(page.getByText('E2E test comment — update for requester.').first()).toBeVisible()
 })
 
 test('"Problem Appears Resolved" indicator is visible when flag is set', async ({ page }) => {

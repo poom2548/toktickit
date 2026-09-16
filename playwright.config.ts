@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
+process.env.TEST_TICKET_ID = '9';
+process.env.NEW_TICKET_ID = '2';
+process.env.RESOLVED_FLAG_TICKET_ID = '3';
+process.env.TICKET_WITH_ATTACHMENT_ID = '3';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -10,12 +15,6 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:5173',
     trace: 'on-first-retry',
-    env: {
-      TEST_TICKET_ID: '1',
-      NEW_TICKET_ID: '4',
-      RESOLVED_FLAG_TICKET_ID: '2',
-      TICKET_WITH_ATTACHMENT_ID: '3'
-    }
   },
   webServer: {
     command: 'npm run dev',

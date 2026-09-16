@@ -34,6 +34,10 @@ export function TicketInfoSection({ ticket }: { ticket: TicketDetail }) {
           <dd><PriorityBadge priority={ticket.requestedPriority} /></dd>
         </div>
         <div className="field-row">
+          <dt>IT Priority</dt>
+          <dd>{ticket.itPriority ? <PriorityBadge priority={ticket.itPriority} /> : <em>Not set</em>}</dd>
+        </div>
+        <div className="field-row">
           <dt>Created</dt>
           <dd>{formatDate(ticket.createdAt)}</dd>
         </div>

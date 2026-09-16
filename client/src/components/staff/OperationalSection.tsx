@@ -37,7 +37,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
     setSaving(field)
     setSaveErrors(prev => ({ ...prev, [field]: undefined }))
     try {
-      const res = await fetch(`/api/staff/tickets/${ticket.id}/${endpoint}`, {
+      const res = await fetch(`/staff/tickets/${ticket.id}/${endpoint}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

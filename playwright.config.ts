@@ -6,6 +6,7 @@ process.env.RESOLVED_FLAG_TICKET_ID = '3';
 process.env.TICKET_WITH_ATTACHMENT_ID = '3';
 
 export default defineConfig({
+  globalSetup: './e2e/global-setup.ts',
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

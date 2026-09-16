@@ -17,7 +17,7 @@ test('IT Staff can view the Ticket Queue and navigate to detail', async ({ page 
 test('IT Staff can claim ticket ownership', async ({ page }) => {
   await page.goto(`/staff/tickets/${process.env.TEST_TICKET_ID || 1}`)
   await page.click('button:has-text("Claim")')
-  await expect(page.getByText(/frank it/i)).toBeVisible()
+  await expect(page.getByText(/frank it/i).first()).toBeVisible()
 })
 
 test('IT Staff can set IT Priority', async ({ page }) => {

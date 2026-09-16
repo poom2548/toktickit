@@ -72,16 +72,16 @@ async function main() {
 
   // --- Tickets ---
   const ticketsToSeed = [
-    { ticketNumber: 'TKT-001', summary: 'Cannot access VPN', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: alice.id, ownerId: frank.id, categoryId: createdCats[3].id, sysId: createdSys[0].id },
-    { ticketNumber: 'TKT-002', summary: 'Need new laptop', requestedPriority: Priority.MEDIUM, itPriority: Priority.LOW, status: TicketStatus.NEW, requesterId: bob.id, ownerId: null, categoryId: createdCats[1].id, sysId: createdSys[1].id },
-    { ticketNumber: 'TKT-003', summary: 'Password reset', requestedPriority: Priority.HIGH, itPriority: Priority.CRITICAL, status: TicketStatus.RESOLVED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[0].id, sysId: createdSys[0].id },
-    { ticketNumber: 'TKT-004', summary: 'Software install error', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.OPEN, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[2].id },
-    { ticketNumber: 'TKT-005', summary: 'Network down', requestedPriority: Priority.CRITICAL, itPriority: Priority.CRITICAL, status: TicketStatus.WAITING_FOR_REQUESTER, requesterId: alice.id, ownerId: grace.id, categoryId: createdCats[3].id, sysId: createdSys[0].id },
-    { ticketNumber: 'TKT-006', summary: 'Email sync issue', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.CLOSED, requesterId: bob.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[4].id },
-    { ticketNumber: 'TKT-007', summary: 'Broken monitor', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.REOPENED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id },
-    { ticketNumber: 'TKT-008', summary: 'Cannot access HR portal', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.CANCELLED, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[0].id, sysId: createdSys[1].id },
-    { ticketNumber: 'TKT-009', summary: 'Need CRM access', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.OPEN, requesterId: alice.id, ownerId: null, categoryId: createdCats[0].id, sysId: createdSys[2].id },
-    { ticketNumber: 'TKT-010', summary: 'Laptop randomly shuts down', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: bob.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id }
+    { ticketNumber: 'TKT-001', summary: 'Cannot access VPN', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: alice.id, ownerId: frank.id, categoryId: createdCats[3].id, sysId: createdSys[0].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-002', summary: 'Need new laptop', requestedPriority: Priority.MEDIUM, itPriority: Priority.LOW, status: TicketStatus.NEW, requesterId: bob.id, ownerId: null, categoryId: createdCats[1].id, sysId: createdSys[1].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-003', summary: 'Password reset', requestedPriority: Priority.HIGH, itPriority: Priority.CRITICAL, status: TicketStatus.RESOLVED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[0].id, sysId: createdSys[0].id, problemAppearsResolved: true },
+    { ticketNumber: 'TKT-004', summary: 'Software install error', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.OPEN, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[2].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-005', summary: 'Network down', requestedPriority: Priority.CRITICAL, itPriority: Priority.CRITICAL, status: TicketStatus.WAITING_FOR_REQUESTER, requesterId: alice.id, ownerId: grace.id, categoryId: createdCats[3].id, sysId: createdSys[0].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-006', summary: 'Email sync issue', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.CLOSED, requesterId: bob.id, ownerId: frank.id, categoryId: createdCats[2].id, sysId: createdSys[4].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-007', summary: 'Broken monitor', requestedPriority: Priority.LOW, itPriority: Priority.LOW, status: TicketStatus.REOPENED, requesterId: carol.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-008', summary: 'Cannot access HR portal', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.CANCELLED, requesterId: dave.id, ownerId: frank.id, categoryId: createdCats[0].id, sysId: createdSys[1].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-009', summary: 'Need CRM access', requestedPriority: Priority.MEDIUM, itPriority: Priority.MEDIUM, status: TicketStatus.OPEN, requesterId: alice.id, ownerId: null, categoryId: createdCats[0].id, sysId: createdSys[2].id, problemAppearsResolved: false },
+    { ticketNumber: 'TKT-010', summary: 'Laptop randomly shuts down', requestedPriority: Priority.HIGH, itPriority: Priority.HIGH, status: TicketStatus.IN_PROGRESS, requesterId: bob.id, ownerId: grace.id, categoryId: createdCats[1].id, sysId: createdSys[1].id, problemAppearsResolved: true }
   ]
   
   const createdTickets = []
@@ -100,9 +100,27 @@ async function main() {
         ownerId: t.ownerId,
         categoryId: t.categoryId,
         relatedSystemId: t.sysId,
+        problemAppearsResolved: t.problemAppearsResolved
       },
     })
     createdTickets.push(ticket)
+  }
+
+  // --- Attachments ---
+  const tkt3 = createdTickets[2] // Password reset (RESOLVED)
+  if (tkt3) {
+    const existingAttachments = await prisma.attachment.count({ where: { ticketId: tkt3.id } })
+    if (existingAttachments === 0) {
+      await prisma.attachment.create({
+        data: {
+          ticketId: tkt3.id,
+          filename: 'error-screenshot.png',
+          mimetype: 'image/png',
+          size: 1048576,
+          authorId: carol.id
+        }
+      })
+    }
   }
 
   // --- Public Comments ---

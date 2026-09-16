@@ -116,8 +116,7 @@ async function main() {
           ticketId: tkt3.id,
           filename: 'error-screenshot.png',
           mimetype: 'image/png',
-          size: 1048576,
-          authorId: carol.id
+          size: 1048576
         }
       })
     }

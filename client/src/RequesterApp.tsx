@@ -74,7 +74,7 @@ export default function RequesterApp() {
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"
-              style={{ background: "#006B3C", border: "none", borderRadius: 8 }}
+              style={{ background: "var(--zen-color-primary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
               onClick={() => {
                 setShowMyTickets(false);
                 setSelectedTicketId(null);
@@ -90,7 +90,7 @@ export default function RequesterApp() {
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"
-              style={{ background: "#0d6efd", border: "none", borderRadius: 8 }}
+              style={{ background: "var(--zen-color-secondary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
               onClick={async () => {
                 setShowCreateForm(false);
                 setSelectedTicketId(null);
@@ -112,7 +112,7 @@ export default function RequesterApp() {
             <button
               type="button"
               className="btn btn-outline-secondary btn-sm"
-              style={{ borderRadius: 8 }}
+              style={{ borderRadius: "var(--zen-radius-md)" }}
               onClick={() => {
                 // If coming back from ticket detail, go back to my tickets. Otherwise dashboard.
                 if (selectedTicketId) {

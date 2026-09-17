@@ -10,12 +10,14 @@ import {
   postComment,
   markResolved
 } from "./api";
+import { StatusBadge } from "./components/shared/StatusBadge";
+import { PriorityBadge } from "./components/shared/PriorityBadge";
 
 // ---------------------------------------------------------------------------
 // Zen Green colour tokens
 // ---------------------------------------------------------------------------
 const ZEN = {
-  primary: "#006B3C",
+  primary: "var(--zen-color-primary)",
   primaryLight: "#e8f5ee",
   errorText: "#dc3545",
   successText: "#198754",
@@ -172,7 +174,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   if (loading) {
     return (
       <div className="text-center py-5">
-        <div className="spinner-border" style={{ color: ZEN.primary }} role="status" />
+        <div className="spinner-border" style={{ color: "var(--zen-color-primary)" }} role="status" />
         <p className="mt-3 text-muted">Loading ticket details…</p>
       </div>
     );
@@ -196,10 +198,10 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   });
 
   return (
-    <div className="card border-0 shadow-sm" style={{ borderRadius: 12 }}>
+    <div className="card border-0 shadow-sm" style={{ borderRadius: "var(--zen-radius-lg)" }}>
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="h4 mb-0" style={{ color: ZEN.primary }}>
+          <h2 className="h4 mb-0" style={{ color: "var(--zen-color-primary)" }}>
             Ticket Details
           </h2>
           <button className="btn btn-outline-secondary" onClick={onBack}>
@@ -216,7 +218,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               className="form-control"
               value={ticket.ticketNumber}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
           <div className="col-md-6">
@@ -226,20 +228,16 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               className="form-control"
               value={createdStr}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
 
           <div className="col-md-4">
             <label className="form-label fw-semibold">Status</label>
             <div className="input-group">
-              <input
-                type="text"
-                className="form-control"
-                value={ticket.status}
-                readOnly
-                style={{ backgroundColor: ZEN.primaryLight }}
-              />
+              <div className="form-control" style={{ backgroundColor: "var(--zen-bg-readonly)", display: "flex", alignItems: "center" }}>
+                <StatusBadge status={ticket.status} />
+              </div>
               {!ticket.problemAppearsResolved && ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && ticket.status !== 'CANCELLED' && (
                 <button
                   type="button"
@@ -262,18 +260,14 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               className="form-control"
               value={ticket.category?.name || "Unknown"}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
           <div className="col-md-4">
             <label className="form-label fw-semibold">Priority</label>
-            <input
-              type="text"
-              className="form-control"
-              value={ticket.requestedPriority}
-              readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
-            />
+            <div className="form-control" style={{ backgroundColor: "var(--zen-bg-readonly)", display: "flex", alignItems: "center" }}>
+              <PriorityBadge priority={ticket.requestedPriority} />
+            </div>
           </div>
 
           <div className="col-12">
@@ -283,7 +277,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               className="form-control"
               value={ticket.summary}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
 
@@ -294,14 +288,14 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               rows={4}
               value={ticket.description}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
         </div>
 
         <hr className="my-5" />
 
-        <h3 className="h5 mb-4" style={{ color: ZEN.primary }}>
+        <h3 className="h5 mb-4" style={{ color: "var(--zen-color-primary)" }}>
           Public Comments
         </h3>
         
@@ -336,7 +330,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               disabled={postingComment}
             />
           </div>
-          <button type="submit" className="btn btn-primary" disabled={postingComment || !newComment.trim()}>
+          <button type="submit" className="btn text-white" style={{ backgroundColor: "var(--zen-color-primary)", borderRadius: "var(--zen-radius-md)" }} disabled={postingComment || !newComment.trim()}>
             {postingComment ? "Posting..." : "Post Comment"}
           </button>
         </form>
@@ -344,7 +338,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         <hr className="my-5" />
 
         {/* Attachments Section */}
-        <h3 className="h5 mb-4" style={{ color: ZEN.primary }}>
+        <h3 className="h5 mb-4" style={{ color: "var(--zen-color-primary)" }}>
           Attachments
         </h3>
 
@@ -373,7 +367,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           <button
             type="submit"
             className="btn text-white"
-            style={{ backgroundColor: ZEN.primary }}
+            style={{ backgroundColor: "var(--zen-color-primary)" }}
             disabled={!file || uploading}
           >
             {uploading ? "Uploading..." : "Upload"}

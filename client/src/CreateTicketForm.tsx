@@ -16,9 +16,9 @@ import {
 // Zen Green colour tokens (from Lab 2)
 // ---------------------------------------------------------------------------
 const ZEN = {
-  primary: "#006B3C",          // Primary Green (submit button)
+  primary: "var(--zen-color-primary)",          // Primary Green (submit button)
   primaryLight: "#e8f5ee",     // Soft gray-green (read-only inputs)
-  errorText: "#8b0000",        // Dark red (inline error messages)
+  errorText: "var(--zen-color-error)",        // Dark red (inline error messages)
   errorBorder: "#dc3545",      // Red asterisk / error border
 } as const;
 
@@ -71,7 +71,7 @@ function RequiredLabel({ htmlFor, children }: { htmlFor: string; children: React
       {children}
       {/* aria-hidden hides the asterisk from screen readers — the field's
           required attribute already communicates the requirement. */}
-      <span aria-hidden="true" style={{ color: ZEN.errorBorder, marginLeft: 2 }}>
+      <span aria-hidden="true" style={{ color: "var(--zen-color-error-border)", marginLeft: 2 }}>
         *
       </span>
     </label>
@@ -85,7 +85,7 @@ function FieldError({ message }: { message?: string }) {
     <p
       role="alert"
       className="mb-0 mt-1 small"
-      style={{ color: ZEN.errorText }}
+      style={{ color: "var(--zen-color-error)" }}
     >
       {message}
     </p>
@@ -167,7 +167,7 @@ function AttachmentSection({
       <div
         style={{
           border: `2px dashed ${attachmentError ? "#dc3545" : "#adb5bd"}`,
-          borderRadius: 8,
+          borderRadius: "var(--zen-radius-md)",
           padding: "16px",
           textAlign: "center",
           background: "#fafafa",
@@ -186,7 +186,7 @@ function AttachmentSection({
         }}
       >
         <span style={{ fontSize: 28 }}>📎</span>
-        <p className="mb-1 mt-1 small fw-semibold" style={{ color: "#495057" }}>
+        <p className="mb-1 mt-1 small fw-semibold" style={{ color: "var(--zen-color-text-secondary)" }}>
           Click to browse files
         </p>
         <p className="mb-0 small text-muted">
@@ -207,14 +207,14 @@ function AttachmentSection({
 
       {/* Inline validation error */}
       {attachmentError && (
-        <p role="alert" className="mb-0 mt-1 small" style={{ color: "#8b0000" }}>
+        <p role="alert" className="mb-0 mt-1 small" style={{ color: "var(--zen-color-error)" }}>
           {attachmentError}
         </p>
       )}
 
       {/* Staged file list */}
       {stagedFiles.length > 0 && (
-        <ul className="list-group mt-2" style={{ borderRadius: 8 }}>
+        <ul className="list-group mt-2" style={{ borderRadius: "var(--zen-radius-md)" }}>
           {stagedFiles.map((file, idx) => (
             <li
               key={`${file.name}-${idx}`}
@@ -235,7 +235,7 @@ function AttachmentSection({
               <button
                 type="button"
                 className="btn btn-sm btn-outline-danger"
-                style={{ borderRadius: 6, padding: "2px 8px", lineHeight: 1.4 }}
+                style={{ borderRadius: "var(--zen-radius-sm)", padding: "2px 8px", lineHeight: 1.4 }}
                 onClick={() => onRemove(idx)}
                 disabled={disabled}
                 aria-label={`Remove ${file.name}`}
@@ -436,16 +436,16 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
   // ---------------------------------------------------------------------------
   if (formState === "success" && createdTicket) {
     return (
-      <div className="card border-0 shadow-sm" style={{ borderRadius: 12 }}>
+      <div className="card border-0 shadow-sm" style={{ borderRadius: "var(--zen-radius-lg)" }}>
         <div className="card-body p-4 text-center">
           <div style={{ fontSize: 48 }}>🎟️</div>
-          <h2 className="h4 mt-2 fw-bold" style={{ color: ZEN.primary }}>
+          <h2 className="h4 mt-2 fw-bold" style={{ color: "var(--zen-color-primary)" }}>
             Ticket Created!
           </h2>
           <p className="text-muted mb-1">Your ticket number is:</p>
           <p
             className="fw-bold fs-3"
-            style={{ color: ZEN.primary, letterSpacing: 2 }}
+            style={{ color: "var(--zen-color-primary)", letterSpacing: 2 }}
           >
             {createdTicket.ticketNumber}
           </p>
@@ -453,7 +453,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
           <button
             type="button"
             className="btn text-white fw-semibold me-2"
-            style={{ background: ZEN.primary, borderRadius: 8 }}
+            style={{ background: "var(--zen-color-primary)", borderRadius: "var(--zen-radius-md)" }}
             onClick={() => {
               setFormState("idle");
               setCreatedTicket(null);
@@ -464,7 +464,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
           <button
             type="button"
             className="btn btn-outline-secondary"
-            style={{ borderRadius: 8 }}
+            style={{ borderRadius: "var(--zen-radius-md)" }}
             onClick={onDone}
           >
             Back to Dashboard
@@ -478,12 +478,12 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
   // Form
   // ---------------------------------------------------------------------------
   return (
-    <div className="card border-0 shadow-sm" style={{ borderRadius: 12 }}>
+    <div className="card border-0 shadow-sm" style={{ borderRadius: "var(--zen-radius-lg)" }}>
       {/* Header */}
       <div
         className="card-header border-0 text-white px-4 py-3"
         style={{
-          background: `linear-gradient(135deg, ${ZEN.primary} 0%, #004d2b 100%)`,
+          background: `linear-gradient(135deg, ${"var(--zen-color-primary)"} 0%, #004d2b 100%)`,
           borderRadius: "12px 12px 0 0",
         }}
       >
@@ -517,7 +517,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               onChange={handleChange}
               required
               aria-describedby={errors.categoryId ? "categoryId-error" : undefined}
-              style={errors.categoryId ? { borderColor: ZEN.errorBorder } : undefined}
+              style={errors.categoryId ? { borderColor: "var(--zen-color-error-border)" } : undefined}
             >
               <option value="">— Select a category —</option>
               {categories.map((cat) => (
@@ -540,7 +540,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               onChange={handleChange}
               required
               aria-describedby={errors.relatedSystemId ? "relatedSystemId-error" : undefined}
-              style={errors.relatedSystemId ? { borderColor: ZEN.errorBorder } : undefined}
+              style={errors.relatedSystemId ? { borderColor: "var(--zen-color-error-border)" } : undefined}
             >
               <option value="">— Select a system —</option>
               {systems.map((sys) => (
@@ -563,7 +563,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               onChange={handleChange}
               required
               aria-describedby={errors.requestedPriority ? "requestedPriority-error" : undefined}
-              style={errors.requestedPriority ? { borderColor: ZEN.errorBorder } : undefined}
+              style={errors.requestedPriority ? { borderColor: "var(--zen-color-error-border)" } : undefined}
             >
               <option value="">— Select a priority —</option>
               <option value="Low">Low</option>
@@ -587,7 +587,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               required
               placeholder="Brief description of the issue (max 100 characters)"
               aria-describedby={errors.summary ? "summary-error" : undefined}
-              style={errors.summary ? { borderColor: ZEN.errorBorder } : undefined}
+              style={errors.summary ? { borderColor: "var(--zen-color-error-border)" } : undefined}
             />
             <div className="d-flex justify-content-between">
               <FieldError message={errors.summary} />
@@ -611,7 +611,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               rows={5}
               placeholder="Full details of the issue (max 1000 characters)"
               aria-describedby={errors.description ? "description-error" : undefined}
-              style={errors.description ? { borderColor: ZEN.errorBorder } : undefined}
+              style={errors.description ? { borderColor: "var(--zen-color-error-border)" } : undefined}
             />
             <div className="d-flex justify-content-between">
               <FieldError message={errors.description} />
@@ -637,9 +637,9 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
               className="btn text-white fw-semibold px-4"
               disabled={isSubmitting}
               style={{
-                background: isSubmitting ? "#4a9e73" : ZEN.primary,
+                background: isSubmitting ? "#4a9e73" : "var(--zen-color-primary)",
                 border: "none",
-                borderRadius: 8,
+                borderRadius: "var(--zen-radius-md)",
                 minWidth: 140,
                 transition: "background 0.2s",
               }}
@@ -661,7 +661,7 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
             <button
               type="button"
               className="btn btn-outline-secondary"
-              style={{ borderRadius: 8 }}
+              style={{ borderRadius: "var(--zen-radius-md)" }}
               disabled={isSubmitting}
               onClick={onDone}
             >

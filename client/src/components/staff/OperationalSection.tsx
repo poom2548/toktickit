@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { StatusBadge } from '../shared/StatusBadge'
+import { PriorityBadge } from '../shared/PriorityBadge'
 import { useAuth } from '../../contexts/AuthContext'
 
 import { TicketDetail } from '../../pages/staff/StaffTicketDetailPage'
@@ -32,6 +33,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
   const [saving, setSaving]           = useState<'owner' | 'priority' | 'status' | null>(null)
   const [saveErrors, setSaveErrors]   = useState<{ owner?: string; priority?: string; status?: string }>({})
   const { user } = useAuth()
+  const isStaff = user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR'
 
   async function patchTicket(endpoint: string, body: object, field: 'owner' | 'priority' | 'status') {
     setSaving(field)
@@ -77,38 +79,48 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
           <span className="current-owner">
             {ticket.owner ? ticket.owner.name : <em>Unassigned</em>}
           </span>
-          <button
-            onClick={() => patchTicket('owner', { ownerId: ticket.owner ? null : user?.id }, 'owner')}
-            disabled={saving === 'owner'}
-            className="claim-btn"
-          >
-            {saving === 'owner' ? 'Saving…' : ticket.owner ? 'Unassign' : 'Claim (Assign to me)'}
-          </button>
+          {isStaff && (
+            <button
+              onClick={() => patchTicket('owner', { ownerId: ticket.owner ? null : user?.id }, 'owner')}
+              disabled={saving === 'owner'}
+              className="claim-btn"
+            >
+              {saving === 'owner' ? 'Saving…' : ticket.owner ? 'Unassign' : 'Claim (Assign to me)'}
+            </button>
+          )}
         </div>
         {saveErrors.owner && <span className="field-error" role="alert">{saveErrors.owner}</span>}
       </div>
 
       <div className="field-group">
         <label htmlFor="it-priority-select">IT Priority</label>
-        <select
-          id="it-priority-select"
-          value={priority}
-          onChange={e => setPriority(e.target.value)}
-          disabled={saving === 'priority'}
-        >
-          <option value="">— Not set —</option>
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-          <option value="CRITICAL">Critical</option>
-        </select>
-        <button
-          onClick={() => patchTicket('priority', { itPriority: priority || null }, 'priority')}
-          disabled={saving === 'priority'}
-          className="save-btn"
-        >
-          {saving === 'priority' ? 'Saving…' : 'Save Priority'}
-        </button>
+        {isStaff ? (
+          <>
+            <select
+              id="it-priority-select"
+              value={priority}
+              onChange={e => setPriority(e.target.value)}
+              disabled={saving === 'priority'}
+            >
+              <option value="">— Not set —</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+            <button
+              onClick={() => patchTicket('priority', { itPriority: priority || null }, 'priority')}
+              disabled={saving === 'priority'}
+              className="save-btn"
+            >
+              {saving === 'priority' ? 'Saving…' : 'Save Priority'}
+            </button>
+          </>
+        ) : (
+          <span className="readonly-value">
+            {ticket.itPriority ? <PriorityBadge priority={ticket.itPriority} /> : <em>Not set</em>}
+          </span>
+        )}
         {saveErrors.priority && <span className="field-error" role="alert">{saveErrors.priority}</span>}
       </div>
 
@@ -118,7 +130,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
           <p className="terminal-status-note">
             This ticket is in a terminal state (<strong>{ticket.status}</strong>) and cannot be transitioned further.
           </p>
-        ) : (
+        ) : isStaff ? (
           <>
             <select
               id="status-select"
@@ -139,6 +151,10 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
               {saving === 'status' ? 'Saving…' : 'Update Status'}
             </button>
           </>
+        ) : (
+          <span className="readonly-value">
+            <StatusBadge status={ticket.status} />
+          </span>
         )}
         {saveErrors.status && <span className="field-error" role="alert">{saveErrors.status}</span>}
       </div>

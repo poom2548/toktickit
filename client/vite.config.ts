@@ -11,7 +11,14 @@ export default defineConfig({
       '/api': 'http://127.0.0.1:3000',
       '/auth': 'http://127.0.0.1:3000',
       '/tickets': 'http://127.0.0.1:3000',
-      '/admin': 'http://127.0.0.1:3000',
+      '/admin': {
+        target: 'http://127.0.0.1:3000',
+        bypass: (req) => {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
+      },
       '/staff': {
         target: 'http://127.0.0.1:3000',
         bypass: (req) => {

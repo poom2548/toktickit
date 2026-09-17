@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="container-fluid px-4 py-3 d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center gap-4">
             <span className="h5 mb-0 fw-bold">
-              TokTickIT <span style={{ color: "#006B3C" }}>Service Desk</span>
+              TokTickIT <span style={{ color: "var(--zen-color-primary)" }}>Service Desk</span>
             </span>
             
             <nav className="d-none d-md-flex gap-3">
@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button 
               onClick={handleLogout} 
               className="btn btn-outline-secondary btn-sm"
-              style={{ borderRadius: 8 }}
+              style={{ borderRadius: "var(--zen-radius-md)" }}
             >
               Log out
             </button>

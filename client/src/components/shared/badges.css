@@ -1,0 +1,76 @@
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.6em;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+}
+
+/* Status Badges */
+.badge--new {
+  background-color: var(--zen-badge-new-bg, #e0f2fe);
+  color: var(--zen-badge-new-text, #0369a1);
+  border-color: var(--zen-badge-new-border, #bae6fd);
+}
+.badge--open {
+  background-color: var(--zen-badge-open-bg, #dbeafe);
+  color: var(--zen-badge-open-text, #1d4ed8);
+  border-color: var(--zen-badge-open-border, #bfdbfe);
+}
+.badge--in-progress {
+  background-color: var(--zen-badge-progress-bg, #fef3c7);
+  color: var(--zen-badge-progress-text, #b45309);
+  border-color: var(--zen-badge-progress-border, #fde68a);
+}
+.badge--waiting-for-requester {
+  background-color: var(--zen-badge-waiting-bg, #f3e8ff);
+  color: var(--zen-badge-waiting-text, #7e22ce);
+  border-color: var(--zen-badge-waiting-border, #e9d5ff);
+}
+.badge--resolved {
+  background-color: var(--zen-badge-resolved-bg, #dcfce7);
+  color: var(--zen-badge-resolved-text, #15803d);
+  border-color: var(--zen-badge-resolved-border, #bbf7d0);
+}
+.badge--closed {
+  background-color: var(--zen-badge-closed-bg, #f3f4f6);
+  color: var(--zen-badge-closed-text, #374151);
+  border-color: var(--zen-badge-closed-border, #e5e7eb);
+}
+.badge--reopened {
+  background-color: var(--zen-badge-reopened-bg, #ffedd5);
+  color: var(--zen-badge-reopened-text, #c2410c);
+  border-color: var(--zen-badge-reopened-border, #fed7aa);
+}
+.badge--cancelled {
+  background-color: var(--zen-badge-cancelled-bg, #fee2e2);
+  color: var(--zen-badge-cancelled-text, #b91c1c);
+  border-color: var(--zen-badge-cancelled-border, #fecaca);
+}
+
+/* Priority Badges */
+.badge--low {
+  background-color: var(--zen-badge-low-bg, #f1f5f9);
+  color: var(--zen-badge-low-text, #475569);
+  border-color: var(--zen-badge-low-border, #e2e8f0);
+}
+.badge--medium {
+  background-color: var(--zen-badge-medium-bg, #e0f2fe);
+  color: var(--zen-badge-medium-text, #0369a1);
+  border-color: var(--zen-badge-medium-border, #bae6fd);
+}
+.badge--high {
+  background-color: var(--zen-badge-high-bg, #ffedd5);
+  color: var(--zen-badge-high-text, #c2410c);
+  border-color: var(--zen-badge-high-border, #fed7aa);
+}
+.badge--critical {
+  background-color: var(--zen-badge-critical-bg, #fee2e2);
+  color: var(--zen-badge-critical-text, #b91c1c);
+  border-color: var(--zen-badge-critical-border, #fecaca);
+}

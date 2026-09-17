@@ -8,11 +8,5 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
     },
   })
 
-  if (res.status === 401 && !url.includes('/auth/login')) {
-    // Session expired — redirect to login
-    window.location.href = '/login'
-    return res
-  }
-
   return res
 }

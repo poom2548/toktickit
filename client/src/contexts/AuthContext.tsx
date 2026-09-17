@@ -23,12 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // On mount: restore session via GET /auth/me
-  useEffect(() => {
-    refreshUser().finally(() => setIsLoading(false))
-  }, [])
-
-  async function refreshUser() {
+  const refreshUser = React.useCallback(async () => {
     try {
       const res = await apiFetch('/auth/me')
       if (res.ok) {
@@ -40,7 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setUser(null)
     }
-  }
+  }, [])
+
+  // On mount: restore session via GET /auth/me
+  useEffect(() => {
+    refreshUser().finally(() => setIsLoading(false))
+  }, [])
 
   async function login(email: string, password: string) {
     const res = await apiFetch('/auth/login', {

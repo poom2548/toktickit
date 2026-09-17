@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { getTickets, createTicket, getTicketById, postComment, getComments, setResolvedFlag, postNote, getNotes } from "./ticket.controller.js";
+import { getTickets, createTicket, getTicketById, postComment, getComments, setResolvedFlag } from "./ticket.controller.js";
+import { postInternalNote, getInternalNotes } from "../controllers/notes.controller.js";
 
 export const ticketRouter = Router();
 
@@ -20,7 +21,6 @@ ticketRouter.get("/:id/comments", requireAuth, getComments);
 // Resolved flag endpoint
 ticketRouter.patch("/:id/resolved-flag", requireAuth, requireRole("REQUESTER"), setResolvedFlag);
 
-// Internal notes endpoints (stubs, enforce 403 for requesters)
-ticketRouter.post("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), postNote);
-ticketRouter.get("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), getNotes);
-
+// Internal notes endpoints (stubs replaced)
+ticketRouter.post("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), postInternalNote);
+ticketRouter.get("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), getInternalNotes);

@@ -10,12 +10,16 @@ import {
 export const attachmentRouter = Router();
 
 // All attachment routes require authentication (router-level guard)
-attachmentRouter.use(requireAuth, requireRole("REQUESTER"));
+attachmentRouter.use(requireAuth);
+
+// Apply REQUESTER only to upload and remove
+// We will move this down or just apply it per route.
 
 // POST /api/tickets/:ticketId/attachments
 // multer's .single() runs before the controller to parse the multipart body
 attachmentRouter.post(
   "/tickets/:ticketId/attachments",
+  requireRole("REQUESTER"),
   upload.single("file"),
   uploadAttachment
 );
@@ -23,8 +27,8 @@ attachmentRouter.post(
 // GET /api/attachments/:id/download
 // authMiddleware listed explicitly here (in addition to the router-level guard above)
 // to make the AC-01 security requirement unmistakably visible at the route level.
-attachmentRouter.get("/attachments/:id/download", downloadAttachment);
+attachmentRouter.get("/attachments/:id/download", requireRole("REQUESTER", "IT_STAFF", "ADMINISTRATOR"), downloadAttachment);
 
 // DELETE /api/attachments/:id
-attachmentRouter.delete("/attachments/:id", removeAttachment);
+attachmentRouter.delete("/attachments/:id", requireRole("REQUESTER"), removeAttachment);
 

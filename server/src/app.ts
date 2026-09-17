@@ -8,6 +8,7 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
+import adminRouter from "./routes/admin.js";
 
 export const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/auth", authRouter);
 app.use("/staff", staffRouter);
+app.use("/admin/users", adminRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check

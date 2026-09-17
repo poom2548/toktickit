@@ -8,6 +8,7 @@ import { AppShell } from './components/AppShell'
 import RequesterApp from './RequesterApp'
 import { StaffTicketQueuePage } from './pages/staff/StaffTicketQueuePage'
 import { StaffTicketDetailPage } from './pages/staff/StaffTicketDetailPage'
+import { UserManagementPage } from './pages/admin/UserManagementPage'
 
 export default function App() {
   return (
@@ -45,7 +46,7 @@ export default function App() {
           <Route path="/admin/users" element={
             <ProtectedRoute allowedRoles={['ADMINISTRATOR']}>
               <AppShell>
-                <div>User Management (Issue 7)</div>
+                <UserManagementPage />
               </AppShell>
             </ProtectedRoute>
           } />

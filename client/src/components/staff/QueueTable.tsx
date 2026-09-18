@@ -75,7 +75,7 @@ export function QueueTable({ tickets, onOpenDetail, onSort, sortField, sortDir }
             <td>
               <button
                 onClick={() => onOpenDetail(ticket.id)}
-                className="open-detail-btn"
+                className="btn-primary btn-sm"
                 aria-label={`Open detail for ticket ${ticket.ticketNumber}`}
               >
                 Open Detail

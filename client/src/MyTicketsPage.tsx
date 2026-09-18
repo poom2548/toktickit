@@ -1,4 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
+import { StatusBadge } from "./components/shared/StatusBadge";
+import { PriorityBadge } from "./components/shared/PriorityBadge";
 import {
   Category,
   Ticket,
@@ -10,7 +12,7 @@ import {
 // Zen Green colour tokens (consistent with other components)
 // ---------------------------------------------------------------------------
 const ZEN = {
-  primary: "#006B3C",
+  primary: "var(--zen-color-primary)",
   primaryLight: "#e8f5ee",
   primaryDark: "#004d2b",
   badgeBg: "#e8f5ee",
@@ -33,7 +35,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  New: "#0d6efd",
+  New: "var(--zen-color-secondary)",
   "In Progress": "#fd7e14",
   Resolved: "#198754",
   Closed: "#6c757d",
@@ -54,7 +56,7 @@ function Badge({ label, colorMap }: { label: string; colorMap: Record<string, st
         fontSize: 11,
         letterSpacing: 0.3,
         padding: "3px 8px",
-        borderRadius: 6,
+        borderRadius: "var(--zen-radius-sm)",
       }}
     >
       {label}
@@ -97,10 +99,10 @@ function TicketTableRow({ ticket, onClick }: { ticket: Ticket; onClick: (id: num
       </td>
       <td className="small">{ticket.category?.name ?? "—"}</td>
       <td>
-        <Badge label={ticket.requestedPriority} colorMap={PRIORITY_COLORS} />
+        <PriorityBadge priority={ticket.requestedPriority} />
       </td>
       <td>
-        <Badge label={ticket.status} colorMap={STATUS_COLORS} />
+        <StatusBadge status={ticket.status} />
       </td>
       <td className="text-muted small" style={{ whiteSpace: "nowrap" }}>
         {formatDate(ticket.createdAt)}
@@ -116,14 +118,14 @@ function TicketCard({ ticket, onClick }: { ticket: Ticket; onClick: (id: number)
   return (
     <div
       className="card mb-2 border-0 shadow-sm ticket-card"
-      style={{ borderRadius: 10, cursor: "pointer" }}
+      style={{ borderRadius: "var(--zen-radius-lg)", cursor: "pointer" }}
       data-testid="ticket-card"
       onClick={() => onClick(ticket.id)}
     >
       <div className="card-body py-3 px-3">
         {/* Ticket number + date */}
         <div className="d-flex justify-content-between align-items-start mb-1">
-          <span className="fw-semibold small" style={{ color: ZEN.primary }}>
+          <span className="fw-semibold small" style={{ color: "var(--zen-color-primary)" }}>
             {ticket.ticketNumber}
           </span>
           <span className="text-muted" style={{ fontSize: 11 }}>
@@ -140,8 +142,8 @@ function TicketCard({ ticket, onClick }: { ticket: Ticket; onClick: (id: number)
         )}
         {/* Badges */}
         <div className="d-flex gap-2 flex-wrap">
-          <Badge label={ticket.requestedPriority} colorMap={PRIORITY_COLORS} />
-          <Badge label={ticket.status} colorMap={STATUS_COLORS} />
+          <PriorityBadge priority={ticket.requestedPriority} />
+          <StatusBadge status={ticket.status} />
         </div>
       </div>
     </div>
@@ -259,7 +261,7 @@ function FilterBar({
           <button
             type="submit"
             className="btn text-white flex-fill"
-            style={{ background: ZEN.primary, border: "none", borderRadius: 8 }}
+            style={{ background: "var(--zen-color-primary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
             aria-label="Apply filters"
           >
             Search
@@ -267,7 +269,7 @@ function FilterBar({
           <button
             type="button"
             className="btn btn-outline-secondary flex-fill"
-            style={{ borderRadius: 8 }}
+            style={{ borderRadius: "var(--zen-radius-md)" }}
             onClick={onReset}
             aria-label="Reset filters"
           >
@@ -298,7 +300,7 @@ function PaginationControls({ pagination, onPage }: PaginationControlsProps) {
     >
       <button
         className="btn btn-outline-secondary btn-sm"
-        style={{ borderRadius: 8 }}
+        style={{ borderRadius: "var(--zen-radius-md)" }}
         disabled={currentPage <= 1}
         onClick={() => onPage(currentPage - 1)}
         aria-label="Previous page"
@@ -312,7 +314,7 @@ function PaginationControls({ pagination, onPage }: PaginationControlsProps) {
 
       <button
         className="btn btn-outline-secondary btn-sm"
-        style={{ borderRadius: 8 }}
+        style={{ borderRadius: "var(--zen-radius-md)" }}
         disabled={currentPage >= totalPages}
         onClick={() => onPage(currentPage + 1)}
         aria-label="Next page"
@@ -423,13 +425,13 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
     <div>
       {/* ── Page header ── */}
       <div className="d-flex align-items-center justify-content-between mb-4">
-        <h2 className="h4 mb-0" style={{ color: ZEN.primaryDark }}>
+        <h2 className="h4 mb-0" style={{ color: "var(--zen-color-primary-dark)" }}>
           🎟️ My Tickets
         </h2>
         <button
           type="button"
           className="btn btn-sm fw-semibold text-white"
-          style={{ background: ZEN.primary, border: "none", borderRadius: 8 }}
+          style={{ background: "var(--zen-color-primary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
           onClick={onNewTicket}
           aria-label="Create a new ticket"
         >
@@ -464,7 +466,7 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
         <div className="text-center py-5" aria-label="Loading tickets">
           <div
             className="spinner-border"
-            style={{ color: ZEN.primary }}
+            style={{ color: "var(--zen-color-primary)" }}
             role="status"
             aria-hidden="true"
           />
@@ -489,7 +491,7 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm mt-2"
-                  style={{ borderRadius: 8 }}
+                  style={{ borderRadius: "var(--zen-radius-md)" }}
                   onClick={handleReset}
                 >
                   Clear Filters

@@ -42,10 +42,10 @@ export function LoginPage() {
 
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-      <div className="card shadow-sm" style={{ width: '100%', maxWidth: '400px', borderRadius: 8 }}>
+      <div className="card shadow-sm" style={{ width: '100%', maxWidth: '400px', borderRadius: "var(--zen-radius-md)" }}>
         <div className="card-body p-4">
           <h1 className="h4 text-center mb-1">
-            TokTickIT <span style={{ color: "#006B3C" }}>Service Desk</span>
+            TokTickIT <span style={{ color: "var(--zen-color-primary)" }}>Service Desk</span>
           </h1>
           <h2 className="h6 text-center text-muted mb-4">Sign In</h2>
           
@@ -79,15 +79,14 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div className="alert alert-danger p-2 mb-3" role="alert" style={{ fontSize: '0.9rem' }}>
+              <div className="field-error mb-3" role="alert">
                 {error}
               </div>
             )}
             
             <button 
               type="submit" 
-              className="btn text-white w-100 fw-semibold" 
-              style={{ background: "#006B3C", borderRadius: 8 }}
+              className="btn-primary w-100" 
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Signing in…' : 'Sign In'}

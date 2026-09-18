@@ -88,7 +88,7 @@ export function UserManagementPage() {
       <div className="page-header">
         <h1>User Management</h1>
         <button
-          className="create-user-btn"
+          className="btn-primary"
           onClick={() => setCreateOpen(true)}
           data-testid="create-user-btn"
         >

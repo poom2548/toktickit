@@ -73,7 +73,7 @@ export function StaffTicketDetailPage() {
 
   return (
     <div className="staff-ticket-detail">
-      <button onClick={() => navigate('/staff/tickets')} className="back-btn">← Back to Queue</button>
+      <button onClick={() => navigate('/staff/tickets')} className="btn-secondary">← Back to Queue</button>
 
       <TicketInfoSection ticket={ticket} />
       <OperationalSection ticket={ticket} onTicketUpdate={(updated) => setTicket(updated)} />

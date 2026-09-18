@@ -55,7 +55,7 @@ export function ChangePasswordPage() {
 
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-      <div className="card shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: 8 }}>
+      <div className="card shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: "var(--zen-radius-md)" }}>
         <div className="card-body p-4">
           <h1 className="h4 text-center mb-3">Change Your Password</h1>
           <p className="text-muted text-center mb-4" style={{ fontSize: '0.9rem' }}>
@@ -85,6 +85,13 @@ export function ChangePasswordPage() {
                 disabled={isLoading}
                 autoComplete="new-password"
               />
+              {serverErrors.length > 0 && (
+                <div className="field-error" role="alert">
+                  <ul className="mb-0 ps-3">
+                    {serverErrors.map((err, i) => <li key={i}>{err}</li>)}
+                  </ul>
+                </div>
+              )}
             </div>
             
             <div className="mb-4">
@@ -100,35 +107,25 @@ export function ChangePasswordPage() {
                 autoComplete="new-password"
               />
               {clientError && (
-                <div className="invalid-feedback" role="alert">{clientError}</div>
+                <div className="field-error" role="alert">{clientError}</div>
               )}
             </div>
-
-            {serverErrors.length > 0 && (
-              <div className="alert alert-danger p-2 mb-3" role="alert" style={{ fontSize: '0.9rem' }}>
-                <ul className="mb-0 ps-3">
-                  {serverErrors.map((err, i) => <li key={i}>{err}</li>)}
-                </ul>
-              </div>
-            )}
             
             <button 
               type="submit" 
-              className="btn text-white w-100 fw-semibold mb-3" 
-              style={{ background: "#006B3C", borderRadius: 8 }}
+              className="btn-primary w-100 mb-3" 
               disabled={isLoading}
             >
-              {isLoading ? 'Saving…' : 'Set New Password'}
+              {isLoading ? 'Saving…' : 'Change Password'}
             </button>
           </form>
 
           <div className="text-center">
             <button 
               onClick={() => { logout(); navigate('/login') }} 
-              className="btn btn-link text-decoration-none text-muted p-0"
-              style={{ fontSize: '0.9rem' }}
+              className="btn-secondary w-100"
             >
-              Log out instead
+              Cancel and Logout
             </button>
           </div>
         </div>

@@ -1,0 +1,107 @@
+:root {
+  /* Colors */
+  --zen-color-primary: #006B3C;
+  --zen-color-primary-dark: #075231;
+  --zen-color-primary-light: #EAF6EF;
+  --zen-color-secondary: #0B7A46;
+  --zen-color-text: #212529;
+  --zen-color-text-secondary: #495057;
+  --zen-color-error: #8b0000;
+  --zen-color-error-border: #dc3545;
+  --zen-color-warning: #ffc107;
+  --zen-color-success: #198754;
+  --zen-color-focus: #0B7A46;
+  
+  --zen-bg-surface: #FFFFFF;
+  --zen-bg-page: #F5F7F6;
+  --zen-bg-readonly: #f0f3f1;
+
+  --zen-border-neutral: #dee2e6;
+
+  /* Typography */
+  --zen-text-sm: 0.875rem;
+  --zen-text-base: 1rem;
+  --zen-text-lg: 1.125rem;
+
+  /* Spacing */
+  --zen-space-1: 0.25rem;
+  --zen-space-2: 0.5rem;
+  --zen-space-3: 1rem;
+  --zen-space-4: 1.5rem;
+
+  /* Radius */
+  --zen-radius-sm: 4px;
+  --zen-radius-md: 8px;
+  --zen-radius-lg: 12px;
+
+  /* Shadows */
+  --zen-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --zen-shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+  /* Badge colors - Status */
+  --zen-badge-new-bg: #e2e3e5;
+  --zen-badge-new-text: #383d41;
+  --zen-badge-open-bg: #cce5ff;
+  --zen-badge-open-text: #004085;
+  --zen-badge-progress-bg: #fff3cd;
+  --zen-badge-progress-text: #856404;
+  --zen-badge-waiting-bg: #d1ecf1;
+  --zen-badge-waiting-text: #0c5460;
+  --zen-badge-resolved-bg: #d4edda;
+  --zen-badge-resolved-text: #155724;
+  --zen-badge-closed-bg: #f8d7da;
+  --zen-badge-closed-text: #721c24;
+  --zen-badge-reopened-bg: #f5c6cb;
+  --zen-badge-reopened-text: #721c24;
+  --zen-badge-cancelled-bg: #e2e3e5;
+  --zen-badge-cancelled-text: #383d41;
+
+  /* Badge colors - Priority */
+  --zen-badge-low-bg: #d4edda;
+  --zen-badge-low-text: #155724;
+  --zen-badge-medium-bg: #fff3cd;
+  --zen-badge-medium-text: #856404;
+  --zen-badge-high-bg: #f8d7da;
+  --zen-badge-high-text: #721c24;
+  --zen-badge-critical-bg: #dc3545;
+  --zen-badge-critical-text: #fff;
+
+  /* Badge colors - Roles */
+  --zen-badge-requester-bg: #e2e3e5;
+  --zen-badge-requester-text: #383d41;
+  --zen-badge-staff-bg: #cce5ff;
+  --zen-badge-staff-text: #004085;
+  --zen-badge-admin-bg: #d1ecf1;
+  --zen-badge-admin-text: #0c5460;
+}
+
+/* Ensure focus rings */
+*:focus-visible {
+  outline: 2px solid var(--zen-color-focus, #0B7A46) !important;
+  outline-offset: 2px !important;
+}
+
+/* Inline error */
+.field-error {
+  display: block;
+  margin-top: var(--zen-space-1);
+  font-size: var(--zen-text-sm);
+  color: var(--zen-color-error);
+  font-weight: 500;
+}
+
+/* Readonly fields for requester in IT view */
+.readonly-value {
+  display: block;
+  padding: var(--zen-space-2) 0;
+  color: var(--zen-color-text-secondary);
+  font-style: italic;
+}
+
+/* Touch targets for mobile */
+@media (max-width: 768px) {
+  button, a, input[type="checkbox"], input[type="radio"], select, .edit-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

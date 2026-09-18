@@ -6,6 +6,12 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database...')
 
+  try {
+    await prisma.$executeRaw`CREATE SEQUENCE IF NOT EXISTS ticket_number_seq START 100`
+  } catch (e) {
+    console.log("Could not create sequence, it may already exist or DB doesn't support it.")
+  }
+
   const devPassword = await bcrypt.hash('Dev@123456', 12)
   const initPassword = await bcrypt.hash('InitPass@1', 12)
 

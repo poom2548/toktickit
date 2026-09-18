@@ -10,13 +10,25 @@ export default defineConfig({
     proxy: {
       '/api': 'http://127.0.0.1:3000',
       '/auth': 'http://127.0.0.1:3000',
-      '/tickets': 'http://127.0.0.1:3000',
-      '/admin': 'http://127.0.0.1:3000',
+      '/tickets': {
+        target: 'http://127.0.0.1:3000',
+        bypass: (req) => {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
+      },
+      '/admin': {
+        target: 'http://127.0.0.1:3000',
+        bypass: (req) => {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
+      },
       '/staff': {
         target: 'http://127.0.0.1:3000',
         bypass: (req) => {
-          // If the request is a browser navigation (asking for HTML), don't proxy it!
-          // Return the SPA index.html instead.
           if (req.headers.accept?.includes('text/html')) {
             return '/index.html';
           }

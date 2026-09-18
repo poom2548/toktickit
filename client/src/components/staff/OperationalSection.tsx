@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { StatusBadge } from '../shared/StatusBadge'
+import { PriorityBadge } from '../shared/PriorityBadge'
 import { useAuth } from '../../contexts/AuthContext'
 
 import { TicketDetail } from '../../pages/staff/StaffTicketDetailPage'
@@ -32,6 +33,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
   const [saving, setSaving]           = useState<'owner' | 'priority' | 'status' | null>(null)
   const [saveErrors, setSaveErrors]   = useState<{ owner?: string; priority?: string; status?: string }>({})
   const { user } = useAuth()
+  const isStaff = user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR'
 
   async function patchTicket(endpoint: string, body: object, field: 'owner' | 'priority' | 'status') {
     setSaving(field)
@@ -80,7 +82,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
           <button
             onClick={() => patchTicket('owner', { ownerId: ticket.owner ? null : user?.id }, 'owner')}
             disabled={saving === 'owner'}
-            className="claim-btn"
+            className="btn-primary btn-sm"
           >
             {saving === 'owner' ? 'Saving…' : ticket.owner ? 'Unassign' : 'Claim (Assign to me)'}
           </button>
@@ -105,7 +107,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
         <button
           onClick={() => patchTicket('priority', { itPriority: priority || null }, 'priority')}
           disabled={saving === 'priority'}
-          className="save-btn"
+          className="btn-primary btn-sm"
         >
           {saving === 'priority' ? 'Saving…' : 'Save Priority'}
         </button>
@@ -118,7 +120,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
           <p className="terminal-status-note">
             This ticket is in a terminal state (<strong>{ticket.status}</strong>) and cannot be transitioned further.
           </p>
-        ) : (
+        ) : isStaff ? (
           <>
             <select
               id="status-select"
@@ -134,11 +136,15 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
             <button
               onClick={() => patchTicket('status', { status }, 'status')}
               disabled={saving === 'status' || status === ticket.status}
-              className="save-btn"
+              className="btn-primary btn-sm"
             >
               {saving === 'status' ? 'Saving…' : 'Update Status'}
             </button>
           </>
+        ) : (
+          <span className="readonly-value">
+            <StatusBadge status={ticket.status} />
+          </span>
         )}
         {saveErrors.status && <span className="field-error" role="alert">{saveErrors.status}</span>}
       </div>

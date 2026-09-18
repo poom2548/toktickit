@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
+import { PrismaClient, Role } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
+import { generateTicketNumber } from '../utils/ticketNumber.js'
 import { AppError } from "../middlewares/error.middleware.js";
 
 // ---------------------------------------------------------------------------
@@ -206,35 +208,28 @@ export async function createTicket(
       return;
     }
 
-    // --- Create ticket inside a transaction using a PostgreSQL SEQUENCE ---
-    // Using nextval('ticket_number_seq') guarantees a unique, monotonically
-    // increasing number even under high concurrency — no TOCTOU race possible.
-    const ticket = await prisma.$transaction(async (tx) => {
-      const result = await tx.$queryRaw<[{ nextval: bigint }]>`
-        SELECT nextval('ticket_number_seq')
-      `;
-      const ticketNumber = `TKT-${String(Number(result[0].nextval)).padStart(4, "0")}`;
+    const ticketNumber = await generateTicketNumber();
 
-      return tx.ticket.create({
-        data: {
-          ticketNumber,
-          summary: summary.trim(),
-          description: description.trim(),
-          status: "NEW",
-          requestedPriority: requestedPriority.toUpperCase() as any,
-          requesterId,
-          categoryId: Number(categoryId),
-          relatedSystemId: Number(relatedSystemId),
-        },
-        include: {
-          category: { select: { id: true, name: true } },
-          relatedSystem: { select: { id: true, name: true } },
-        },
-      });
+    const ticket = await prisma.ticket.create({
+      data: {
+        ticketNumber,
+        summary: summary.trim(),
+        description: description.trim(),
+        status: "NEW",
+        requestedPriority: requestedPriority.toUpperCase() as any,
+        requesterId,
+        categoryId: Number(categoryId),
+        relatedSystemId: Number(relatedSystemId),
+      },
+      include: {
+        category: { select: { id: true, name: true } },
+        relatedSystem: { select: { id: true, name: true } },
+      },
     });
 
     res.status(201).json(ticket);
   } catch (err) {
+    console.error("CREATE ERROR:", err);
     next(err);
   }
 }

@@ -30,7 +30,7 @@ export function QueueCardList({ tickets, onOpenDetail }: { tickets: TicketSummar
           </div>
           <button
             onClick={() => onOpenDetail(ticket.id)}
-            className="open-detail-btn"
+            className="btn-primary btn-sm"
             aria-label={`Open detail for ticket ${ticket.ticketNumber}`}
           >
             Open Detail

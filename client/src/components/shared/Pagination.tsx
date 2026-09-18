@@ -17,6 +17,7 @@ export function Pagination({ pagination, page, onPageChange }: PaginationProps) 
   return (
     <nav className="pagination" aria-label="Ticket list pagination">
       <button
+        className="btn-secondary btn-sm"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
         aria-label="Previous page"
@@ -29,6 +30,7 @@ export function Pagination({ pagination, page, onPageChange }: PaginationProps) 
       </span>
 
       <button
+        className="btn-secondary btn-sm"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= pagination.totalPages}
         aria-label="Next page"

@@ -42,7 +42,7 @@ test('Create User — new user appears in list', async ({ page }) => {
   await page.fill('#create-email', email)
   await page.selectOption('#create-role', 'IT_STAFF')
   await page.fill('#create-password', 'TestPass123')
-  await page.click('button:has-text("Create User")')
+  await page.getByRole('dialog').getByRole('button', { name: 'Create User', exact: true }).click()
 
   // Modal should close and new user should appear
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
@@ -56,14 +56,15 @@ test('Create User — duplicate email shows 409 error', async ({ page }) => {
   await page.fill('#create-email', 'alice@toktick.dev')   // Alice already exists
   await page.selectOption('#create-role', 'REQUESTER')
   await page.fill('#create-password', 'TestPass123')
-  await page.click('button:has-text("Create User")')
+  await page.getByRole('dialog').getByRole('button', { name: 'Create User', exact: true }).click()
 
   await expect(page.getByText(/already exists/i)).toBeVisible()
 })
 
 // AC-ADMIN-15
 test('Edit User modal is pre-populated with current values', async ({ page }) => {
-  await page.click('[data-testid^="edit-user-btn-"]')  // click any Edit button
+  const row = page.locator('tr', { hasText: 'alice@toktick.dev' })
+  await row.locator('[data-testid^="edit-user-btn-"]').click()
   await expect(page.getByRole('dialog')).toBeVisible()
   // The name and email inputs should be pre-filled (not empty)
   const nameInput = page.locator('#edit-name')
@@ -72,7 +73,8 @@ test('Edit User modal is pre-populated with current values', async ({ page }) =>
 
 // AC-ADMIN-10
 test('Set New Password — requires password change at next login', async ({ page }) => {
-  await page.click('[data-testid^="edit-user-btn-"]')
+  const row = page.locator('tr', { hasText: 'bob@toktick.dev' })
+  await row.locator('[data-testid^="edit-user-btn-"]').click()
   await page.click('[data-testid="show-password-form-btn"]')
   await page.fill('#new-password', 'NewPassword999')
   await page.click('button:has-text("Update Password")')
@@ -81,11 +83,9 @@ test('Set New Password — requires password change at next login', async ({ pag
 
 // AC-ADMIN-08
 test('Self-deactivation is prevented in the UI', async ({ page }) => {
-  // Find the row for admin@toktick.dev and click Edit
-  // We can use a locator that filters by text
-  const adminRow = page.locator('tr').filter({ hasText: 'admin@toktick.dev' })
-  await adminRow.locator('[data-testid^="edit-user-btn-"]').click()
-  // The isActive checkbox should be disabled for self
+  // Find the row for the logged-in admin and click Edit
+  const adminRow = page.getByRole('row', { name: /admin@toktick\.dev/i })
+  await adminRow.getByRole('button', { name: 'Edit' }).click()
   const activeCheckbox = page.locator('input[type="checkbox"]').first()
   await expect(activeCheckbox).toBeDisabled()
 })
@@ -93,7 +93,8 @@ test('Self-deactivation is prevented in the UI', async ({ page }) => {
 // AC-ADMIN-14
 test('Non-Administrator sees forbidden screen', async ({ page }) => {
   // Log out and log in as Frank (IT_STAFF)
-  await page.goto('/login')
+  await page.click('button:has-text("Log out")')
+  await page.waitForURL('/login')
   await page.fill('#email', 'frank@toktick.dev')
   await page.fill('#password', 'Dev@123456')
   await page.click('button[type="submit"]')

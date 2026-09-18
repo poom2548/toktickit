@@ -1,5 +1,4 @@
 import { User } from '../../pages/admin/UserManagementPage'
-
 import { RoleBadge } from '../shared/RoleBadge'
 
 export function UserTable({
@@ -35,7 +34,7 @@ export function UserTable({
               <td>
                 <button
                   onClick={() => onEdit(user)}
-                  className="edit-btn"
+                  className="btn-secondary btn-sm"
                   aria-label={`Edit ${user.name}`}
                   data-testid={`edit-user-btn-${user.id}`}
                 >

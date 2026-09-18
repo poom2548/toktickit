@@ -113,21 +113,19 @@ export function ChangePasswordPage() {
             
             <button 
               type="submit" 
-              className="btn text-white w-100 fw-semibold mb-3" 
-              style={{ background: "var(--zen-color-primary)", borderRadius: "var(--zen-radius-md)" }}
+              className="btn-primary w-100 mb-3" 
               disabled={isLoading}
             >
-              {isLoading ? 'Saving…' : 'Set New Password'}
+              {isLoading ? 'Saving…' : 'Change Password'}
             </button>
           </form>
 
           <div className="text-center">
             <button 
               onClick={() => { logout(); navigate('/login') }} 
-              className="btn btn-link text-decoration-none text-muted p-0"
-              style={{ fontSize: '0.9rem' }}
+              className="btn-secondary w-100"
             >
-              Log out instead
+              Cancel and Logout
             </button>
           </div>
         </div>

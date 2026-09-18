@@ -86,8 +86,7 @@ export function LoginPage() {
             
             <button 
               type="submit" 
-              className="btn text-white w-100 fw-semibold" 
-              style={{ background: "var(--zen-color-primary)", borderRadius: "var(--zen-radius-md)" }}
+              className="btn-primary w-100" 
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Signing in…' : 'Sign In'}

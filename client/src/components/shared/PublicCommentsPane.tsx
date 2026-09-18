@@ -78,7 +78,7 @@ export function PublicCommentsPane({ ticketId, comments, onCommentsUpdate }: Pub
           placeholder="Write a public comment visible to the Requester…"
         />
         {commentError && <span className="field-error" role="alert">{commentError}</span>}
-        <button type="submit" disabled={isSubmitting}>
+        <button type="submit" className="btn-primary btn-sm" disabled={isSubmitting}>
           {isSubmitting ? 'Posting…' : 'Post Comment'}
         </button>
       </form>

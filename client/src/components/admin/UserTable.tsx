@@ -32,7 +32,7 @@ export function UserTable({
             <td>
               <button
                 onClick={() => onEdit(user)}
-                className="edit-btn"
+                className="btn-secondary btn-sm"
                 aria-label={`Edit ${user.name}`}
                 data-testid={`edit-user-btn-${user.id}`}
               >

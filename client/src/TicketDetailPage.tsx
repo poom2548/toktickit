@@ -182,7 +182,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
     return (
       <div className="alert alert-danger">
         {error || "An unknown error occurred."}
-        <button className="btn btn-sm btn-outline-danger ms-3" onClick={onBack}>Go Back</button>
+        <button className="btn-secondary ms-3" onClick={onBack}>Go Back</button>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           <h2 className="h4 mb-0" style={{ color: ZEN.primary }}>
             Ticket Details
           </h2>
-          <button className="btn btn-outline-secondary" onClick={onBack}>
+          <button className="btn-secondary" onClick={onBack}>
             Back to List
           </button>
         </div>
@@ -243,7 +243,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               {!ticket.problemAppearsResolved && ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && ticket.status !== 'CANCELLED' && (
                 <button
                   type="button"
-                  className="btn btn-outline-success"
+                  className="btn-secondary"
                   onClick={handleMarkResolved}
                   disabled={resolving}
                 >
@@ -336,7 +336,7 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
               disabled={postingComment}
             />
           </div>
-          <button type="submit" className="btn btn-primary" disabled={postingComment || !newComment.trim()}>
+          <button type="submit" className="btn-primary" disabled={postingComment || !newComment.trim()}>
             {postingComment ? "Posting..." : "Post Comment"}
           </button>
         </form>
@@ -372,9 +372,8 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           />
           <button
             type="submit"
-            className="btn text-white"
-            style={{ backgroundColor: ZEN.primary }}
-            disabled={!file || uploading}
+            className="btn-primary"
+            disabled={uploading || !file}
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
@@ -416,14 +415,14 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
                       <div className="d-flex gap-2 justify-content-end">
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-secondary"
+                          className="btn-secondary btn-sm"
                           onClick={() => handleDownload(att.id, att.filename)}
                         >
                           Download
                         </button>
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-danger"
+                          className="btn-secondary btn-sm"
                           onClick={() => handleRemove(att.id)}
                           disabled={removingId === att.id}
                         >

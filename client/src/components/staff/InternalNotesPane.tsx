@@ -77,7 +77,7 @@ export function InternalNotesPane({ ticketId, notes, onNotesUpdate }: InternalNo
           placeholder="Write a private note for IT Staff only…"
         />
         {noteError && <span className="field-error" role="alert">{noteError}</span>}
-        <button type="submit" disabled={isSubmitting || !newNote.trim()}>
+        <button type="submit" className="btn-primary btn-sm" disabled={isSubmitting || !newNote.trim()}>
           {isSubmitting ? 'Saving…' : 'Add Note'}
         </button>
       </form>

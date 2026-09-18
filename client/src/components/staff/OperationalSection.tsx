@@ -80,7 +80,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
           <button
             onClick={() => patchTicket('owner', { ownerId: ticket.owner ? null : user?.id }, 'owner')}
             disabled={saving === 'owner'}
-            className="claim-btn"
+            className="btn-primary btn-sm"
           >
             {saving === 'owner' ? 'Saving…' : ticket.owner ? 'Unassign' : 'Claim (Assign to me)'}
           </button>
@@ -105,7 +105,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
         <button
           onClick={() => patchTicket('priority', { itPriority: priority || null }, 'priority')}
           disabled={saving === 'priority'}
-          className="save-btn"
+          className="btn-primary btn-sm"
         >
           {saving === 'priority' ? 'Saving…' : 'Save Priority'}
         </button>
@@ -134,7 +134,7 @@ export function OperationalSection({ ticket, onTicketUpdate }: OperationalSectio
             <button
               onClick={() => patchTicket('status', { status }, 'status')}
               disabled={saving === 'status' || status === ticket.status}
-              className="save-btn"
+              className="btn-primary btn-sm"
             >
               {saving === 'status' ? 'Saving…' : 'Update Status'}
             </button>

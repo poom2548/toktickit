@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { app } from "../../src/app.js";
 
@@ -25,7 +25,8 @@ vi.mock("../../src/prisma.js", () => ({
     requester: { findUnique: mockRequesterFindUnique },
     category: { findUnique: mockCategoryFindUnique },
     relatedSystem: { findUnique: mockRelatedSystemFindUnique },
-    ticket: { create: mockTicketCreate },
+    ticket: { create: mockTicketCreate, findFirst: vi.fn().mockResolvedValue({ ticketNumber: 'TKT-1000' }) },
+    $queryRaw: vi.fn().mockResolvedValue([{ nextval: BigInt(1) }]),
     $transaction: mockTransaction,
   }),
 }));
@@ -74,6 +75,7 @@ beforeEach(() => {
   // FK lookups: found by default
   mockCategoryFindUnique.mockResolvedValue(VALID_CATEGORY);
   mockRelatedSystemFindUnique.mockResolvedValue(VALID_SYSTEM);
+  mockTicketCreate.mockResolvedValue(CREATED_TICKET);
 
   // Transaction: run the callback synchronously with a mock tx object
   mockTransaction.mockImplementation(

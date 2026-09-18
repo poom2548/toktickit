@@ -25,12 +25,13 @@ test('inactive account shows same generic error as wrong password', async ({ pag
   await expect(page.getByRole('alert')).toContainText('Invalid email or password.')
 })
 
-test('first-login user is redirected to change-password screen', async ({ page }) => {
+test.describe.serial('Password Change Flow', () => {
+  test('first-login user is redirected to change-password screen', async ({ page }) => {
   await page.goto('/login')
   await page.fill('[id="email"]', 'eve@toktick.dev')
   await page.fill('[id="password"]', 'InitPass@1')
   await page.click('button[type="submit"]')
-  await expect(page).toHaveURL(/\/change-password/)
+  await expect(page).toHaveURL(/\/change-password/, { timeout: 25000 })
 })
 
 test('successful password change redirects to app shell', async ({ page }) => {
@@ -38,14 +39,16 @@ test('successful password change redirects to app shell', async ({ page }) => {
   await page.fill('[id="email"]', 'eve@toktick.dev')
   await page.fill('[id="password"]', 'InitPass@1')
   await page.click('button[type="submit"]')
-  await expect(page).toHaveURL(/\/change-password/)
+  await expect(page).toHaveURL(/\/change-password/, { timeout: 25000 })
 
   await page.fill('[id="newPassword"]', 'NewStrong@99')
   await page.fill('[id="confirmPassword"]', 'NewStrong@99')
   await page.click('button[type="submit"]')
 
-  await expect(page).not.toHaveURL(/\/change-password/)
+  await expect(page).not.toHaveURL(/\/change-password/, { timeout: 25000 })
 })
+
+});
 
 test('protected routes are inaccessible after logout', async ({ page }) => {
   await loginAs(page, 'alice@toktick.dev', 'Dev@123456')

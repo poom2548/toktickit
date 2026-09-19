@@ -134,7 +134,7 @@ export function StaffTicketQueuePage() {
         {controls}
         <div className="error-message" role="alert">
           <p>{errorMessage}</p>
-          <button onClick={fetchTickets}>Retry</button>
+          <button className="btn-primary" onClick={fetchTickets}>Retry</button>
         </div>
       </div>
     )
@@ -159,7 +159,7 @@ export function StaffTicketQueuePage() {
         {controls}
         <div className="no-results" role="status">
           <p>No tickets match your current search or filters.</p>
-          <button onClick={() => { setSearch(''); setStatus(''); setPriority('') }}>
+          <button className="btn-secondary" onClick={() => { setSearch(''); setStatus(''); setPriority('') }}>
             Clear filters
           </button>
         </div>

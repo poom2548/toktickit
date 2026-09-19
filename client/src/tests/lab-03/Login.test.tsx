@@ -4,7 +4,7 @@ import { LoginPage } from '../../pages/LoginPage'
 import { AuthProvider } from '../../contexts/AuthContext'
 import { MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
-import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 const renderLogin = () => render(
   <MemoryRouter>
@@ -14,9 +14,16 @@ const renderLogin = () => render(
   </MemoryRouter>
 )
 
-it('renders email and password fields and submit button', () => {
+beforeEach(() => {
+  global.fetch = vi.fn(() => Promise.resolve({
+    ok: false,
+    json: async () => ({ error: 'Not authenticated' }),
+  } as Response)) as any
+})
+
+it('renders email and password fields and submit button', async () => {
   renderLogin()
-  expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+  expect(await screen.findByLabelText(/email/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
 })
@@ -28,7 +35,8 @@ it('shows loading state while submitting', async () => {
   } as Response), 500))) as any
 
   renderLogin()
-  fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'alice@toktick.dev' } })
+  const emailInput = await screen.findByLabelText(/email/i)
+  fireEvent.change(emailInput, { target: { value: 'alice@toktick.dev' } })
   fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'Dev@123456' } })
   fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
@@ -42,7 +50,8 @@ it('shows generic error message on 401', async () => {
   } as Response)) as any
 
   renderLogin()
-  fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'wrong@toktick.dev' } })
+  const emailInput = await screen.findByLabelText(/email/i)
+  fireEvent.change(emailInput, { target: { value: 'wrong@toktick.dev' } })
   fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrongpass' } })
   fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 

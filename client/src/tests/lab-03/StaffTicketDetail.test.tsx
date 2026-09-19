@@ -9,6 +9,7 @@ const mockTicket = {
   description: 'Cannot connect since yesterday', status: 'IN_PROGRESS',
   requestedPriority: 'HIGH', itPriority: 'HIGH',
   problemAppearsResolved: false,
+  role: 'IT_STAFF',
   createdAt: '2026-09-01T10:00:00Z', updatedAt: '2026-09-01T12:00:00Z',
   requester: { id: 'u1', name: 'Alice Requester', email: 'alice@toktick.dev', role: 'REQUESTER' },
   owner: { id: 'u2', name: 'Frank IT', role: 'IT_STAFF' },

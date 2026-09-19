@@ -29,7 +29,7 @@ it('shows inline error without submitting when passwords do not match', async ()
   // mock fetch to ensure it's not called
   global.fetch = vi.fn() as any
   
-  fireEvent.click(screen.getByRole('button', { name: /set new password/i }))
+  fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
   expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument()
   expect(global.fetch).not.toHaveBeenCalled()
@@ -48,7 +48,7 @@ it('shows server validation errors for weak password without closing screen', as
   renderChangePassword()
   fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: 'abc' } })
   fireEvent.change(screen.getByLabelText(/confirm/i), { target: { value: 'abc' } })
-  fireEvent.click(screen.getByRole('button', { name: /set new password/i }))
+  fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
   expect(await screen.findByText(/at least 8 characters long/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/^new password/i)).toBeInTheDocument()

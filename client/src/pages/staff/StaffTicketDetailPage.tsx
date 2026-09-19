@@ -68,7 +68,7 @@ export function StaffTicketDetailPage() {
   if (fetchState === 'loading') return <div className="loading-skeleton" aria-busy="true" />
   if (fetchState === 'not-found') return <div className="not-found-message"><h2>Ticket Not Found</h2></div>
   if (fetchState === 'error' && errorMessage === 'forbidden') return <div className="forbidden-message"><h2>Access Denied</h2></div>
-  if (fetchState === 'error') return <div className="error-message" role="alert"><p>{errorMessage}</p><button onClick={fetchTicket}>Retry</button></div>
+  if (fetchState === 'error') return <div className="error-message" role="alert"><p>{errorMessage}</p><button className="btn-primary" onClick={fetchTicket}>Retry</button></div>
   if (!ticket) return null
 
   return (

@@ -11,7 +11,7 @@ async function loginAndGetCookie(email: string, password = 'Dev@123456') {
 }
 
 let bobUserId: string
-let daveUserId: string
+let patchUserId: string
 let adminUserId: string
 let secondAdminId: string
 
@@ -19,8 +19,20 @@ beforeAll(async () => {
   const bob = await prisma.user.findUnique({ where: { email: 'bob@toktick.dev' } })
   if (bob) bobUserId = bob.id
   
-  const dave = await prisma.user.findUnique({ where: { email: 'dave@toktick.dev' } })
-  if (dave) daveUserId = dave.id
+  const { hashPassword } = await import('../../src/utils/password.js')
+  const passwordHash = await hashPassword('Dev@123456')
+
+  const patchUser = await prisma.user.create({
+    data: {
+      name: 'Patch User',
+      email: `patch-${Date.now()}@toktick.dev`,
+      role: 'REQUESTER',
+      isActive: true,
+      requiresPasswordChange: false,
+      passwordHash,
+    }
+  })
+  patchUserId = patchUser.id
 
   const admin = await prisma.user.findUnique({ where: { email: 'admin@toktick.dev' } })
   if (admin) adminUserId = admin.id
@@ -162,13 +174,14 @@ describe('PATCH /admin/users/:id', () => {
   // AC-ADMIN-07
   it('updates user name and email', async () => {
     const adminCookie = await loginAndGetCookie('admin@toktick.dev')
+    const uniqueUpdateEmail = `updated-${Date.now()}@toktick.dev`
     const res = await request(app)
-      .patch(`/admin/users/${daveUserId}`)
+      .patch(`/admin/users/${patchUserId}`)
       .set('Cookie', adminCookie)
-      .send({ name: 'Dave Updated', email: 'dave-updated@toktick.dev' })
+      .send({ name: 'Patch Updated', email: uniqueUpdateEmail })
 
     expect(res.status).toBe(200)
-    expect(res.body.name).toBe('Dave Updated')
+    expect(res.body.name).toBe('Patch Updated')
     expect(res.body).not.toHaveProperty('passwordHash')
   })
 
@@ -211,7 +224,7 @@ describe('PATCH /admin/users/:id', () => {
   it('returns 409 for duplicate email during edit', async () => {
     const adminCookie = await loginAndGetCookie('admin@toktick.dev')
     const res = await request(app)
-      .patch(`/admin/users/${daveUserId}`)
+      .patch(`/admin/users/${patchUserId}`)
       .set('Cookie', adminCookie)
       .send({ email: 'frank@toktick.dev' })   // Frank's existing email
 
@@ -226,7 +239,7 @@ describe('PATCH /admin/users/:id/password', () => {
   it('updates password and sets requiresPasswordChange=true', async () => {
     const adminCookie = await loginAndGetCookie('admin@toktick.dev')
     const res = await request(app)
-      .patch(`/admin/users/${daveUserId}/password`)
+      .patch(`/admin/users/${patchUserId}/password`)
       .set('Cookie', adminCookie)
       .send({ password: 'NewPassword999' })
 
@@ -235,14 +248,14 @@ describe('PATCH /admin/users/:id/password', () => {
 
     // Verify requiresPasswordChange is now true
     const userRes = await request(app).get('/admin/users').set('Cookie', adminCookie)
-    const dave = userRes.body.users.find((u: any) => u.id === daveUserId)
+    const dave = userRes.body.users.find((u: any) => u.id === patchUserId)
     expect(dave?.requiresPasswordChange).toBe(true)
   })
 
   it('returns 422 for password shorter than 8 characters', async () => {
     const adminCookie = await loginAndGetCookie('admin@toktick.dev')
     const res = await request(app)
-      .patch(`/admin/users/${daveUserId}/password`)
+      .patch(`/admin/users/${patchUserId}/password`)
       .set('Cookie', adminCookie)
       .send({ password: 'short' })
 

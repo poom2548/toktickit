@@ -85,10 +85,10 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 when Requester comments on another user ticket', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie = await loginAndGetCookie('carol@toktick.dev', 'Dev@123456')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)  // Alice's ticket
-        .set('Cookie', bobCookie)
+        .set('Cookie', carolCookie)
         .send({ content: 'Bob trying to comment on Alice ticket.' })
       expect(res.status).toBe(403)
     })
@@ -125,10 +125,10 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 for non-owner Requester', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie = await loginAndGetCookie('carol@toktick.dev', 'Dev@123456')
       const res = await request(app)
         .get(`/api/tickets/${aliceTicketId}/comments`)
-        .set('Cookie', bobCookie)
+        .set('Cookie', carolCookie)
       expect(res.status).toBe(403)
     })
   })
@@ -205,10 +205,10 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 for non-owner Requester', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie = await loginAndGetCookie('carol@toktick.dev', 'Dev@123456')
       const res = await request(app)
         .patch(`/api/tickets/${aliceTicketId}/resolved-flag`)
-        .set('Cookie', bobCookie)
+        .set('Cookie', carolCookie)
         .send({ problemAppearsResolved: true })
       expect(res.status).toBe(403)
     })

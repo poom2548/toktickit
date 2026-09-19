@@ -8,26 +8,29 @@ const prisma = new PrismaClient()
 
 async function loginAndGetCookie(email: string, password: string) {
   const res = await request(app).post('/auth/login').send({ email, password })
+  if (!res.headers['set-cookie']) {
+    console.log('LOGIN FAILED:', email, res.status, res.body)
+  }
   return res.headers['set-cookie']
 }
 
 describe('Requester Regression', () => {
   let aliceCookie: any
-  let bobCookie: any
+  let carolCookie: any
   let aliceTicketId: number
   let testCategoryId: number
   let testSystemId: number
   let aliceUserId: string
-  let bobUserId: string
+  let carolUserId: string
 
   beforeAll(async () => {
     aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
-    bobCookie   = await loginAndGetCookie('bob@toktick.dev',   'Dev@123456')
+    carolCookie   = await loginAndGetCookie('carol@toktick.dev',   'Dev@123456')
     
     const aliceUser = await prisma.user.findUnique({ where: { email: 'alice@toktick.dev' } })
-    const bobUser = await prisma.user.findUnique({ where: { email: 'bob@toktick.dev' } })
+    const carolUser = await prisma.user.findUnique({ where: { email: 'carol@toktick.dev' } })
     aliceUserId = aliceUser!.id
-    bobUserId = bobUser!.id
+    carolUserId = carolUser!.id
     
     const category = await prisma.category.findFirst()
     testCategoryId = category!.id
@@ -64,7 +67,7 @@ describe('Requester Regression', () => {
         requestedPriority: 'Low',
         categoryId: testCategoryId,
         relatedSystemId: testSystemId,
-        requesterId: bobUserId,
+        requesterId: carolUserId,
       })
     expect(res.status).toBe(201)
     expect(res.body.requesterId).toBe(aliceUserId)
@@ -92,7 +95,7 @@ describe('Requester Regression', () => {
   it('GET /tickets/:id returns 403 (not 404) when accessing another user ticket', async () => {
     const res = await request(app)
       .get(`/api/tickets/${aliceTicketId}`)
-      .set('Cookie', bobCookie)
+      .set('Cookie', carolCookie)
     expect(res.status).toBe(403)
     expect(res.body).not.toHaveProperty('summary')
     expect(res.body).not.toHaveProperty('requesterId')
@@ -110,14 +113,14 @@ describe('Requester Regression', () => {
   it('POST /tickets/:id/attachments returns 403 for non-owner', async () => {
     const res = await request(app)
       .post(`/api/tickets/${aliceTicketId}/attachments`)
-      .set('Cookie', bobCookie)
+      .set('Cookie', carolCookie)
       .attach('file', Buffer.from('%PDF-1.4\n%EOF\n'), 'test.pdf')
     expect(res.status).toBe(403)
   })
 
   it('No endpoint accepts or acts on a client-supplied requesterId query parameter', async () => {
     const res = await request(app)
-      .get(`/api/tickets?requesterId=${bobUserId}`)
+      .get(`/api/tickets?requesterId=${carolUserId}`)
       .set('Cookie', aliceCookie)
     expect(res.status).toBe(200)
     const allBelongToAlice = res.body.data.every(

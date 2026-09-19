@@ -41,7 +41,6 @@ test('Screenshot: Login page — error state', async ({ page }) => {
   await page.click('button[type="submit"]')
   // Wait for error to appear
   await page.waitForSelector('[role="alert"], .field-error, .error-message', { timeout: 5000 })
-    .catch(() => page.waitForTimeout(2000))
   await page.screenshot({ path: `${SCREENSHOTS}/authentication/login-error-desktop.png`, fullPage: true })
 })
 
@@ -139,7 +138,7 @@ test('Screenshot: Requester Ticket Detail', async ({ page }) => {
     await page.waitForLoadState('networkidle')
     // Try to navigate into a ticket detail
     const detailLink = page.locator('a[href*="/tickets/"], button:has-text("View"), button:has-text("Open")').first()
-    if (await detailLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await detailLink.isVisible({ timeout: 3000 })) {
       await detailLink.click()
       await page.waitForURL(/\/tickets\/[^/]+$/)
       await page.waitForLoadState('networkidle')
@@ -154,7 +153,7 @@ test('Screenshot: Requester Ticket Detail', async ({ page }) => {
 // ── ADMIN USER MANAGEMENT ───────────────────────────────────────────────────
 
 test('Screenshot: Admin User Management — table view', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456', 'admin/users')
+  await loginAs(page, 'admin@toktickit.dev', 'Dev@123456', 'admin/users')
   for (const bp of BREAKPOINTS) {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/admin/users')
@@ -168,7 +167,7 @@ test('Screenshot: Admin User Management — table view', async ({ page }) => {
 })
 
 test('Screenshot: Admin — Create User modal', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456', 'admin/users')
+  await loginAs(page, 'admin@toktickit.dev', 'Dev@123456', 'admin/users')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
   await page.waitForSelector('[data-testid="create-user-btn"]')
@@ -178,7 +177,7 @@ test('Screenshot: Admin — Create User modal', async ({ page }) => {
 })
 
 test('Screenshot: Admin — Edit User modal (pre-populated)', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456', 'admin/users')
+  await loginAs(page, 'admin@toktickit.dev', 'Dev@123456', 'admin/users')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
   await page.waitForSelector('[data-testid^="edit-user-btn-"]')

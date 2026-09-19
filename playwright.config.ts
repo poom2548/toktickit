@@ -4,7 +4,7 @@ process.env.TEST_TICKET_ID = '9';
 process.env.NEW_TICKET_ID = '2';
 process.env.RESOLVED_FLAG_TICKET_ID = '3';
 process.env.TICKET_WITH_ATTACHMENT_ID = '3';
-process.env.ADMIN_ID = 'cmtz8vk5700099ih9jcb3k1j9';
+process.env.ADMIN_ID = 'cmu7xo48t00098r567812e34v'; // Used for self-deactivation test in AC-ADMIN-08
 
 export default defineConfig({
   globalSetup: './e2e/global-setup.ts',

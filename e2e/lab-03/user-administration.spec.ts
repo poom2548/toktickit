@@ -83,9 +83,7 @@ test('Set New Password — requires password change at next login', async ({ pag
 
 // AC-ADMIN-08
 test('Self-deactivation is prevented in the UI', async ({ page }) => {
-  // Find the row for the logged-in admin and click Edit
-  const adminRow = page.getByRole('row', { name: /admin@toktick\.dev/i })
-  await adminRow.getByRole('button', { name: 'Edit' }).click()
+  await page.click(`[data-testid="edit-user-btn-${process.env.ADMIN_ID}"]`)
   const activeCheckbox = page.locator('input[type="checkbox"]').first()
   await expect(activeCheckbox).toBeDisabled()
 })

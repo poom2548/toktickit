@@ -78,7 +78,7 @@ export function UserManagementPage() {
     return (
       <div className="error-state" role="alert">
         <p>{errorMessage}</p>
-        <button onClick={fetchUsers}>Retry</button>
+        <button className="btn-primary" onClick={fetchUsers}>Retry</button>
       </div>
     )
   }

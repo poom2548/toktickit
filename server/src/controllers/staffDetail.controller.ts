@@ -5,7 +5,7 @@ import { isTransitionPermitted, PERMITTED_TRANSITIONS } from '../utils/statusTra
 const prisma = new PrismaClient()
 
 export async function getStaffTicketDetail(req: Request, res: Response): Promise<any> {
-  const ticketId = parseInt(req.params.id, 10); console.log('requested id:', req.params.id, 'parsed:', ticketId)
+  const ticketId = parseInt(req.params.id, 10)
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
 
   try {
@@ -42,7 +42,6 @@ export async function getStaffTicketDetail(req: Request, res: Response): Promise
       },
     })
 
-    console.log("staffDetail ticketId:", ticketId, "found:", !!ticket);
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found.' })
     }
@@ -82,7 +81,6 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
     }
 
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } })
-    console.log("staffDetail ticketId:", ticketId, "found:", !!ticket);
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found.' })
     }
@@ -117,7 +115,6 @@ export async function updateTicketPriority(req: Request, res: Response): Promise
 
   try {
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } })
-    console.log("staffDetail ticketId:", ticketId, "found:", !!ticket);
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found.' })
     }
@@ -157,7 +154,6 @@ export async function updateTicketStatus(req: Request, res: Response): Promise<a
       select: { id: true, status: true },
     })
 
-    console.log("staffDetail ticketId:", ticketId, "found:", !!ticket);
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found.' })
     }

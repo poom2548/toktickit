@@ -25,12 +25,11 @@ declare global {
  * Attaches req.user for downstream handlers.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<any> {
-  console.log('requireAuth called for:', req.originalUrl);
   try {
     if (process.env.NODE_ENV === 'test' && req.headers['x-requester-id']) {
       const legacyId = String(req.headers['x-requester-id'])
       if (legacyId === '99') {
-      console.log('401 auth token missing'); return res.status(401).json({ error: 'Authentication required.' })
+      return res.status(401).json({ error: 'Authentication required.' })
       }
       req.user = {
         id: legacyId,
@@ -81,7 +80,7 @@ export function requireRole(...roles: Array<'REQUESTER' | 'IT_STAFF' | 'ADMINIST
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required.' })
     }
-    console.log('role:', req.user.role, 'roles:', roles); if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Access denied.' })
     }
     next()

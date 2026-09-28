@@ -1,4 +1,4 @@
-﻿import { test, chromium, Browser, Page } from '@playwright/test'
+import { test, chromium, Browser, Page } from '@playwright/test'
 import path from 'path'
 
 const SCREENSHOTS_DIR = path.resolve('artifacts/lab-03/screenshots')
@@ -82,7 +82,7 @@ test('Screenshot: IT Staff Ticket Queue', async ({ page }) => {
     await page.goto('/staff/tickets')
     await page.waitForLoadState('networkidle')
     // Wait for table or card list to appear
-    await page.waitForSelector('.queue-table, .queue-card-list, table', { timeout: 10000 }).catch(() => {})
+    await page.waitForSelector('.queue-table, .queue-card-list, table', { timeout: 10000 })
     await checkNoHorizontalOverflow(page, `IT Staff Queue (${bp.name})`)
     await page.screenshot({
       path: `${SCREENSHOTS_DIR}/staff-queue/queue-${bp.name}.png`,
@@ -189,7 +189,7 @@ test('Screenshot: Admin User Management', async ({ page }) => {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/admin/users')
     await page.waitForLoadState('networkidle')
-    await page.waitForSelector('[data-testid="user-table"], table', { timeout: 10000 }).catch(() => {})
+    await page.waitForSelector('[data-testid="user-table"], table', { timeout: 10000 })
     await checkNoHorizontalOverflow(page, `Admin User Management (${bp.name})`)
     await page.screenshot({
       path: `${SCREENSHOTS_DIR}/user-management/user-management-${bp.name}.png`,

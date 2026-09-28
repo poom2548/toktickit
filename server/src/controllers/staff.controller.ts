@@ -26,6 +26,7 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
     search,
     status,
     priority,
+    requestedPriority,
     ownerId,
     sort = DEFAULT_SORT_FIELD,
     direction = DEFAULT_SORT_DIRECTION,
@@ -46,6 +47,12 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
   if (priority && !VALID_PRIORITIES.includes(priority as any)) {
     return res.status(400).json({
       error: `Invalid priority value: "${priority}". Valid values are: ${VALID_PRIORITIES.join(', ')}.`,
+    })
+  }
+
+  if (requestedPriority && !VALID_PRIORITIES.includes(requestedPriority as any)) {
+    return res.status(400).json({
+      error: `Invalid requestedPriority value: "${requestedPriority}". Valid values are: ${VALID_PRIORITIES.join(', ')}.`,
     })
   }
 
@@ -96,6 +103,10 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
   // priority filter (searches itPriority)
   if (priority) {
     where.itPriority = priority
+  }
+
+  if (requestedPriority) {
+    where.requestedPriority = requestedPriority
   }
 
   // owner filter

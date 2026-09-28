@@ -37,19 +37,19 @@ describe('Role-based access control', () => {
   })
 
   it('REQUESTER accessing /staff/tickets returns 403', async () => {
-    const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const res = await request(app).get('/test/staff/tickets').set('Cookie', cookie)
     expect(res.status).toBe(403)
   })
 
   it('REQUESTER accessing /admin/users returns 403', async () => {
-    const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const res = await request(app).get('/test/admin/users').set('Cookie', cookie)
     expect(res.status).toBe(403)
   })
 
   it('IT_STAFF accessing /admin/users returns 403', async () => {
-    const cookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+    const cookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
     const res = await request(app).get('/test/admin/users').set('Cookie', cookie)
     expect(res.status).toBe(403)
   })

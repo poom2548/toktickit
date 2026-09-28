@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test('valid login redirects to role home screen', async ({ page }) => {
   await page.goto('/login')
   await page.fill('[id="email"]', 'alice@toktick.dev')
-  await page.fill('[id="password"]', 'Dev@123456')
+  await page.fill('[id="password"]', 'SecurePass@123')
   await page.click('button[type="submit"]')
   await expect(page).toHaveURL(/\/tickets/)
 })
@@ -20,7 +20,7 @@ test('wrong password shows generic error (no account enumeration)', async ({ pag
 test('inactive account shows same generic error as wrong password', async ({ page }) => {
   await page.goto('/login')
   await page.fill('[id="email"]', 'ivy@toktick.dev') 
-  await page.fill('[id="password"]', 'Dev@123456')
+  await page.fill('[id="password"]', 'SecurePass@123')
   await page.click('button[type="submit"]')
   await expect(page.getByRole('alert')).toContainText('Invalid email or password.')
 })
@@ -51,7 +51,7 @@ test('successful password change redirects to app shell', async ({ page }) => {
 });
 
 test('protected routes are inaccessible after logout', async ({ page }) => {
-  await loginAs(page, 'alice@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'alice@toktick.dev', 'SecurePass@123')
   await page.click('button:has-text("Log out")')
   await expect(page).toHaveURL(/\/login/)
 
@@ -60,13 +60,13 @@ test('protected routes are inaccessible after logout', async ({ page }) => {
 })
 
 test('IT Staff nav shows Ticket Queue but not User Management', async ({ page }) => {
-  await loginAs(page, 'frank@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'frank@toktick.dev', 'SecurePass@123')
   await expect(page.getByRole('link', { name: /ticket queue/i })).toBeVisible()
   await expect(page.getByRole('link', { name: /user management/i })).not.toBeVisible()
 })
 
 test('REQUESTER navigating to /staff/tickets sees forbidden screen', async ({ page }) => {
-  await loginAs(page, 'alice@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'alice@toktick.dev', 'SecurePass@123')
   await page.goto('/staff/tickets')
   await expect(page.getByText(/access denied|forbidden/i)).toBeVisible()
 })

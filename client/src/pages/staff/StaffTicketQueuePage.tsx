@@ -14,6 +14,7 @@ export function StaffTicketQueuePage() {
   const [search, setSearch]           = useState('')
   const [statusFilter, setStatus]     = useState<TicketStatus | ''>('')
   const [priorityFilter, setPriority] = useState<Priority | ''>('')
+  const [reqPriorityFilter, setReqPriority] = useState<Priority | ''>('')
   const [sortField, setSortField]     = useState<SortField>('createdAt')
   const [sortDir, setSortDir]         = useState<SortDirection>('desc')
   const [page, setPage]               = useState(1)
@@ -33,7 +34,7 @@ export function StaffTicketQueuePage() {
   }, [search])
 
   // Reset to page 1 whenever filters/sort change
-  useEffect(() => { setPage(1) }, [debouncedSearch, statusFilter, priorityFilter, sortField, sortDir])
+  useEffect(() => { setPage(1) }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, sortField, sortDir])
 
   // Fetch data
   const fetchTickets = useCallback(async () => {
@@ -44,6 +45,7 @@ export function StaffTicketQueuePage() {
     if (debouncedSearch) params.set('search', debouncedSearch)
     if (statusFilter)    params.set('status', statusFilter)
     if (priorityFilter)  params.set('priority', priorityFilter)
+    if (reqPriorityFilter) params.set('requestedPriority', reqPriorityFilter)
     params.set('sort', sortField)
     params.set('direction', sortDir)
     params.set('page', String(page))
@@ -76,7 +78,7 @@ export function StaffTicketQueuePage() {
       setFetchState('error')
       setErrorMessage('Unable to load tickets. Please check your connection and try again.')
     }
-  }, [debouncedSearch, statusFilter, priorityFilter, sortField, sortDir, page])
+  }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, sortField, sortDir, page])
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
 
@@ -101,6 +103,8 @@ export function StaffTicketQueuePage() {
       onStatusChange={setStatus as any}
       priorityFilter={priorityFilter}
       onPriorityChange={setPriority as any}
+      reqPriorityFilter={reqPriorityFilter}
+      onReqPriorityChange={setReqPriority as any}
     />
   )
 
@@ -140,7 +144,7 @@ export function StaffTicketQueuePage() {
     )
   }
 
-  const filtersActive = debouncedSearch || statusFilter || priorityFilter
+  const filtersActive = debouncedSearch || statusFilter || priorityFilter || reqPriorityFilter
 
   if (fetchState === 'success' && tickets.length === 0 && !filtersActive) {
     return (
@@ -159,7 +163,7 @@ export function StaffTicketQueuePage() {
         {controls}
         <div className="no-results" role="status">
           <p>No tickets match your current search or filters.</p>
-          <button onClick={() => { setSearch(''); setStatus(''); setPriority('') }}>
+          <button onClick={() => { setSearch(''); setStatus(''); setPriority(''); setReqPriority('') }}>
             Clear filters
           </button>
         </div>
@@ -170,6 +174,11 @@ export function StaffTicketQueuePage() {
   return (
     <div className="staff-queue-page">
       {controls}
+      {pagination && (
+        <p className="queue-counter">
+          Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, pagination.total)} of {pagination.total} tickets
+        </p>
+      )}
       <QueueTable tickets={tickets} onOpenDetail={handleOpenDetail} onSort={handleSort} sortField={sortField} sortDir={sortDir} />
       <QueueCardList tickets={tickets} onOpenDetail={handleOpenDetail} />
       <Pagination pagination={pagination} page={page} onPageChange={setPage} />

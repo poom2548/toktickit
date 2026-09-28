@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.beforeEach(async ({ page }) => {
   await page.goto('/login')
   await page.fill('#email', 'frank@toktick.dev')
-  await page.fill('#password', 'Dev@123456')
+  await page.fill('#password', 'SecurePass@123')
   await page.click('button[type="submit"]')
   await page.waitForURL('/staff/tickets')
 })

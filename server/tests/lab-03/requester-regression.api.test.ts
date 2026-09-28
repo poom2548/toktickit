@@ -21,11 +21,11 @@ describe('Requester Regression', () => {
   let bobUserId: string
 
   beforeAll(async () => {
-    aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
-    bobCookie   = await loginAndGetCookie('bob@toktick.dev',   'Dev@123456')
+    aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
+    bobCookie   = await loginAndGetCookie('carol@toktick.dev', 'SecurePass@123')
     
     const aliceUser = await prisma.user.findUnique({ where: { email: 'alice@toktick.dev' } })
-    const bobUser = await prisma.user.findUnique({ where: { email: 'bob@toktick.dev' } })
+    const bobUser = await prisma.user.findUnique({ where: { email: 'carol@toktick.dev' } })
     aliceUserId = aliceUser!.id
     bobUserId = bobUser!.id
     

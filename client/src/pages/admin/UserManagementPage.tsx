@@ -4,6 +4,7 @@ import { UserFilters } from '../../components/admin/UserFilters'
 import { UserTable } from '../../components/admin/UserTable'
 import { CreateUserModal } from '../../components/admin/CreateUserModal'
 import { EditUserModal } from '../../components/admin/EditUserModal'
+import './admin.css'
 
 export interface User {
   id: string

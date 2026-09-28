@@ -2,7 +2,17 @@ import React from 'react'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { StaffTicketDetailPage } from '../../pages/staff/StaffTicketDetailPage'
-import { AuthProvider } from '../../contexts/AuthContext'
+
+// Mock AuthContext to return a logged-in IT_STAFF user immediately
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'u2', name: 'Frank IT', role: 'IT_STAFF', requiresPasswordChange: false },
+    isLoading: false,
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
+  }),
+  AuthProvider: ({ children }: any) => <>{children}</>,
+}))
 
 const mockTicket = {
   id: 't1', ticketNumber: 'TKT-001', summary: 'VPN not working',
@@ -29,13 +39,11 @@ const mockTicket = {
 import { vi } from 'vitest'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <AuthProvider>
-    <MemoryRouter initialEntries={['/staff/tickets/t1']}>
-      <Routes>
-        <Route path="/staff/tickets/:id" element={children} />
-      </Routes>
-    </MemoryRouter>
-  </AuthProvider>
+  <MemoryRouter initialEntries={['/staff/tickets/t1']}>
+    <Routes>
+      <Route path="/staff/tickets/:id" element={children} />
+    </Routes>
+  </MemoryRouter>
 )
 
 describe('StaffTicketDetailPage', () => {

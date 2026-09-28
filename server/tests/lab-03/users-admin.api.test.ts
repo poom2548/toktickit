@@ -5,7 +5,7 @@ import { PrismaClient, Role } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-async function loginAndGetCookie(email: string, password = 'Dev@123456') {
+async function loginAndGetCookie(email: string, password = 'SecurePass@123') {
   const res = await request(app).post('/auth/login').send({ email, password })
   return res.headers['set-cookie']
 }
@@ -15,8 +15,30 @@ let adminUserId: string
 let secondAdminId: string
 
 beforeAll(async () => {
-  const bob = await prisma.user.findUnique({ where: { email: 'bob@toktick.dev' } })
-  if (bob) bobUserId = bob.id
+  // Upsert a dedicated editable user so PATCH tests always have a valid target
+  // regardless of what previous test runs did to seed data
+  const { hashPassword } = await import('../../src/utils/password.js')
+  const passwordHash = await hashPassword('SecurePass@123')
+  const editableUser = await prisma.user.upsert({
+    where: { email: 'editable-test-user@toktick.dev' },
+    update: {
+      name: 'Editable Test User',
+      email: 'editable-test-user@toktick.dev',
+      role: Role.REQUESTER,
+      isActive: true,
+      requiresPasswordChange: false,
+      passwordHash,
+    },
+    create: {
+      name: 'Editable Test User',
+      email: 'editable-test-user@toktick.dev',
+      role: Role.REQUESTER,
+      isActive: true,
+      requiresPasswordChange: false,
+      passwordHash,
+    },
+  })
+  bobUserId = editableUser.id
 
   const admin = await prisma.user.findUnique({ where: { email: 'admin@toktick.dev' } })
   if (admin) adminUserId = admin.id
@@ -24,8 +46,7 @@ beforeAll(async () => {
   // Ensure we have a second admin for testing AC-ADMIN-09
   let second = await prisma.user.findUnique({ where: { email: 'admin2@toktick.dev' } })
   if (!second) {
-    const { hashPassword } = await import('../../src/utils/password.js')
-    const passwordHash = await hashPassword('Dev@123456')
+    const ph = await hashPassword('SecurePass@123')
     second = await prisma.user.create({
       data: {
         name: 'Admin Two',
@@ -33,7 +54,7 @@ beforeAll(async () => {
         role: Role.ADMINISTRATOR,
         isActive: true,
         requiresPasswordChange: false,
-        passwordHash,
+        passwordHash: ph,
       }
     })
   }
@@ -158,13 +179,14 @@ describe('PATCH /admin/users/:id', () => {
   // AC-ADMIN-07
   it('updates user name and email', async () => {
     const adminCookie = await loginAndGetCookie('admin@toktick.dev')
+    const newEmail = `editable-updated-${Date.now()}@toktick.dev`
     const res = await request(app)
       .patch(`/admin/users/${bobUserId}`)
       .set('Cookie', adminCookie)
-      .send({ name: 'Bob Updated', email: 'bob-updated@toktick.dev' })
+      .send({ name: 'Editable Updated', email: newEmail })
 
     expect(res.status).toBe(200)
-    expect(res.body.name).toBe('Bob Updated')
+    expect(res.body.name).toBe('Editable Updated')
     expect(res.body).not.toHaveProperty('passwordHash')
   })
 

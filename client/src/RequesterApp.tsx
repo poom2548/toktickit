@@ -70,7 +70,7 @@ export default function RequesterApp() {
         </h1>
         <div className="d-flex gap-2 align-items-center flex-wrap">
           {/* New Ticket button */}
-          {!showCreateForm && !selectedTicketId && (
+          {isDashboardView && (
             <button
               type="button"
               className="btn btn-sm fw-semibold text-white"

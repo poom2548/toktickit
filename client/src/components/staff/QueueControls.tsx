@@ -5,17 +5,20 @@ interface QueueControlsProps {
   onStatusChange: (v: string) => void
   priorityFilter: string
   onPriorityChange: (v: string) => void
+  reqPriorityFilter: string
+  onReqPriorityChange: (v: string) => void
 }
 
 export function QueueControls({
   search, onSearchChange,
   statusFilter, onStatusChange,
   priorityFilter, onPriorityChange,
+  reqPriorityFilter, onReqPriorityChange,
 }: QueueControlsProps) {
   return (
     <div className="queue-controls">
       {/* Search */}
-      <div className="control-group">
+      <div className="control-group" style={{ flex: '1 1 220px' }}>
         <label htmlFor="queue-search">Search</label>
         <input
           id="queue-search"
@@ -34,7 +37,7 @@ export function QueueControls({
           value={statusFilter}
           onChange={e => onStatusChange(e.target.value)}
         >
-          <option value="">All statuses</option>
+          <option value="">All Statuses</option>
           <option value="NEW">New</option>
           <option value="OPEN">Open</option>
           <option value="IN_PROGRESS">In Progress</option>
@@ -46,15 +49,31 @@ export function QueueControls({
         </select>
       </div>
 
-      {/* Priority filter */}
+      {/* Req. Priority filter */}
       <div className="control-group">
-        <label htmlFor="priority-filter">Priority</label>
+        <label htmlFor="req-priority-filter">Req. Priority</label>
+        <select
+          id="req-priority-filter"
+          value={reqPriorityFilter}
+          onChange={e => onReqPriorityChange(e.target.value)}
+        >
+          <option value="">All Priorities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+
+      {/* IT Priority filter */}
+      <div className="control-group">
+        <label htmlFor="priority-filter">IT Priority</label>
         <select
           id="priority-filter"
           value={priorityFilter}
           onChange={e => onPriorityChange(e.target.value)}
         >
-          <option value="">All priorities</option>
+          <option value="">All Priorities</option>
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
           <option value="HIGH">High</option>

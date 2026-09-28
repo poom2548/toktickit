@@ -22,8 +22,8 @@ describe('GET /staff/tickets', () => {
   let frankUserId: string
 
   beforeAll(async () => {
-    staffCookie     = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
-    requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    staffCookie     = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
+    requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const frank = await prisma.user.findUnique({ where: { email: 'frank@toktick.dev' } })
     if (frank) frankUserId = frank.id
   })
@@ -208,7 +208,7 @@ describe('GET /staff/tickets', () => {
   })
 
   it('returns ADMINISTRATOR results the same as IT_STAFF', async () => {
-    const adminCookie = await loginAndGetCookie('admin@toktick.dev', 'Dev@123456')
+    const adminCookie = await loginAndGetCookie('admin@toktick.dev', 'SecurePass@123')
     const res = await request(app)
       .get('/staff/tickets')
       .set('Cookie', adminCookie)

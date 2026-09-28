@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.beforeEach(async ({ page }) => {
   await page.goto('/login')
   await page.fill('#email', 'admin@toktick.dev')
-  await page.fill('#password', 'Dev@123456')
+  await page.fill('#password', 'SecurePass@123')
   await page.click('button[type="submit"]')
   await page.waitForURL('/admin/users')
 })
@@ -18,15 +18,17 @@ test('Administrator sees user table with Name, Email, Role, Status columns', asy
 
 // AC-ADMIN-02
 test('Search filters user list by name or email', async ({ page }) => {
+  const responsePromise = page.waitForResponse(res => res.url().includes('/admin/users') && res.status() === 200)
   await page.fill('[data-testid="user-search-input"]', 'alice')
-  await page.waitForResponse(res => res.url().includes('/admin/users') && res.status() === 200)
+  await responsePromise
   await expect(page.getByText('alice@toktick.dev')).toBeVisible()
 })
 
 // AC-ADMIN-03
 test('Role filter shows only users of selected role', async ({ page }) => {
+  const responsePromise = page.waitForResponse(res => res.url().includes('/admin/users') && res.status() === 200)
   await page.selectOption('[data-testid="role-filter-select"]', 'IT_STAFF')
-  await page.waitForResponse(res => res.url().includes('/admin/users') && res.status() === 200)
+  await responsePromise
   // All visible role badges should be IT Staff
   const badges = page.locator('.role-badge--it-staff')
   await expect(badges.first()).toBeVisible()
@@ -96,7 +98,7 @@ test('Non-Administrator sees forbidden screen', async ({ page }) => {
   await page.click('button:has-text("Log out")')
   await page.waitForURL('/login')
   await page.fill('#email', 'frank@toktick.dev')
-  await page.fill('#password', 'Dev@123456')
+  await page.fill('#password', 'SecurePass@123')
   await page.click('button[type="submit"]')
   await page.waitForURL('/staff/tickets')
 

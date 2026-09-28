@@ -12,7 +12,7 @@ async function main() {
     console.log("Could not create sequence, it may already exist or DB doesn't support it.")
   }
 
-  const devPassword = await bcrypt.hash('Dev@123456', 12)
+  const devPassword = await bcrypt.hash('SecurePass@123', 12)
   const initPassword = await bcrypt.hash('InitPass@1', 12)
 
   const usersToSeed = [

@@ -107,7 +107,7 @@ describe('Staff Ticket Detail API', () => {
 
   describe('GET /staff/tickets/:id', () => {
     it('returns full ticket detail for IT Staff', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .get(`/staff/tickets/${seededTicketId}`)
         .set('Cookie', staffCookie);
@@ -136,7 +136,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 403 for REQUESTER', async () => {
-      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456');
+      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .get(`/staff/tickets/${seededTicketId}`)
         .set('Cookie', requesterCookie);
@@ -145,7 +145,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 404 for non-existent ticket', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .get('/staff/tickets/99999999')
         .set('Cookie', staffCookie);
@@ -155,7 +155,7 @@ describe('Staff Ticket Detail API', () => {
 
   describe('PATCH /staff/tickets/:id/owner', () => {
     it('updates owner to a valid active IT_STAFF user', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
@@ -166,7 +166,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('unassigns owner when ownerId is null', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
@@ -176,7 +176,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 422 when ownerId is a REQUESTER user', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
@@ -186,7 +186,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 422 when ownerId is an inactive IT_STAFF user', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
@@ -196,7 +196,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 403 for REQUESTER', async () => {
-      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456');
+      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', requesterCookie)
@@ -207,7 +207,7 @@ describe('Staff Ticket Detail API', () => {
 
   describe('PATCH /staff/tickets/:id/priority', () => {
     it('updates itPriority for IT Staff', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/priority`)
         .set('Cookie', staffCookie)
@@ -217,7 +217,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 422 for invalid priority value', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/priority`)
         .set('Cookie', staffCookie)
@@ -226,7 +226,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 403 for REQUESTER', async () => {
-      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456');
+      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/priority`)
         .set('Cookie', requesterCookie)
@@ -237,7 +237,7 @@ describe('Staff Ticket Detail API', () => {
 
   describe('PATCH /staff/tickets/:id/status', () => {
     it('transitions NEW → OPEN successfully', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${newStatusTicketId}/status`)
         .set('Cookie', staffCookie)
@@ -247,7 +247,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('transitions IN_PROGRESS → RESOLVED successfully', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${inProgressTicketId}/status`)
         .set('Cookie', staffCookie)
@@ -257,7 +257,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 422 for RESOLVED → NEW (not a permitted transition)', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${resolvedTicketId}/status`)
         .set('Cookie', staffCookie)
@@ -269,7 +269,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 422 for CLOSED → anything (terminal state)', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${closedTicketId}/status`)
         .set('Cookie', staffCookie)
@@ -279,7 +279,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 403 for REQUESTER attempting status change', async () => {
-      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456');
+      const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/status`)
         .set('Cookie', requesterCookie)
@@ -288,7 +288,7 @@ describe('Staff Ticket Detail API', () => {
     });
 
     it('returns 400 for invalid status value', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456');
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/status`)
         .set('Cookie', staffCookie)

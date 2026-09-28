@@ -53,5 +53,28 @@ export default async function globalSetup() {
     }
   }
 
+  // 5. Reset Eve and Bob to ensure E2E tests are reproducible
+  const bcrypt = require('../server/node_modules/bcrypt')
+  const initHash = await bcrypt.hash('InitPass@1', 10)
+  const devHash = await bcrypt.hash('SecurePass@123', 10)
+
+  await prisma.user.updateMany({
+    where: { email: 'eve@toktick.dev' },
+    data: { passwordHash: initHash, requiresPasswordChange: true }
+  })
+  console.log('[globalSetup] Reset eve@toktick.dev')
+
+  // Make sure Bob exists with original email and password
+  const bobExists = await prisma.user.findUnique({ where: { email: 'bob@toktick.dev' } })
+  if (bobExists) {
+    await prisma.user.update({
+      where: { email: 'bob@toktick.dev' },
+      data: { passwordHash: devHash, requiresPasswordChange: false }
+    })
+  } else {
+    // If Bob was mutated to something else, we could try to mutate him back or just rely on the seed
+    console.log('[globalSetup] bob@toktick.dev missing (mutated?), consider resetting DB')
+  }
+
   await prisma.$disconnect()
 }

@@ -160,7 +160,7 @@ describe('Lab 3 Database Migration Tests', () => {
     const users = await prisma.user.findMany()
     for (const user of users) {
       expect(user.passwordHash).toMatch(/^\$2[ab]\$|\$argon2/)
-      expect(user.passwordHash).not.toBe('Dev@123456')
+      expect(user.passwordHash).not.toBe('SecurePass@123')
       expect(user.passwordHash).not.toBe('InitPass@1')
       expect(user.passwordHash).not.toBe('ChangeMe123!')
     }

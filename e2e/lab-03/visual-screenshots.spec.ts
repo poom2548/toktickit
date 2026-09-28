@@ -59,10 +59,8 @@ test('Screenshot: Login screen — validation error state', async ({ page }) => 
 })
 
 test('Screenshot: Change Password screen', async ({ page }) => {
-  // Navigate to change password screen
-  // Wait, does Alice need password change? Let's assume we can just go to the route if logged in or directly.
-  // We'll log in as grace and go to change-password, maybe it redirects? We will see.
-  await loginAs(page, 'grace@toktick.dev', 'Dev@123456')
+  // Eve is set to requiresPasswordChange: true in the global setup
+  await loginAs(page, 'eve@toktick.dev', 'InitPass@1')
   for (const bp of BREAKPOINTS) {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/change-password')
@@ -78,7 +76,7 @@ test('Screenshot: Change Password screen', async ({ page }) => {
 // --- IT STAFF QUEUE ---
 
 test('Screenshot: IT Staff Ticket Queue', async ({ page }) => {
-  await loginAs(page, 'frank@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'frank@toktick.dev', 'SecurePass@123')
   for (const bp of BREAKPOINTS) {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/staff/tickets')
@@ -94,7 +92,7 @@ test('Screenshot: IT Staff Ticket Queue', async ({ page }) => {
 })
 
 test('Screenshot: IT Staff Queue — empty results state', async ({ page }) => {
-  await loginAs(page, 'frank@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'frank@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/staff/tickets')
   // Search for something that returns no results
@@ -110,7 +108,7 @@ test('Screenshot: IT Staff Queue — empty results state', async ({ page }) => {
 // --- IT STAFF TICKET DETAIL ---
 
 test('Screenshot: IT Staff Ticket Detail', async ({ page }) => {
-  await loginAs(page, 'frank@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'frank@toktick.dev', 'SecurePass@123')
   // Navigate to queue first, then click on a ticket
   await page.goto('/staff/tickets')
   await page.waitForSelector('table, .queue-table, .queue-card-list')
@@ -134,7 +132,7 @@ test('Screenshot: IT Staff Ticket Detail', async ({ page }) => {
 
 test('Screenshot: IT Staff Ticket Detail — as Requester (read-only view)', async ({ page }) => {
   // AC-UI-06: Requester sees read-only operational fields
-  await loginAs(page, 'alice@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'alice@toktick.dev', 'SecurePass@123')
   // Navigate to one of Alice's tickets
   await page.goto('/tickets')
   await page.waitForLoadState('networkidle')
@@ -160,7 +158,7 @@ test('Screenshot: IT Staff Ticket Detail — as Requester (read-only view)', asy
 // --- REQUESTER TICKET DETAIL ---
 
 test('Screenshot: Requester Ticket Detail', async ({ page }) => {
-  await loginAs(page, 'alice@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'alice@toktick.dev', 'SecurePass@123')
   
   // Navigate to the first ticket in the list
   await page.goto('/tickets')
@@ -186,7 +184,7 @@ test('Screenshot: Requester Ticket Detail', async ({ page }) => {
 // --- ADMIN USER MANAGEMENT ---
 
 test('Screenshot: Admin User Management', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'admin@toktick.dev', 'SecurePass@123')
   for (const bp of BREAKPOINTS) {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/admin/users')
@@ -201,7 +199,7 @@ test('Screenshot: Admin User Management', async ({ page }) => {
 })
 
 test('Screenshot: Admin — Create User modal', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'admin@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
   await page.click('[data-testid="create-user-btn"], button:has-text("Create User"), button:has-text("New User")')
@@ -213,7 +211,7 @@ test('Screenshot: Admin — Create User modal', async ({ page }) => {
 })
 
 test('Screenshot: Admin — Edit User modal', async ({ page }) => {
-  await loginAs(page, 'admin@toktick.dev', 'Dev@123456')
+  await loginAs(page, 'admin@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
   await page.waitForSelector('[data-testid^="edit-user-btn-"], button:has-text("Edit")')

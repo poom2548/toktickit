@@ -73,7 +73,14 @@ export function StaffTicketDetailPage() {
 
   return (
     <div className="staff-ticket-detail">
-      <button onClick={() => navigate('/staff/tickets')} className="btn-secondary">← Back to Queue</button>
+      {/* Breadcrumb */}
+      <nav className="detail-breadcrumb">
+        <a href="/staff/tickets" onClick={(e) => { e.preventDefault(); navigate('/staff/tickets') }}>My Queue</a>
+        <span>›</span>
+        Ticket Detail
+      </nav>
+
+      <button onClick={() => navigate('/staff/tickets')} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>← Back to Queue</button>
 
       <TicketInfoSection ticket={ticket} />
       <OperationalSection ticket={ticket} onTicketUpdate={(updated) => setTicket(updated)} />

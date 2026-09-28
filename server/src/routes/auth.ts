@@ -29,6 +29,18 @@ router.post('/login', async (req: Request, res: Response): Promise<any> => {
       return res.status(401).json({ error: GENERIC_ERROR })
     }
 
+    // Force change if using a known default password (Applies ONLY to Requesters)
+    let requiresPasswordChange = user.requiresPasswordChange
+    const isDefaultPassword = password === 'Dev@123456' || password === 'InitPass@1'
+    
+    if (!requiresPasswordChange && isDefaultPassword && user.role === 'REQUESTER') {
+      requiresPasswordChange = true
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { requiresPasswordChange: true }
+      })
+    }
+
     const token = signToken({ userId: user.id, role: user.role })
     res.cookie('auth_token', token, {
       httpOnly: true,
@@ -42,7 +54,7 @@ router.post('/login', async (req: Request, res: Response): Promise<any> => {
       name: user.name,
       email: user.email,
       role: user.role,
-      requiresPasswordChange: user.requiresPasswordChange,
+      requiresPasswordChange,
     })
   } catch (err) {
     console.error('Login error:', err)

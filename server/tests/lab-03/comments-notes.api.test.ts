@@ -17,7 +17,7 @@ describe('Comments and Notes API', () => {
   let aliceTicketId
 
   beforeAll(async () => {
-    aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    aliceCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const aliceUser = await prisma.user.findUnique({ where: { email: 'alice@toktick.dev' } })
     aliceUserId = aliceUser!.id
 
@@ -41,7 +41,7 @@ describe('Comments and Notes API', () => {
   describe('POST /tickets/:id/comments', () => {
 
     it('stores comment with correct authorId and returns 201', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', cookie)
@@ -57,7 +57,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 422 for empty content', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', cookie)
@@ -67,7 +67,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 422 for whitespace-only content', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', cookie)
@@ -76,7 +76,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 422 when content exceeds max length', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', cookie)
@@ -85,16 +85,16 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 when Requester comments on another user ticket', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie2 = await loginAndGetCookie('carol@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)  // Alice's ticket
-        .set('Cookie', bobCookie)
-        .send({ content: 'Bob trying to comment on Alice ticket.' })
+        .set('Cookie', carolCookie2)
+        .send({ content: 'Carol trying to comment on Alice ticket.' })
       expect(res.status).toBe(403)
     })
 
     it('allows IT_STAFF to comment on any ticket', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', staffCookie)
@@ -112,7 +112,7 @@ describe('Comments and Notes API', () => {
 
   describe('GET /tickets/:id/comments', () => {
     it('returns list of comments in chronological order for ticket owner', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .get(`/api/tickets/${aliceTicketId}/comments`)
         .set('Cookie', cookie)
@@ -125,17 +125,17 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 for non-owner Requester', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie3 = await loginAndGetCookie('carol@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .get(`/api/tickets/${aliceTicketId}/comments`)
-        .set('Cookie', bobCookie)
+        .set('Cookie', carolCookie3)
       expect(res.status).toBe(403)
     })
   })
 
   describe('Internal Notes', () => {
     it('POST /tickets/:id/notes allows IT_STAFF to post an internal note', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/notes`)
         .set('Cookie', staffCookie)
@@ -148,7 +148,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('GET /tickets/:id/notes allows IT_STAFF to view internal notes', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .get(`/api/tickets/${aliceTicketId}/notes`)
         .set('Cookie', staffCookie)
@@ -160,7 +160,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('POST /tickets/:id/notes returns 403 for REQUESTER (no note content in error)', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .post(`/api/tickets/${aliceTicketId}/notes`)
         .set('Cookie', cookie)
@@ -173,7 +173,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('GET /tickets/:id/notes returns 403 for REQUESTER (no note content in error)', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .get(`/api/tickets/${aliceTicketId}/notes`)
         .set('Cookie', cookie)
@@ -186,7 +186,7 @@ describe('Comments and Notes API', () => {
 
   describe('PATCH /tickets/:id/resolved-flag', () => {
     it('sets problemAppearsResolved flag without changing ticket status', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
 
       const beforeRes = await request(app)
         .get(`/api/tickets/${aliceTicketId}`)
@@ -205,16 +205,16 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 403 for non-owner Requester', async () => {
-      const bobCookie = await loginAndGetCookie('bob@toktick.dev', 'Dev@123456')
+      const carolCookie = await loginAndGetCookie('carol@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .patch(`/api/tickets/${aliceTicketId}/resolved-flag`)
-        .set('Cookie', bobCookie)
+        .set('Cookie', carolCookie)
         .send({ problemAppearsResolved: true })
       expect(res.status).toBe(403)
     })
 
     it('returns 403 for IT_STAFF (not their action)', async () => {
-      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'Dev@123456')
+      const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .patch(`/api/tickets/${aliceTicketId}/resolved-flag`)
         .set('Cookie', staffCookie)
@@ -223,7 +223,7 @@ describe('Comments and Notes API', () => {
     })
 
     it('returns 400 when problemAppearsResolved is not a boolean', async () => {
-      const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+      const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
       const res = await request(app)
         .patch(`/api/tickets/${aliceTicketId}/resolved-flag`)
         .set('Cookie', cookie)

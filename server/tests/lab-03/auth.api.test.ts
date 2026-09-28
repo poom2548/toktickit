@@ -32,7 +32,7 @@ describe('POST /auth/login', () => {
   it('returns 200 with user identity (no passwordHash) for valid active user', async () => {
     const res = await request(app).post('/auth/login').send({
       email: 'alice@toktick.dev',
-      password: 'Dev@123456',
+      password: 'SecurePass@123',
     })
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('id')
@@ -56,7 +56,7 @@ describe('POST /auth/login', () => {
   it('returns 401 with generic message for inactive user', async () => {
     const res = await request(app).post('/auth/login').send({
       email: 'ivy@toktick.dev',
-      password: 'Dev@123456',
+      password: 'SecurePass@123',
     })
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Invalid email or password.')
@@ -85,7 +85,7 @@ describe('POST /auth/login', () => {
 describe('POST /auth/logout', () => {
   it('invalidates session so subsequent requests return 401', async () => {
     const loginRes = await request(app).post('/auth/login').send({
-      email: 'alice@toktick.dev', password: 'Dev@123456',
+      email: 'alice@toktick.dev', password: 'SecurePass@123',
     })
     const cookie = loginRes.headers['set-cookie']
 
@@ -106,7 +106,7 @@ describe('POST /auth/logout', () => {
 
 describe('GET /auth/me', () => {
   it('returns user identity without passwordHash for authenticated user', async () => {
-    const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const res = await request(app).get('/auth/me').set('Cookie', cookie)
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -138,7 +138,7 @@ describe('POST /auth/change-password', () => {
   })
 
   it('returns 422 with validation details when password is too short', async () => {
-    const cookie = await loginAndGetCookie('alice@toktick.dev', 'Dev@123456')
+    const cookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123')
     const res = await request(app)
       .post('/auth/change-password')
       .set('Cookie', cookie)

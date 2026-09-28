@@ -1,4 +1,4 @@
-import { test, chromium, Browser, Page } from '@playwright/test'
+﻿import { test, chromium, Browser, Page } from '@playwright/test'
 import path from 'path'
 
 const SCREENSHOTS_DIR = path.resolve('artifacts/lab-03/screenshots')
@@ -24,9 +24,9 @@ async function checkNoHorizontalOverflow(page: Page, label: string) {
     return document.documentElement.scrollWidth > document.documentElement.clientWidth
   })
   if (hasOverflow) {
-    console.error(`❌ HORIZONTAL OVERFLOW detected on: ${label}`)
+    console.error(`โ HORIZONTAL OVERFLOW detected on: ${label}`)
   } else {
-    console.log(`✅ No overflow on: ${label}`)
+    console.log(`โ… No overflow on: ${label}`)
   }
 }
 
@@ -45,7 +45,7 @@ test('Screenshot: Login screen', async ({ page }) => {
   }
 })
 
-test('Screenshot: Login screen — validation error state', async ({ page }) => {
+test('Screenshot: Login screen โ€” validation error state', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/login')
   await page.fill('#email', 'notexist@toktick.dev')
@@ -60,7 +60,7 @@ test('Screenshot: Login screen — validation error state', async ({ page }) => 
 
 test('Screenshot: Change Password screen', async ({ page }) => {
   // Eve is set to requiresPasswordChange: true in the global setup
-  await loginAs(page, 'eve@toktick.dev', 'InitPass@1')
+  await loginAs(page, 'zack@toktick.dev', 'InitPass@1')
   for (const bp of BREAKPOINTS) {
     await page.setViewportSize({ width: bp.width, height: bp.height })
     await page.goto('/change-password')
@@ -91,7 +91,7 @@ test('Screenshot: IT Staff Ticket Queue', async ({ page }) => {
   }
 })
 
-test('Screenshot: IT Staff Queue — empty results state', async ({ page }) => {
+test('Screenshot: IT Staff Queue โ€” empty results state', async ({ page }) => {
   await loginAs(page, 'frank@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/staff/tickets')
@@ -130,7 +130,7 @@ test('Screenshot: IT Staff Ticket Detail', async ({ page }) => {
   }
 })
 
-test('Screenshot: IT Staff Ticket Detail — as Requester (read-only view)', async ({ page }) => {
+test('Screenshot: IT Staff Ticket Detail โ€” as Requester (read-only view)', async ({ page }) => {
   // AC-UI-06: Requester sees read-only operational fields
   await loginAs(page, 'alice@toktick.dev', 'SecurePass@123')
   // Navigate to one of Alice's tickets
@@ -198,7 +198,7 @@ test('Screenshot: Admin User Management', async ({ page }) => {
   }
 })
 
-test('Screenshot: Admin — Create User modal', async ({ page }) => {
+test('Screenshot: Admin โ€” Create User modal', async ({ page }) => {
   await loginAs(page, 'admin@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
@@ -210,7 +210,7 @@ test('Screenshot: Admin — Create User modal', async ({ page }) => {
   })
 })
 
-test('Screenshot: Admin — Edit User modal', async ({ page }) => {
+test('Screenshot: Admin โ€” Edit User modal', async ({ page }) => {
   await loginAs(page, 'admin@toktick.dev', 'SecurePass@123')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/admin/users')
@@ -222,3 +222,4 @@ test('Screenshot: Admin — Edit User modal', async ({ page }) => {
     fullPage: false,
   })
 })
+

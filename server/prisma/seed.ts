@@ -1,10 +1,10 @@
-import { PrismaClient, Role, Priority, TicketStatus } from '@prisma/client'
+﻿import { PrismaClient, Role, Priority, TicketStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('๐ฑ Seeding database...')
 
   try {
     await prisma.$executeRaw`CREATE SEQUENCE IF NOT EXISTS ticket_number_seq START 100`
@@ -21,6 +21,8 @@ async function main() {
     { name: 'Carol Requester', email: 'carol@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
     { name: 'Dave Requester', email: 'dave@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: false },
     { name: 'Eve Requester', email: 'eve@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: true },
+    { name: 'Zack Requester', email: 'zack@toktick.dev', role: Role.REQUESTER, isActive: true, requiresPasswordChange: true },
+    { name: 'Inactive Requester', email: 'inactive@toktick.dev', role: Role.REQUESTER, isActive: false, requiresPasswordChange: false },
     { name: 'Frank IT', email: 'frank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
     { name: 'Grace IT', email: 'grace@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
     { name: 'Hank IT', email: 'hank@toktick.dev', role: Role.IT_STAFF, isActive: true, requiresPasswordChange: false },
@@ -150,16 +152,18 @@ async function main() {
     if (existingNotes === 0) {
       await prisma.internalNote.createMany({
         data: [
-          { ticketId: tkt5.id, authorId: grace.id, content: "Escalated to network team — awaiting their response." },
+          { ticketId: tkt5.id, authorId: grace.id, content: "Escalated to network team โ€” awaiting their response." },
           { ticketId: tkt5.id, authorId: grace.id, content: "Replicated locally on dev machine. Root cause identified." }
         ]
       })
     }
   }
 
-  console.log('✅ Seeding complete.')
+  console.log('โ… Seeding complete.')
 }
 
 main()
   .catch((e) => { console.error(e); process.exit(1) })
   .finally(async () => { await prisma.$disconnect() })
+
+

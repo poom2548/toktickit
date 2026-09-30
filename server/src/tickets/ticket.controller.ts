@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
+import { PrismaClient, Role } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
+import { generateTicketNumber } from '../utils/ticketNumber.js'
 import { AppError } from "../middlewares/error.middleware.js";
 
 // ---------------------------------------------------------------------------
@@ -80,7 +82,7 @@ export async function getTickets(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
 
     // ── Pagination ──────────────────────────────────────────────────────────
     const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10) || 1);
@@ -94,16 +96,8 @@ export async function getTickets(
       rawCategoryId !== undefined && !isNaN(Number(rawCategoryId))
         ? Number(rawCategoryId)
         : undefined;
-    const priority =
-      typeof req.query.priority === "string" &&
-      (VALID_PRIORITIES as readonly string[]).includes(req.query.priority)
-        ? req.query.priority
-        : undefined;
-    const status =
-      typeof req.query.status === "string" &&
-      (VALID_STATUSES as readonly string[]).includes(req.query.status)
-        ? req.query.status
-        : undefined;
+    const priority = typeof req.query.priority === "string" && VALID_PRIORITIES.includes(req.query.priority as any) ? (req.query.priority.toUpperCase() as any) : undefined;
+    const status = typeof req.query.status === "string" && VALID_STATUSES.includes(req.query.status as any) ? (req.query.status.toUpperCase().replace(" ", "_") as any) : undefined;
 
     // Build where clause — always scoped to the authenticated requester
     const where = {
@@ -169,7 +163,7 @@ export async function createTicket(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
 
     // --- Validation ---
     const errors = validateTicketBody(req.body as Record<string, unknown>);
@@ -214,35 +208,28 @@ export async function createTicket(
       return;
     }
 
-    // --- Create ticket inside a transaction using a PostgreSQL SEQUENCE ---
-    // Using nextval('ticket_number_seq') guarantees a unique, monotonically
-    // increasing number even under high concurrency — no TOCTOU race possible.
-    const ticket = await prisma.$transaction(async (tx) => {
-      const result = await tx.$queryRaw<[{ nextval: bigint }]>`
-        SELECT nextval('ticket_number_seq')
-      `;
-      const ticketNumber = `TKT-${String(Number(result[0].nextval)).padStart(4, "0")}`;
+    const ticketNumber = await generateTicketNumber();
 
-      return tx.ticket.create({
-        data: {
-          ticketNumber,
-          summary: summary.trim(),
-          description: description.trim(),
-          status: "New",
-          requestedPriority,
-          requesterId,
-          categoryId: Number(categoryId),
-          relatedSystemId: Number(relatedSystemId),
-        },
-        include: {
-          category: { select: { id: true, name: true } },
-          relatedSystem: { select: { id: true, name: true } },
-        },
-      });
+    const ticket = await prisma.ticket.create({
+      data: {
+        ticketNumber,
+        summary: summary.trim(),
+        description: description.trim(),
+        status: "NEW",
+        requestedPriority: requestedPriority.toUpperCase() as any,
+        requesterId,
+        categoryId: Number(categoryId),
+        relatedSystemId: Number(relatedSystemId),
+      },
+      include: {
+        category: { select: { id: true, name: true } },
+        relatedSystem: { select: { id: true, name: true } },
+      },
     });
 
     res.status(201).json(ticket);
   } catch (err) {
+    console.error("CREATE ERROR:", err);
     next(err);
   }
 }
@@ -262,7 +249,7 @@ export async function getTicketById(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
     const ticketId = parseInt(req.params.id, 10);
 
     if (isNaN(ticketId)) {
@@ -279,20 +266,19 @@ export async function getTicketById(
           where: { isRemoved: false },
           select: { id: true, filename: true, mimetype: true, size: true, createdAt: true },
         },
+        publicComments: {
+          orderBy: { createdAt: 'asc' },
+          include: { author: { select: { id: true, name: true, role: true } } },
+        },
       },
     });
 
     if (!ticket) {
-      const err: AppError = Object.assign(new Error("Ticket not found"), { status: 404 });
+      const err: AppError = Object.assign(new Error("Ticket not found."), { status: 404 });
       return next(err);
     }
-
-    // --- Ownership check ---
     if (ticket.requesterId !== requesterId) {
-      const err: AppError = Object.assign(
-        new Error("Forbidden: you do not own this ticket"),
-        { status: 403 }
-      );
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
       return next(err);
     }
 
@@ -302,3 +288,154 @@ export async function getTicketById(
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// POST /api/tickets/:id/comments
+// ---------------------------------------------------------------------------
+export async function postComment(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    const ticketId = parseInt(req.params.id, 10);
+    const authorId = req.user!.id;
+    const { content } = req.body;
+
+    if (isNaN(ticketId)) {
+      const err: AppError = Object.assign(new Error("Invalid ticket id"), { status: 400 });
+      return next(err);
+    }
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      const err: AppError = Object.assign(new Error("Comment content cannot be empty."), { status: 422 });
+      return next(err);
+    }
+
+    const MAX_COMMENT_LENGTH = 2000;
+    if (content.trim().length > MAX_COMMENT_LENGTH) {
+      const err: AppError = Object.assign(new Error(`Comment must not exceed ${MAX_COMMENT_LENGTH} characters.`), { status: 422 });
+      return next(err);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      return next(err);
+    }
+
+    if (req.user!.role === 'REQUESTER' && ticket.requesterId !== authorId) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      return next(err);
+    }
+
+    const comment = await prisma.publicComment.create({
+      data: {
+        ticketId,
+        authorId,
+        content: content.trim(),
+      },
+      include: {
+        author: { select: { id: true, name: true, role: true } },
+      },
+    });
+
+    res.status(201).json(comment);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/tickets/:id/comments
+// ---------------------------------------------------------------------------
+export async function getComments(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    const ticketId = parseInt(req.params.id, 10);
+    const callerId = req.user!.id;
+
+    if (isNaN(ticketId)) {
+      const err: AppError = Object.assign(new Error("Invalid ticket id"), { status: 400 });
+      return next(err);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      return next(err);
+    }
+
+    if (req.user!.role === 'REQUESTER' && ticket.requesterId !== callerId) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      return next(err);
+    }
+
+    const comments = await prisma.publicComment.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        author: { select: { id: true, name: true, role: true } },
+      },
+    });
+
+    res.status(200).json({ comments });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/tickets/:id/resolved-flag
+// ---------------------------------------------------------------------------
+export async function setResolvedFlag(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    const ticketId = parseInt(req.params.id, 10);
+    const requesterId = req.user!.id;
+    const { problemAppearsResolved } = req.body;
+
+    if (isNaN(ticketId)) {
+      const err: AppError = Object.assign(new Error("Invalid ticket id"), { status: 400 });
+      return next(err);
+    }
+
+    if (typeof problemAppearsResolved !== 'boolean') {
+      const err: AppError = Object.assign(new Error("problemAppearsResolved must be a boolean."), { status: 400 });
+      return next(err);
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket || ticket.requesterId !== requesterId) {
+      const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
+      return next(err);
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        problemAppearsResolved,
+      },
+      select: {
+        id: true,
+        status: true,
+        problemAppearsResolved: true,
+      },
+    });
+
+    res.status(200).json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/tickets/:id/notes (Stub)
+// ---------------------------------------------------------------------------
+export async function postNote(req: Request, res: Response, next: NextFunction): Promise<void> {
+  res.status(501).json({ error: 'Not yet implemented.' });
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/tickets/:id/notes (Stub)
+// ---------------------------------------------------------------------------
+export async function getNotes(req: Request, res: Response, next: NextFunction): Promise<void> {
+  res.status(501).json({ error: 'Not yet implemented.' });
+}

@@ -44,12 +44,13 @@ const ALLOWED_MIME_TYPES = new Set([
 // ---------------------------------------------------------------------------
 
 /**
- * Verifies that the ticket belongs to the authenticated requester.
+ * Verifies that the ticket belongs to the authenticated requester,
+ * or allows access if the user is IT_STAFF or ADMINISTRATOR.
  * Throws an AppError (404 if ticket missing, 403 if ownership mismatch).
  */
 async function assertTicketOwnership(
   ticketId: number,
-  requesterId: number
+  user: { id: string; role: string }
 ): Promise<void> {
   const prisma = getPrisma();
   const ticket = await prisma.ticket.findUnique({
@@ -58,13 +59,13 @@ async function assertTicketOwnership(
   });
 
   if (!ticket) {
-    const err: AppError = Object.assign(new Error("Ticket not found"), { status: 404 });
+    const err: AppError = Object.assign(new Error("Access denied."), { status: 403 });
     throw err;
   }
 
-  if (ticket.requesterId !== requesterId) {
+  if (user.role !== "IT_STAFF" && user.role !== "ADMINISTRATOR" && ticket.requesterId !== String(user.id)) {
     const err: AppError = Object.assign(
-      new Error("Forbidden: you do not own this ticket"),
+      new Error("You do not own this ticket."),
       { status: 403 }
     );
     throw err;
@@ -89,7 +90,7 @@ export async function uploadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
     const ticketId = parseInt(req.params.ticketId, 10);
 
     if (isNaN(ticketId)) {
@@ -98,7 +99,7 @@ export async function uploadAttachment(
     }
 
     // --- Ownership check ---
-    await assertTicketOwnership(ticketId, requesterId);
+    await assertTicketOwnership(ticketId, req.user!);
 
     // --- File presence check ---
     if (!req.file) {
@@ -173,7 +174,7 @@ export async function downloadAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {
@@ -200,7 +201,7 @@ export async function downloadAttachment(
     }
 
     // Ownership check via parent ticket
-    await assertTicketOwnership(attachment.ticketId, requesterId);
+    await assertTicketOwnership(attachment.ticketId, req.user!);
 
     // Stream the file — with an explicit error callback per review feedback (AC-03)
     res.download(attachment.storagePath, attachment.filename, (err) => {
@@ -237,7 +238,7 @@ export async function removeAttachment(
 ): Promise<void> {
   try {
     const prisma = getPrisma();
-    const requesterId: number = res.locals.requesterId;
+    const requesterId: string = req.user!.id;
     const attachmentId = parseInt(req.params.id, 10);
 
     if (isNaN(attachmentId)) {
@@ -265,7 +266,7 @@ export async function removeAttachment(
     }
 
     // --- Ownership check via parent ticket ---
-    await assertTicketOwnership(attachment.ticketId, requesterId);
+    await assertTicketOwnership(attachment.ticketId, req.user!);
 
     // --- Soft delete ---
     const updated = await prisma.attachment.update({

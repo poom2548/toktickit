@@ -195,7 +195,7 @@ describe("GET /api/tickets — list & filter", () => {
   // ── Filter — status ─────────────────────────────────────────────────────────
 
   it("200 — filters by status query param", async () => {
-    const resolvedTicket = makeTicket({ status: "Resolved" });
+    const resolvedTicket = makeTicket({ status: "RESOLVED" });
     mockTicketFindMany.mockResolvedValue([resolvedTicket]);
     mockTicketCount.mockResolvedValue(1);
 
@@ -204,29 +204,30 @@ describe("GET /api/tickets — list & filter", () => {
       .set("X-Requester-Id", "1");
 
     expect(res.status).toBe(200);
-    expect(res.body.data[0].status).toBe("Resolved");
+    expect(res.body.data[0].status).toBe("RESOLVED");
 
     // Verify findMany was called with the correct where clause
     const whereArg = mockTicketFindMany.mock.calls[0][0].where as Record<string, unknown>;
-    expect(whereArg.status).toBe("Resolved");
+    expect(whereArg.status).toBe("RESOLVED");
   });
 
   it("200 — ignores unknown status values (no filter applied)", async () => {
+    mockTicketFindMany.mockResolvedValue([makeTicket()]);
+    mockTicketCount.mockResolvedValue(1);
+
     const res = await request(app)
-      .get("/api/tickets?status=InvalidStatus")
+      .get("/api/tickets?status=BogusStatus")
       .set("X-Requester-Id", "1");
 
     expect(res.status).toBe(200);
-
-    // status should NOT appear in the where clause for invalid values
     const whereArg = mockTicketFindMany.mock.calls[0][0].where as Record<string, unknown>;
-    expect(whereArg.status).toBeUndefined();
+    expect(whereArg.status).toBeUndefined(); // filter not applied
   });
 
   // ── Filter — priority ───────────────────────────────────────────────────────
 
   it("200 — filters by priority query param", async () => {
-    const highTicket = makeTicket({ requestedPriority: "High" });
+    const highTicket = makeTicket({ requestedPriority: "HIGH" });
     mockTicketFindMany.mockResolvedValue([highTicket]);
     mockTicketCount.mockResolvedValue(1);
 
@@ -235,10 +236,10 @@ describe("GET /api/tickets — list & filter", () => {
       .set("X-Requester-Id", "1");
 
     expect(res.status).toBe(200);
-    expect(res.body.data[0].requestedPriority).toBe("High");
+    expect(res.body.data[0].requestedPriority).toBe("HIGH");
 
     const whereArg = mockTicketFindMany.mock.calls[0][0].where as Record<string, unknown>;
-    expect(whereArg.requestedPriority).toBe("High");
+    expect(whereArg.requestedPriority).toBe("HIGH");
   });
 
   it("200 — ignores invalid priority values", async () => {

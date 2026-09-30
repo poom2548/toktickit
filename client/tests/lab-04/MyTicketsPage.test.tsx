@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -84,7 +85,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
   it("renders the ticket table on desktop and shows ticket data", async () => {
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -113,7 +114,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -147,7 +148,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -178,7 +179,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -206,7 +207,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -242,7 +243,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -271,7 +272,7 @@ describe("E2E-01 — Desktop view: search, filter, and pagination", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -313,7 +314,7 @@ describe("E2E-02 — Responsive layout: Table (desktop) vs Card (mobile)", () =>
   it("table-view wrapper has d-none d-md-block classes (hidden on mobile via Bootstrap)", async () => {
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -332,7 +333,7 @@ describe("E2E-02 — Responsive layout: Table (desktop) vs Card (mobile)", () =>
   it("card-view wrapper has d-md-none class (hidden on desktop via Bootstrap)", async () => {
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -361,7 +362,7 @@ describe("E2E-02 — Responsive layout: Table (desktop) vs Card (mobile)", () =>
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -388,7 +389,7 @@ describe("E2E-02 — Responsive layout: Table (desktop) vs Card (mobile)", () =>
   it("E2E-02 — table contains all required column headers", async () => {
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -410,7 +411,7 @@ describe("E2E-02 — Responsive layout: Table (desktop) vs Card (mobile)", () =>
   it("E2E-02 — summary table cell has text-overflow ellipsis styles applied", async () => {
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -446,7 +447,7 @@ describe("Empty state — no tickets found", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -481,7 +482,7 @@ describe("Empty state — no tickets found", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -515,7 +516,7 @@ describe("Empty state — no tickets found", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -540,7 +541,7 @@ describe("API error handling — getTickets rejects", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -575,7 +576,7 @@ describe("API error handling — getTickets rejects", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -602,7 +603,7 @@ describe("API error handling — getTickets rejects", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -636,7 +637,7 @@ describe("API error handling — getTickets rejects", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -680,7 +681,7 @@ describe("Pagination controls — visibility rules", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -713,7 +714,7 @@ describe("Pagination controls — visibility rules", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -747,7 +748,7 @@ describe("Pagination controls — visibility rules", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />
@@ -776,7 +777,7 @@ describe("Pagination controls — visibility rules", () => {
 
     render(
       <MyTicketsPage
-        requester={REQUESTER}
+        
         categories={CATEGORIES}
         onNewTicket={vi.fn()}
       />

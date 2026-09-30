@@ -1,18 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Ticket,
-  Requester,
   getTicketById,
   uploadAttachment,
   removeAttachment,
   downloadAttachment,
-} from "./api.js";
+  PublicComment,
+  getComments,
+  postComment,
+  markResolved
+} from "./api";
+import { StatusBadge } from "./components/shared/StatusBadge";
+import { PriorityBadge } from "./components/shared/PriorityBadge";
 
 // ---------------------------------------------------------------------------
 // Zen Green colour tokens
 // ---------------------------------------------------------------------------
 const ZEN = {
-  primary: "#006B3C",
+  primary: "var(--zen-color-primary)",
   primaryLight: "#e8f5ee",
   errorText: "#dc3545",
   successText: "#198754",
@@ -20,11 +25,10 @@ const ZEN = {
 
 interface Props {
   ticketId: number;
-  requester: Requester;
   onBack: () => void;
 }
 
-export default function TicketDetailPage({ ticketId, requester, onBack }: Props) {
+export default function TicketDetailPage({ ticketId, onBack }: Props) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,22 +42,23 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
   // Remove state
   const [removingId, setRemovingId] = useState<number | null>(null);
 
-  // ── Requester change guard ────────────────────────────────────────────────
-  const initialRequesterId = useRef(requester.id);
-  useEffect(() => {
-    if (requester.id !== initialRequesterId.current) {
-      // User changed active requester mid-session; redirect to avoid stale/unauthorized data
-      onBack();
-    }
-  }, [requester.id, onBack]);
+  // Comments & resolved state
+  const [comments, setComments] = useState<PublicComment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [postingComment, setPostingComment] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
     setLoading(true);
     setError(null);
-    getTicketById(ticketId)
-      .then((data) => {
+    Promise.all([
+      getTicketById(ticketId),
+      getComments(ticketId)
+    ])
+      .then(([data, commentsData]) => {
         setTicket(data);
+        setComments(commentsData);
         setLoading(false);
       })
       .catch((err) => {
@@ -72,46 +77,47 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
     setUploadError(null);
     setUploadSuccess(false);
 
-    // Client-side validation
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      setUploadError("Only JPEG, PNG, WebP and PDF files are allowed.");
+      setUploadError("Invalid file type. Only JPG, PNG, WEBP, and PDF are allowed.");
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size exceeds 5 MB limit.");
+      setUploadError("File size exceeds 5MB limit.");
       return;
     }
+
     if ((ticket.attachments?.length || 0) >= 5) {
-      setUploadError("A ticket may not have more than 5 active attachments.");
+      setUploadError("Maximum of 5 attachments allowed.");
       return;
     }
 
     setUploading(true);
     try {
-      const newAttachment = await uploadAttachment(ticketId, file);
+      const newAtt = await uploadAttachment(ticket.id, file);
       setTicket((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          attachments: [newAttachment, ...(prev.attachments || [])],
+          attachments: [...(prev.attachments || []), newAtt],
         };
       });
-      setFile(null);
       setUploadSuccess(true);
-      // Auto-hide success message
-      setTimeout(() => setUploadSuccess(false), 3000);
+      setFile(null);
+      (document.querySelector('input[type="file"]') as HTMLInputElement).value = "";
     } catch (err: any) {
-      setUploadError(err.message || "Failed to upload file");
+      setUploadError(err.message || "Failed to upload attachment");
     } finally {
       setUploading(false);
     }
   }
 
   async function handleRemove(attachmentId: number) {
-    if (!confirm("Are you sure you want to remove this attachment?")) return;
+    if (!window.confirm("Are you sure you want to remove this attachment?")) return;
 
     setRemovingId(attachmentId);
+    setUploadSuccess(false);
     setUploadError(null);
     try {
       await removeAttachment(attachmentId);
@@ -137,11 +143,38 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
     }
   }
 
+  async function handlePostComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setPostingComment(true);
+    try {
+      const comment = await postComment(ticketId, newComment);
+      setComments((prev) => [...prev, comment]);
+      setNewComment("");
+    } catch (err: any) {
+      alert(err.message || "Failed to post comment");
+    } finally {
+      setPostingComment(false);
+    }
+  }
+
+  async function handleMarkResolved() {
+    setResolving(true);
+    try {
+      const res = await markResolved(ticketId);
+      setTicket((prev) => prev ? { ...prev, problemAppearsResolved: res.problemAppearsResolved } : prev);
+    } catch (err: any) {
+      alert(err.message || "Failed to mark resolved");
+    } finally {
+      setResolving(false);
+    }
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="text-center py-5">
-        <div className="spinner-border" style={{ color: ZEN.primary }} role="status" />
+        <div className="spinner-border" style={{ color: "var(--zen-color-primary)" }} role="status" />
         <p className="mt-3 text-muted">Loading ticket details…</p>
       </div>
     );
@@ -151,11 +184,11 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
     return (
       <div className="alert alert-danger">
         {error || "An unknown error occurred."}
+        <button className="btn-secondary ms-3" onClick={onBack}>Go Back</button>
       </div>
     );
   }
 
-  // Format date helper
   const createdStr = new Date(ticket.createdAt).toLocaleString(undefined, {
     year: "numeric",
     month: "short",
@@ -165,11 +198,16 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
   });
 
   return (
-    <div className="card border-0 shadow-sm" style={{ borderRadius: 12 }}>
+    <div className="card border-0 shadow-sm" style={{ borderRadius: "var(--zen-radius-lg)" }}>
       <div className="card-body p-4">
-        <h2 className="h4 mb-4" style={{ color: ZEN.primary }}>
-          Ticket Details
-        </h2>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="h4 mb-0" style={{ color: "var(--zen-color-primary)" }}>
+            Ticket Details
+          </h2>
+          <button className="btn-secondary" onClick={onBack}>
+            Back to List
+          </button>
+        </div>
 
         {/* Read-only form layout */}
         <div className="row g-3">
@@ -180,7 +218,7 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
               className="form-control"
               value={ticket.ticketNumber}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
           <div className="col-md-6">
@@ -190,19 +228,30 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
               className="form-control"
               value={createdStr}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
 
           <div className="col-md-4">
             <label className="form-label fw-semibold">Status</label>
-            <input
-              type="text"
-              className="form-control"
-              value={ticket.status}
-              readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
-            />
+            <div className="input-group">
+              <div className="form-control" style={{ backgroundColor: "var(--zen-bg-readonly)", display: "flex", alignItems: "center" }}>
+                <StatusBadge status={ticket.status} />
+              </div>
+              {!ticket.problemAppearsResolved && ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && ticket.status !== 'CANCELLED' && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleMarkResolved}
+                  disabled={resolving}
+                >
+                  {resolving ? "Marking..." : "Resolve"}
+                </button>
+              )}
+            </div>
+            {ticket.problemAppearsResolved && (
+              <small className="text-success mt-1 d-block">User indicated problem is resolved.</small>
+            )}
           </div>
           <div className="col-md-4">
             <label className="form-label fw-semibold">Category</label>
@@ -211,18 +260,14 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
               className="form-control"
               value={ticket.category?.name || "Unknown"}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
           <div className="col-md-4">
             <label className="form-label fw-semibold">Priority</label>
-            <input
-              type="text"
-              className="form-control"
-              value={ticket.requestedPriority}
-              readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
-            />
+            <div className="form-control" style={{ backgroundColor: "var(--zen-bg-readonly)", display: "flex", alignItems: "center" }}>
+              <PriorityBadge priority={ticket.requestedPriority} />
+            </div>
           </div>
 
           <div className="col-12">
@@ -232,7 +277,7 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
               className="form-control"
               value={ticket.summary}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
 
@@ -243,15 +288,57 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
               rows={4}
               value={ticket.description}
               readOnly
-              style={{ backgroundColor: ZEN.primaryLight }}
+              style={{ backgroundColor: "var(--zen-color-primary-light)" }}
             />
           </div>
         </div>
 
         <hr className="my-5" />
 
+        <h3 className="h5 mb-4" style={{ color: "var(--zen-color-primary)" }}>
+          Public Comments
+        </h3>
+        
+        <div className="mb-4">
+          {comments.length === 0 ? (
+            <p className="text-muted">No comments yet.</p>
+          ) : (
+            <div className="d-flex flex-column gap-3">
+              {comments.map((c) => (
+                <div key={c.id} className="card bg-light border-0">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between mb-2">
+                      <strong className="text-primary">{c.author.name} ({c.author.role})</strong>
+                      <small className="text-muted">{new Date(c.createdAt).toLocaleString()}</small>
+                    </div>
+                    <p className="mb-0" style={{ whiteSpace: "pre-wrap" }}>{c.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handlePostComment} className="mb-4">
+          <div className="form-group mb-2">
+            <textarea 
+              className="form-control" 
+              rows={3} 
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={e => setNewComment(e.target.value)}
+              disabled={postingComment}
+            />
+          </div>
+          <button type="submit" className="btn-primary" disabled={postingComment || !newComment.trim()}>
+            {postingComment ? "Posting..." : "Post Comment"}
+          </button>
+        </form>
+
+        <hr className="my-5" />
+
         {/* Attachments Section */}
-        <h3 className="h5 mb-4" style={{ color: ZEN.primary }}>
+        <h3 className="h5 mb-4" style={{ color: "var(--zen-color-primary)" }}>
           Attachments
         </h3>
 
@@ -279,9 +366,8 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
           />
           <button
             type="submit"
-            className="btn text-white"
-            style={{ backgroundColor: ZEN.primary }}
-            disabled={!file || uploading}
+            className="btn-primary"
+            disabled={uploading || !file}
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
@@ -323,14 +409,14 @@ export default function TicketDetailPage({ ticketId, requester, onBack }: Props)
                       <div className="d-flex gap-2 justify-content-end">
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-secondary"
+                          className="btn-secondary btn-sm"
                           onClick={() => handleDownload(att.id, att.filename)}
                         >
                           Download
                         </button>
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-danger"
+                          className="btn-secondary btn-sm"
                           onClick={() => handleRemove(att.id)}
                           disabled={removingId === att.id}
                         >

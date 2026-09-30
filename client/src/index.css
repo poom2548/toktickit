@@ -1,0 +1,65 @@
+/* ============================================
+   Zen Green Button System — from Lab 2
+   ============================================ */
+
+/* Primary button — solid green, for main actions */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--zen-color-primary, #2d6a4f);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--zen-radius-md, 6px);
+  padding: var(--zen-space-2, 0.5rem) var(--zen-space-4, 1rem);
+  font-size: var(--zen-text-sm, 0.875rem);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--zen-color-primary-dark, #1b4332);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid var(--zen-color-primary, #2d6a4f);
+  outline-offset: 2px;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary button — green outline, for cancel / back / secondary actions */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--zen-color-primary, #2d6a4f);
+  border: 1.5px solid var(--zen-color-primary, #2d6a4f);
+  border-radius: var(--zen-radius-md, 6px);
+  padding: var(--zen-space-2, 0.5rem) var(--zen-space-4, 1rem);
+  font-size: var(--zen-text-sm, 0.875rem);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--zen-color-primary-light, #d8f3dc);
+}
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--zen-color-primary, #2d6a4f);
+  outline-offset: 2px;
+}
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Small variant — for table action buttons like Edit, Open Detail */
+.btn-sm {
+  padding: var(--zen-space-1, 0.25rem) var(--zen-space-3, 0.75rem);
+  font-size: var(--zen-text-xs, 0.75rem);
+}

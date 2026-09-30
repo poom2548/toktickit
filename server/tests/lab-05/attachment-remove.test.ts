@@ -38,7 +38,7 @@ beforeEach(() => {
 describe("DELETE /api/attachments/:id", () => {
   it("R1 — 200 Owner soft-removes active attachment", async () => {
     mockAttachmentFindUnique.mockResolvedValue({ id: 1, ticketId: 1, isRemoved: false });
-    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: 1 });
+    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: "1" });
     mockAttachmentUpdate.mockResolvedValue({ id: 1, isRemoved: true });
 
     const res = await request(app)
@@ -56,7 +56,7 @@ describe("DELETE /api/attachments/:id", () => {
 
   it("R2 — 403 Cross-requester remove attempt", async () => {
     mockAttachmentFindUnique.mockResolvedValue({ id: 1, ticketId: 1, isRemoved: false });
-    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: 2 }); // belongs to requester 2
+    mockTicketFindUnique.mockResolvedValue({ id: 1, requesterId: "2" }); // belongs to requester 2
 
     const res = await request(app)
       .delete("/api/attachments/1")

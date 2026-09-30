@@ -30,7 +30,7 @@ function makeTicket(overrides: Partial<Record<string, unknown>> = {}) {
     description: "Please fix",
     status: "New",
     requestedPriority: "Low",
-    requesterId: 1,
+    requesterId: "1",
     categoryId: 1,
     relatedSystemId: 1,
     createdAt: new Date().toISOString(),
@@ -54,7 +54,7 @@ describe("GET /api/tickets/:id", () => {
   });
 
   it("T2 — 200 with full ticket object and attachments for valid owner", async () => {
-    mockTicketFindUnique.mockResolvedValue(makeTicket({ requesterId: 1 }));
+    mockTicketFindUnique.mockResolvedValue(makeTicket({ requesterId: "1" }));
     const res = await request(app).get("/api/tickets/1").set("X-Requester-Id", "1");
     expect(res.status).toBe(200);
     expect(res.body.ticketNumber).toBe("TKT-0001");
@@ -73,7 +73,7 @@ describe("GET /api/tickets/:id", () => {
 
   it("T4 — 403 when accessing another requester's ticket", async () => {
     // Ticket belongs to requester 2, but we request as 1
-    mockTicketFindUnique.mockResolvedValue(makeTicket({ requesterId: 2 }));
+    mockTicketFindUnique.mockResolvedValue(makeTicket({ requesterId: "2" }));
     const res = await request(app).get("/api/tickets/1").set("X-Requester-Id", "1");
     expect(res.status).toBe(403);
   });

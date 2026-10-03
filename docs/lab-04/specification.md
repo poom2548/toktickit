@@ -64,6 +64,39 @@
 - **BR-18:** ตั๋วเก่าที่มีศูนย์การดำเนินการ (Zero Actions Taken) จะยังคงใช้งานได้, แสดงหน้าจอว่างเปล่าใน UI, และแดชบอร์ดสามารถประมวลผลได้ตามปกติ
 - **BR-19:** การคลิกซ้ำหรือการลองใหม่ของเครือข่ายต้องไม่สร้างการดำเนินการซ้ำหรือเปลี่ยนสถานะซ้ำ (จัดการผ่านสถานะปิดการใช้งานบนไคลเอนต์และคีย์ Idempotency ของเซิร์ฟเวอร์)
 
+### เมทริกซ์การอนุญาต (Authorization Matrix)
+ทุกการเขียนข้อมูลถูกบังคับใช้ที่ backend การซ่อนปุ่มใน UI ไม่ถือเป็นการควบคุมสิทธิ์
+| การดำเนินการ (Operation) | Requester | IT Staff | Administrator | หมายเหตุ |
+| :--- | :--- | :--- | :--- | :--- |
+| ดู Action ของตั๋วตนเอง | อนุญาต | ปฏิเสธ | ปฏิเสธ | Staff/Admin ไม่ถือว่าเป็นเจ้าของตั๋วของ Requester |
+| ดู Action ของตั๋วที่เข้าถึงได้ | ปฏิเสธ | อนุญาต | อนุญาต | เฉพาะตั๋วในระบบ |
+| สร้าง Action | ปฏิเสธ | อนุญาต | อนุญาต | สำหรับตั๋วที่ยังไม่ปิด |
+| อัปเดต Action | ปฏิเสธ | อนุญาต | อนุญาต | สำหรับ Action ที่สร้างโดยคนนั้นและตั๋วไม่ปิด |
+| เปลี่ยนสถานะตั๋ว | อนุญาต (บางสถานะ) | อนุญาต | อนุญาต | ตามตารางการเปลี่ยนสถานะ |
+| มอบหมายเจ้าของตั๋ว | ปฏิเสธ | อนุญาต | อนุญาต | ต้องมอบหมายให้ผู้ใช้ที่ Active |
+| ระบุว่าแก้ไขแล้ว | อนุญาต | ปฏิเสธ | ปฏิเสธ | สำหรับตั๋วตนเองเท่านั้น |
+| ดู Dashboard (Requester) | อนุญาต | ปฏิเสธ | ปฏิเสธ | |
+| ดู Dashboard (Staff) | ปฏิเสธ | อนุญาต | อนุญาต | |
+| ดู User Counts | ปฏิเสธ | ปฏิเสธ | อนุญาต | เป็นข้อมูลสงวนเฉพาะ Admin |
+
+### นิยามตัวชี้วัดแดชบอร์ด
+ตั๋วในสถานะ "Open statuses" ได้แก่ NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED (ไม่รวม RESOLVED)
+ตั๋วในสถานะ "Terminal" ได้แก่ CLOSED, CANCELLED
+หากไม่มีข้อมูลให้คืนค่า count เป็น 0 หรือ list เป็น [] เสมอ ไม่ให้เกิด Error
+
+| บทบาท | Key | Label | การคำนวณ/Query | ขอบเขตตั๋ว | Time Zone | การเจาะลึก (Drill-down) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Requester | `openTickets` | My Open Tickets | นับตั๋วในสถานะ open statuses | ตั๋วตนเอง | - | `/tickets?status=open` |
+| Requester | `waitingForMe` | Waiting for Me | นับตั๋วในสถานะ WAITING_FOR_REQUESTER | ตั๋วตนเอง | - | `/tickets?status=waiting` |
+| Requester | `recentlyResolved` | แก้ปัญหาแล้วล่าสุด (Recently Resolved) | นับตั๋วที่สถานะปัจจุบันเป็น RESOLVED และเปลี่ยนสถานะภายใน 7 วัน | ตั๋วตนเอง | Asia/Bangkok (7x24h ย้อนหลัง) | `/tickets?status=resolved` |
+| Requester | `recentlyUpdated` | อัปเดตล่าสุด | ลิสต์ 5 อันดับตั๋วเรียงตาม updatedAt desc | ตั๋วตนเอง | - | - |
+| IT Staff/Admin | `unassigned` | Unassigned | นับตั๋วไม่มี owner และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?status=unassigned` |
+| IT Staff/Admin | `myOwned` | My Owned | นับตั๋วที่ owner คือผู้ใช้ปัจจุบัน และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?status=mine` |
+| IT Staff/Admin | `statusCounts` | By Status | นับแยก NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER (เติม 0) | ทั้งหมด | - | `/staff/tickets?status=...` |
+| IT Staff/Admin | `priorityCounts` | By IT Priority | นับแยก CRITICAL, HIGH, MEDIUM, LOW (เติม 0 สำหรับ priority ของตั๋ว open statuses) | ทั้งหมด | - | `/staff/tickets?priority=...` |
+| IT Staff/Admin | `recentlyUpdated` | อัปเดตล่าสุด | ลิสต์ 5 อันดับตั๋วเรียงตาม updatedAt desc | ทั้งหมด | - | - |
+| Admin (เท่านั้น) | `userCounts` | User Accounts | นับ active/inactive users (ไม่แสดงข้อมูลนี้สำหรับ IT Staff) | - | - | - |
+
 ## 6. สรุปข้อกำหนด UI (UI Specification Summary)
 UI จะต้องเป็นไปตามระบบการออกแบบ Zen Green
 - **IT Staff / Admin Dashboard:** แสดงการ์ดตัวชี้วัด (ยังไม่ได้มอบหมาย, เป็นเจ้าของ, ตามสถานะ, ตามความสำคัญ) และรายการ "อัปเดตล่าสุด" มีเมนูการทำงานด่วน (สร้างตั๋ว, ค้นหา, คิวของฉัน)
@@ -74,18 +107,21 @@ UI จะต้องเป็นไปตามระบบการออก�
 - ดู `docs/lab-04/ui-spec.md` สำหรับรายละเอียดฉบับเต็ม
 
 ## 7. การเปลี่ยนแปลงข้อมูล (Data Changes)
-- **โมเดล ActionTaken:** เพิ่มเติม `id`, `ticketId` (FK), `actionAt` (DateTime, UTC), `description`, `result`, `performedById` (FK), `followUpRequired` (Boolean), `followUpNote` (String, nullable), `attachmentNotes` (String, nullable), `version` (Int), `createdAt`, `updatedAt`, `updatedById` (String, nullable)
+- **โมเดล ActionTaken:** เพิ่มเติม `id`, `ticketId` (FK), `actionAt` (DateTime, UTC), `description` (String Text), `result` (String Text), `performedById` (FK), `followUpRequired` (Boolean), `followUpNote` (String, nullable), `attachmentNotes` (String, nullable), `version` (Int, ค่าเริ่มต้น 1), `createdAt`, `updatedAt`, `updatedById` (String, nullable) การจัดการ Enum (เช่น สถานะ/ความสำคัญ) ให้ใช้ Enum ที่มีอยู่เดิมใน Lab 3 ไม่สร้าง Enum ใหม่
+- **โมเดล TicketStatusHistory:** เพิ่มโมเดลเพื่อเก็บประวัติสถานะ ประกอบด้วย `id`, `ticketId` (FK), `fromStatus` (Enum), `toStatus` (Enum), `changedById` (FK), `changedAt` (DateTime), ลักษณะเป็น append-only, `onDelete: Restrict`, และมี Index `ticketId` + `changedAt` (ใช้สำหรับคำนวณ metrics เช่น recentlyResolved)
 - **โมเดล Ticket:** เพิ่ม `version` (Int, ค่าเริ่มต้น 1) เพื่อการควบคุมภาวะพร้อมกัน (Optimistic Concurrency) และ `requesterMarkedResolvedAt` (DateTime, nullable) สำหรับธงแนะนำ
-- **ความสัมพันธ์ (Relationships):** `Ticket` มีหลาย `ActionTaken` (`onDelete: Restrict`)
+- **ความสัมพันธ์ (Relationships):** `Ticket` มีหลาย `ActionTaken` และ `TicketStatusHistory` (`onDelete: Restrict`)
 - **ดัชนี (Indexes):** ดัชนีประกอบใน `ActionTaken` (`ticketId, actionAt, createdAt, id`) เพื่อการจัดเรียงที่คงที่ และดัชนีใน `performedById`
 - **การตัดสินใจออกแบบฐานข้อมูล (Database Design Decisions):**
   1. **ใช้ Integer Version Token เพื่อจัดการ Concurrency:** ถูกเลือกใช้แทน timestamps (`updatedAt`) เพื่อหลีกเลี่ยงการสูญเสียความแม่นยำหรือปัญหาการซิงโครไนซ์เวลาในสภาพแวดล้อมแบบกระจาย เพื่อให้มั่นใจได้ว่าการตรวจสอบความเท่าเทียมอย่างเคร่งครัดสำหรับการล็อคในแง่ดี (Optimistic Locking) ทำงานได้อย่างแข็งแกร่ง
   2. **`onDelete: Restrict` สำหรับ Actions:** ถูกเลือกใช้เพื่อบังคับใช้อย่างเข้มงวดกับข้อกำหนดที่ให้เพิ่มข้อมูลได้อย่างเดียวและการตรวจสอบ การลบตั๋วจะถูกระงับหากมีการดำเนินการอยู่ เพื่อป้องกันการสูญเสียบันทึกเส้นทางการตรวจสอบ (Audit Trails) ด้านไอทีที่สำคัญโดยไม่ตั้งใจ
-- **Migration & Backfill:** การย้ายข้อมูลเป็นแบบเพิ่ม (Additive) ตั๋วเก่าจะมีศูนย์การดำเนินการและ version เป็น 1 โดยค่าเริ่มต้น การย้อนกลับ (Rollback) จะเกี่ยวข้องกับการกู้คืนภาพรวมฐานข้อมูลก่อนการย้ายและการรันสคริปต์ลดรุ่นย้ายข้อมูล (Down-migration)
+- **Migration & Backfill:** การย้ายข้อมูลเป็นแบบเพิ่ม (Additive) ตั๋วเก่าจะมีศูนย์การดำเนินการและ version เป็น 1 โดยค่าเริ่มต้น 
+  - **แนวทางการ Rollback:** ให้ใช้ `pg_dump` snapshot ข้อมูลก่อนการ Migrate และมีสคริปต์ Rollback SQL อย่างเป็นทางการเก็บไว้ใน Repository (เช่น `prisma/rollback/04-rollback.sql`) ขั้นตอน Restore คือทำการรันสคริปต์นี้เพื่อย้อนกลับ ซึ่งกระบวนการนี้จะถูกทดสอบโดยการทดสอบ MIG-04
 - **ข้อกำหนด Seed:** อัปเสิร์ตที่ Idempotent ครอบคลุมสถานะทั้งหมด, ความสำคัญ, มี/ไม่มีเจ้าของ, มี 0/1/หลายการดำเนินการ, ผู้ใช้ที่เป็นพนักงานที่ไม่ทำงาน (Inactive), และสถานการณ์ที่สร้างตัวชี้วัดที่เป็นศูนย์และไม่ใช่ศูนย์
 
 ## 8. สรุปข้อกำหนด API (API Contract Summary)
-- **Actions Taken:** `GET`, `POST`, `PATCH` ที่ `/api/tickets/:ticketId/actions-taken` ได้รับการป้องกันโดยบทบาท ไม่มีปลายทาง `DELETE`
+- **การรักษา Lab 1-3:** API Endpoints, หน้าจอ, Role, ระบบคอมเมนต์, ระบบโน้ตภายใน และระบบไฟล์แนบจาก Lab ก่อนหน้าทั้งหมดจะยังคงทำงานได้ตามปกติ ยกเว้นการเปลี่ยนแปลงบางส่วนเพื่อรองรับ Lab 4 ได้แก่ 1) Response ของ Ticket Detail มีฟิลด์ `version` เพิ่มขึ้น 2) เพิ่มกฎข้อบังคับการเปลี่ยนสถานะ 3) การปฏิเสธการมอบหมายตั๋วให้พนักงานที่ Inactive ซึ่งการเปลี่ยนแปลงเหล่านี้ถูกครอบคลุมอยู่ในการทดสอบ AC-43
+- **Actions Taken:** `GET`, `POST`, `PATCH` ที่ `/api/tickets/:id/actions-taken` ได้รับการป้องกันโดยบทบาท ไม่มีปลายทาง `DELETE`
 - **เมทริกซ์การเปลี่ยนสถานะตั๋ว (Ticket Status Transition Matrix):**
   | จากสถานะ (From) \ ไปยังสถานะ (To) | บทบาทที่อนุญาต (Permitted Roles) | สถานะใหม่ (New Status) |
   |---|---|---|
@@ -113,7 +149,7 @@ UI จะต้องเป็นไปตามระบบการออก�
 ## 9. เกณฑ์การยอมรับ (Acceptance Criteria - AC)
 | รหัส (ID) | เกณฑ์ (กำหนดให้ / เมื่อ / ดังนั้น) (Given / When / Then) |
 |---|---|
-| AC-01 | กำหนดให้เจ้าหน้าที่ไอทีที่ได้รับอนุญาตมีข้อมูลที่ถูกต้อง เมื่อมีการสร้างการดำเนินการ ดังนั้นข้อมูลจะถูกบันทึกภายใต้ตั๋วที่ถูกต้อง โดยมีผู้ใช้ที่ผ่านการรับรองสิทธิ์เป็น "ผู้ดำเนินการ" (API-01, E2E-01) |
+| AC-01 | กำหนดให้เจ้าหน้าที่ไอทีหรือผู้ดูแลระบบที่ได้รับอนุญาตมีข้อมูลที่ถูกต้อง เมื่อมีการสร้างการดำเนินการ ดังนั้นข้อมูลจะถูกบันทึกภายใต้ตั๋วที่ถูกต้อง โดยมีผู้ใช้ที่ผ่านการรับรองสิทธิ์เป็น "ผู้ดำเนินการ" (API-01, E2E-01) |
 | AC-02 | กำหนดให้ผู้ร้องขอที่ผ่านการรับรองสิทธิ์ เมื่อเรียกข้อมูลแดชบอร์ด ดังนั้นระบบจะแสดงผลเฉพาะตัวชี้วัดและตั๋วล่าสุดที่เป็นของผู้ร้องขอคนนั้นเท่านั้น (RD-01, E2E-03) |
 | AC-03 | กำหนดให้ ต้องการการติดตามผล = จริง และช่องบันทึกการติดตามผลว่างเปล่า เมื่อบันทึก ดังนั้น API ส่งคืนข้อผิดพลาด 400/422 และไม่บันทึกข้อมูลใดๆ (API-03, UI-06, E2E-01) |
 | AC-04 | กำหนดให้ ต้องการการติดตามผล = เท็จ เมื่อบันทึกพร้อมข้อความติดตามผล ดังนั้นข้อความนั้นจะถูกล้างและเก็บเป็น null (API-04) |
@@ -187,11 +223,11 @@ UI จะต้องเป็นไปตามระบบการออก�
 2. **สถานะระดับการดำเนินการ (Action-level State):** ไม่มีการจำลองการเปลี่ยนสถานะ (State machine) ในระดับ Action การ "complete/cancel" หมายถึงการเปลี่ยนสถานะของตัวตั๋ว การดำเนินการ (Actions) จะทำหน้าที่เหมือนประวัติการทำงานแบบเพิ่มได้อย่างเดียวเท่านั้น
 3. **การเข้าถึง Staff Dashboard โดย Requester:** ส่งค่า `403 Forbidden`
 4. **การเข้าถึง Requester Dashboard โดย Staff:** ส่งค่า `403 Forbidden` Staff ควรใช้งานในส่วน Staff Dashboard เท่านั้น
-5. **การเข้าถึงตั๋วของผู้อื่น (Requester):** จะส่งค่า `403 Forbidden` แทน `404` เพื่อรักษาความสอดคล้องกับกลไกการห้ามการเข้าถึงอย่างชัดเจนของ Lab 3 โดยไม่ทำให้ข้อมูลรั่วไหล
+5. **การเข้าถึงตั๋วของผู้อื่น (Requester):** จะส่งค่า `403 Forbidden` แทน `404` เพื่อรักษาความสอดคล้องกับกลไกการห้ามการเข้าถึงอย่างชัดเจนของ Lab 3 เพื่อป้องกันการเดารหัส (ID enumeration) ซึ่งเป็นความตั้งใจออกแบบแต่แรก (Conscious choice)
 6. **บันทึกการติดตามผลเมื่อไม่ได้ถูกกำหนดให้บันทึก (Required is False):** ถูกเคลียร์ออก (บันทึกค่าในฐานข้อมูลเป็น null) เพื่อให้ข้อมูลคงความสอดคล้องกัน
 7. **เงื่อนไขเวลาของการดำเนินการ (Action Date/Time Constraints):** จัดเก็บค่าแบบ UTC ระบบยอมรับความคลาดเคลื่อนล่วงหน้าในอนาคตได้ 5 นาทีเผื่อเวลาของไคลเอนต์คลาดเคลื่อน โดยนำเสนอในเขตเวลา `Asia/Bangkok`
 8. **Time Zone ของ Dashboard และรอบระยะเวลา:** เขตเวลา `Asia/Bangkok` ถูกนำไปใช้สำหรับการคำนวณขอบเขตวันที่ คำว่า "ล่าสุด" ให้นับตั้งแต่ 7 วันที่ผ่านมา และจะไม่มีการใช้ค่าส่วนต่าง "จากเมื่อวาน" เพื่อให้การควบคุมขอบเขตโครงการไม่บานปลาย
 9. **Concurrency Token:** ใช้งานชนิด Integer เป็น `version` token ทั้งในโมเดล Ticket และ ActionTaken สำหรับการล็อคสิทธิ์แบบ Optimistic
 10. **Idempotency:** ใช้งาน Header ชื่อ `Idempotency-Key` ร่วมกับการส่งค่าแบบ disabled-while-pending บนสถานะของ UI ในการรับเรื่องขอสร้างข้อมูล (Create request)
-11. **ประวัติสถานะ (Status History):** ระบบจะเก็บประวัติการกระทำทุกการเปลี่ยนแปลง (นำกลับมาใช้ใหม่ หรือต่อขยายลอจิกจากของเดิมใน Lab 3 หากมี หรือมิฉะนั้นจะใช้กลไกแบบเพิ่มข้อมูลประวัติเท่านั้นแบบเรียบง่าย)
+11. **ประวัติสถานะ (Status History):** เนื่องจาก Lab 3 ไม่มีระบบประวัติสถานะตั๋ว ใน Lab 4 จึงสร้างโมเดล `TicketStatusHistory` ใหม่เพื่อบันทึกประวัติการเปลี่ยนสถานะของตั๋ว ซึ่งจะเป็นแหล่งข้อมูลหลักในการคำนวณตัวชี้วัด recentlyResolved
 12. **ข้อจำกัดสำหรับการจบงาน (Resolution Gate Rule):** ผู้กระทำต้องเป็น IT Staff/Admin, ตั๋วต้องมีเจ้าของ, และมี Action Taken ที่ได้ผลลัพธ์ (Result) แบบไม่ว่างเปล่าอยู่อย่างน้อย 1 รายการ และสถานะการติดตามผลที่ยังไม่คลี่คลาย จะไม่มาปิดกั้นหรือเป็นอุปสรรคต่อการแก้ไขปัญหาตั๋ว

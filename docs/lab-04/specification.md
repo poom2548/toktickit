@@ -1,198 +1,197 @@
-# Lab 4 System Specification
+# ข้อกำหนดระบบ Lab 4 (System Specification)
 
-## 1 Sprint Goal
-The goal of Sprint 4 is to complete the core IT support workflow by implementing the Actions Taken feature, finalizing the Ticket status lifecycle (including a strict resolution gate), and delivering tailored, role-specific dashboards for Requesters, IT Staff, and Administrators. This sprint also focuses on final system hardening, ensuring robust security, optimistic concurrency control, and a polished Zen Green user interface.
+## 1. เป้าหมายของสปรินต์ (Sprint Goal)
+เป้าหมายของสปรินต์ที่ 4 คือการทำให้เวิร์กโฟลว์หลักของการสนับสนุนด้านไอทีสมบูรณ์ โดยการนำฟีเจอร์ Actions Taken (การดำเนินการ) มาใช้, ปรับปรุงวงจรชีวิตสถานะตั๋วให้เสร็จสมบูรณ์ (รวมถึงข้อจำกัดในการปิดงานที่เข้มงวด), และการสร้างแดชบอร์ดเฉพาะบทบาทสำหรับผู้ใช้งาน (Requester), เจ้าหน้าที่ไอที (IT Staff) และผู้ดูแลระบบ (Administrator) นอกจากนี้ สปรินต์นี้ยังเน้นไปที่การเสริมความแข็งแกร่งให้กับระบบในขั้นตอนสุดท้าย, รับประกันความปลอดภัยที่รัดกุม, การควบคุมภาวะพร้อมกันแบบมองโลกในแง่ดี (Optimistic Concurrency Control), และการปรับปรุงส่วนต่อประสานผู้ใช้ในรูปแบบ Zen Green ให้สวยงามยิ่งขึ้น
 
-## 2 Stakeholder Request
-Stakeholders require a structured way for IT Staff to document their work on a Ticket via "Actions Taken," while retaining a single primary Ticket Owner. To improve visibility, each role needs a dedicated dashboard summarizing their actionable work and key metrics. Furthermore, the process of resolving a Ticket must be strictly enforced on the server, preventing unauthorized or premature closures, while allowing Requesters to signal when they believe their problem is fixed.
+## 2. สรุปความต้องการของผู้มีส่วนได้ส่วนเสีย (Stakeholder Request)
+ผู้มีส่วนได้ส่วนเสียต้องการให้มีโครงสร้างที่เป็นระบบสำหรับเจ้าหน้าที่ไอทีในการบันทึกการทำงานของพวกเขาลงในตั๋วผ่าน "Actions Taken" (การดำเนินการ) ในขณะที่ยังคงมีเจ้าของตั๋วหลักเพียงคนเดียว เพื่อปรับปรุงการมองเห็น แต่ละบทบาทต้องการแดชบอร์ดเฉพาะที่สรุปงานที่ต้องดำเนินการและตัวชี้วัดที่สำคัญ ยิ่งไปกว่านั้น กระบวนการแก้ปัญหาตั๋วต้องถูกบังคับใช้อย่างเข้มงวดบนเซิร์ฟเวอร์ เพื่อป้องกันการปิดงานโดยไม่ได้รับอนุญาตหรือก่อนกำหนด ในขณะที่อนุญาตให้ผู้ร้องขอส่งสัญญาณเมื่อพวกเขาเชื่อว่าปัญหาของพวกเขาได้รับการแก้ไขแล้ว
 
-## 3 Scope
-**In Scope:**
-- Actions Taken entity and lifecycle (create, update, view).
-- Ticket workflow finalization (strict role-based transition matrix, resolution gate).
-- Role-specific dashboards (Requester, IT Staff, Administrator) with backend-calculated metrics.
-- Optimistic concurrency control using a version token to prevent lost updates.
-- Hardening (duplicate submission protection, safe error envelopes, full Lab 1-3 regression).
-- Zen Green UI polish, accessibility improvements, and responsive design.
+## 3. ขอบเขตของระบบ (Scope)
+**ส่วนที่อยู่ในขอบเขต (In Scope):**
+- เอนทิตี Actions Taken และวงจรชีวิต (สร้าง, อัปเดต, ดู)
+- การจัดการเวิร์กโฟลว์ของตั๋วให้เสร็จสมบูรณ์ (เมทริกซ์การเปลี่ยนสถานะตามบทบาทที่เข้มงวด, ข้อจำกัดในการแก้ปัญหา)
+- แดชบอร์ดเฉพาะบทบาท (Requester, IT Staff, Administrator) พร้อมตัวชี้วัดที่คำนวณจากแบ็กเอนด์
+- การควบคุมภาวะพร้อมกัน (Optimistic Concurrency) โดยใช้ version token เพื่อป้องกันการอัปเดตสูญหาย
+- การเสริมความแข็งแกร่ง (ป้องกันการส่งข้อมูลซ้ำ, รูปแบบข้อผิดพลาดที่ปลอดภัย, การทดสอบการถดถอยสำหรับ Lab 1-3 ทั้งหมด)
+- การปรับปรุง UI ของ Zen Green, การปรับปรุงการเข้าถึง (Accessibility), และการออกแบบที่รองรับทุกขนาดหน้าจอ (Responsive Design)
 
-**Explicitly Excluded:**
-- SLA clocks, escalation rules, on-call schedules, or breach notifications.
-- Email, SMS, LINE, push, or any other external notifications.
-- Inventory, spare parts, purchasing, or service cost accounting.
-- Time-sheet billing, payroll, or labor cost tracking.
-- Multi-level approvals and e-signatures.
-- Advanced BI, custom report builders, or export data warehouses.
-- Multi-tenancy and production-scale cloud operations.
-- Any feature not explicitly approved in this contract.
+**ส่วนที่อยู่นอกขอบเขต (Explicitly Excluded):**
+- การจับเวลา SLA, กฎการส่งต่อปัญหา, ตารางการเข้าเวร หรือการแจ้งเตือนการละเมิดข้อตกลง
+- อีเมล, SMS, LINE, การแจ้งเตือนแบบพุช หรือการแจ้งเตือนภายนอกอื่นๆ
+- สินค้าคงคลัง, อะไหล่, การจัดซื้อ หรือการบัญชีต้นทุนบริการ
+- การเรียกเก็บเงินตามใบบันทึกเวลา, เงินเดือน หรือการติดตามต้นทุนแรงงาน
+- การอนุมัติหลายระดับและลายเซ็นอิเล็กทรอนิกส์
+- ระบบ BI ขั้นสูง, ตัวสร้างรายงานแบบกำหนดเอง หรือการส่งออกคลังข้อมูล
+- การทำงานแบบ Multi-tenancy และการจัดการระบบคลาวด์ระดับการผลิตจริง
+- ฟีเจอร์ใดๆ ที่ไม่ได้รับการอนุมัติอย่างชัดเจนในสัญญานี้
 
-## 4 Functional Requirements
-- **FR-01 (Actions Taken - IT Staff/Admin):** IT Staff and Administrators can create and update Actions Taken on accessible Tickets.
-- **FR-02 (Actions Taken - Requester):** Requesters can view all Actions Taken on their own Tickets (read-only) but cannot create or change them.
-- **FR-03 (Action Fields):** Each Action Taken includes: Action Date/Time, Action Description, Result, Performed by (auto-populated), Follow-Up Required? (boolean), Follow-up Note (required if follow-up is needed), and Attachment Notes.
-- **FR-04 (Performed By):** The "Performed by" field is set automatically by the backend from the authenticated user's session; clients cannot set or spoof it.
-- **FR-05 (Ticket Ownership vs Performers):** A Ticket maintains one primary Ticket Owner, but Actions Taken can be recorded by different IT Staff members.
-- **FR-06 (Status Controls):** Ticket status controls must dynamically show only the transitions permitted for the user's role and the Ticket's current status, with the backend rejecting any forbidden transitions.
-- **FR-07 (Requester Resolution Indication):** A Requester's "appears resolved" indication is advisory only, visible to staff, and never changes the Ticket status.
-- **FR-08 (Resolution Gate):** Moving a Ticket to `RESOLVED` is strictly gated on the backend; it requires the actor to be IT Staff/Admin, the Ticket to have an Owner, and at least one Action Taken to exist with a non-empty Result.
-- **FR-09 (Requester Dashboard):** Requesters have a dashboard showing metrics and recent Tickets scoped strictly to the authenticated Requester.
-- **FR-10 (IT Staff Dashboard):** IT Staff have a dashboard displaying operational metrics (e.g., unassigned, owned, by status, by priority) and a list of recently updated or urgent Tickets, with drill-down links.
-- **FR-11 (Admin Dashboard):** Administrators reuse the IT Staff dashboard layout but may optionally see concise user-account metrics.
-- **FR-12 (Navigation):** Dashboard navigation must clearly indicate the active page per role.
-- **FR-13 (Concurrency):** Stale or concurrent updates on Ticket workflow changes and Actions Taken edits are detected via a version token and rejected with a conflict error.
-- **FR-14 (Idempotency):** The system protects against duplicate submissions (e.g., double clicks or network retries) using UI disabling and backend idempotency handling.
-- **FR-15 (Feedback & Hardening):** The UI provides consistent loading, validation, success, empty, forbidden, conflict, not-found, and safe-failure feedback without exposing internal errors. Remove obsolete placeholder or broken UI.
-- **FR-16 (Documentation):** The README must be kept current with setup, seed, migration, test, and demo instructions.
+## 4. ข้อกำหนดการทำงาน (Functional Requirements - FR)
+- **FR-01 (Actions Taken - IT Staff/Admin):** เจ้าหน้าที่ไอทีและผู้ดูแลระบบสามารถสร้างและอัปเดต Actions Taken (การดำเนินการ) บนตั๋วที่พวกเขาสามารถเข้าถึงได้
+- **FR-02 (Actions Taken - Requester):** ผู้ร้องขอ (Requester) สามารถดูการดำเนินการทั้งหมดในตั๋วของตนเองได้ (อ่านได้อย่างเดียว) แต่ไม่สามารถสร้างหรือเปลี่ยนแปลงได้
+- **FR-03 (Action Fields):** การดำเนินการแต่ละครั้งประกอบด้วย: วันที่/เวลาที่ดำเนินการ, คำอธิบายการดำเนินการ, ผลลัพธ์, ผู้ดำเนินการ (กรอกอัตโนมัติ), ต้องการการติดตามผลหรือไม่? (Boolean), บันทึกการติดตามผล (บังคับหากต้องการการติดตามผล), และบันทึกไฟล์แนบ
+- **FR-04 (Performed By):** ฟิลด์ "ผู้ดำเนินการ" จะถูกกำหนดโดยอัตโนมัติโดยเซิร์ฟเวอร์จากเซสชันของผู้ใช้ที่ผ่านการยืนยันตัวตน ไคลเอนต์ไม่สามารถตั้งค่าหรือปลอมแปลงได้
+- **FR-05 (Ticket Ownership vs Performers):** ตั๋วจะมีเจ้าของตั๋วหลักเพียงคนเดียว แต่การดำเนินการสามารถถูกบันทึกโดยเจ้าหน้าที่ไอทีคนอื่นๆ ได้
+- **FR-06 (Status Controls):** การควบคุมสถานะตั๋วจะต้องแสดงเฉพาะสถานะที่อนุญาตสำหรับบทบาทของผู้ใช้และสถานะปัจจุบันของตั๋วแบบไดนามิก โดยเซิร์ฟเวอร์จะปฏิเสธการเปลี่ยนสถานะที่ไม่ได้รับอนุญาต
+- **FR-07 (Requester Resolution Indication):** การแสดงว่า "ปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" ของผู้ร้องขอ เป็นเพียงคำแนะนำเท่านั้น ซึ่งเจ้าหน้าที่จะมองเห็นได้ และจะไม่เปลี่ยนสถานะของตั๋ว
+- **FR-08 (Resolution Gate):** การเปลี่ยนสถานะตั๋วเป็น `RESOLVED` จะถูกควบคุมอย่างเข้มงวดบนเซิร์ฟเวอร์ โดยผู้ดำเนินการต้องเป็นเจ้าหน้าที่ไอที/ผู้ดูแลระบบ, ตั๋วต้องมีเจ้าของ, และต้องมีการดำเนินการ (Action Taken) อย่างน้อยหนึ่งรายการที่มีผลลัพธ์ (Result) ไม่ว่างเปล่า
+- **FR-09 (Requester Dashboard):** ผู้ร้องขอจะมีแดชบอร์ดที่แสดงตัวชี้วัดและตั๋วล่าสุด โดยจำกัดเฉพาะผู้ร้องขอที่ผ่านการยืนยันตัวตนเท่านั้น
+- **FR-10 (IT Staff Dashboard):** เจ้าหน้าที่ไอทีมีแดชบอร์ดแสดงตัวชี้วัดการดำเนินงาน (เช่น ยังไม่ได้มอบหมาย, เป็นเจ้าของ, ตามสถานะ, ตามความสำคัญ) และรายการตั๋วที่อัปเดตล่าสุดหรือเร่งด่วน พร้อมลิงก์เจาะลึก
+- **FR-11 (Admin Dashboard):** ผู้ดูแลระบบใช้รูปแบบแดชบอร์ดของเจ้าหน้าที่ไอที แต่สามารถเลือกที่จะดูตัวชี้วัดบัญชีผู้ใช้โดยสรุปได้
+- **FR-12 (Navigation):** การนำทาง (Navigation) ในแดชบอร์ดจะต้องระบุหน้าเว็บที่กำลังใช้งานอยู่อย่างชัดเจนตามบทบาท
+- **FR-13 (Concurrency):** การอัปเดตที่ซ้ำซ้อนหรือล่าช้าในการเปลี่ยนเวิร์กโฟลว์ของตั๋วและการแก้ไขการดำเนินการจะถูกตรวจจับผ่าน version token และปฏิเสธพร้อมข้อผิดพลาดความขัดแย้ง (Conflict)
+- **FR-14 (Idempotency):** ระบบป้องกันการส่งข้อมูลซ้ำ (เช่น การดับเบิลคลิกหรือการลองใหม่ของเครือข่าย) โดยใช้การปิดใช้งานบน UI และการจัดการ Idempotency บนแบ็กเอนด์
+- **FR-15 (Feedback & Hardening):** UI แสดงข้อเสนอแนะที่สอดคล้องกันสำหรับสถานะกำลังโหลด, การตรวจสอบความถูกต้อง, สำเร็จ, ว่างเปล่า, ถูกปฏิเสธ, ขัดแย้ง, ไม่พบ, และความล้มเหลวที่ปลอดภัย โดยไม่เปิดเผยข้อผิดพลาดภายใน ลบตัวยึดตำแหน่ง (Placeholder) หรือ UI ที่ใช้งานไม่ได้ออก
+- **FR-16 (Documentation):** ไฟล์ README จะต้องอัปเดตให้เป็นปัจจุบัน พร้อมคำแนะนำการตั้งค่า, Seed, Migration, การทดสอบ และ Demo
 
-## 5 Business Rules
-- **BR-01:** An Action Taken belongs to exactly one Ticket.
-- **BR-02:** The Ticket Owner coordinates the Ticket, but an Action Taken may be performed by a different IT Staff member.
-- **BR-03:** "Performed by" is derived strictly from the authenticated session; it is never accepted from the request body.
-- **BR-04:** If Follow-Up Required is true, Follow-up Note is mandatory (non-empty after trim). If false, the Follow-up Note is cleared and stored as null.
-- **BR-05:** Action Description and Result are required. Maximum lengths: Description (2000 chars), Result (2000 chars), Follow-up Note (1000 chars), Attachment Notes (1000 chars).
-- **BR-06:** Action Date/Time must be stored in UTC, must be a valid ISO-8601 date, and cannot be more than 5 minutes in the future. It is displayed in the user's local time zone (Asia/Bangkok).
-- **BR-07:** Actions Taken are append-only. They cannot be hard-deleted. They are listed in a stable order (by Action Date/Time ascending, then `createdAt`, then `id`). Edits increment the Action's version token and update `updatedAt` and `updatedBy`.
-- **BR-08:** Requesters can see all Actions Taken on their own tickets but cannot create, edit, or access other users' Tickets.
-- **BR-09:** Actions Taken can be created and edited on tickets in any status except `CLOSED` and `CANCELLED`.
-- **BR-10:** The assigned Ticket Owner must be an active user with the IT Staff or Administrator role. Inactive users are rejected.
-- **BR-11:** Ticket status must remain in: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`.
-- **BR-12:** Transitions are allowed strictly according to the transition matrix defined in Section 8.
-- **BR-13:** A Ticket can move to `RESOLVED` only if: the actor is IT Staff/Admin, the Ticket has an Owner, at least one Action Taken exists with a non-empty Result, and the request carries the correct version token.
-- **BR-14:** The Requester "appears resolved" flag is advisory and does not alter the Ticket status.
-- **BR-15:** Ticket workflow changes and Action Taken edits must include a version token. A mismatch results in a `409 Conflict` response with a safe message.
-- **BR-16:** Dashboard metrics are computed by the backend from authoritative data. Each metric has a defined query, empty behavior (returns 0/empty list), and drill-down link.
-- **BR-17:** Dashboard date boundaries use the `Asia/Bangkok` time zone. "Recent" is defined as the last 7 days.
-- **BR-18:** Legacy Tickets with zero Actions Taken remain valid, display an empty state in the UI, and are treated normally by dashboards.
-- **BR-19:** Repeated clicks or network retries must not create duplicate Actions Taken or repeat a status change (handled via client disabled states and server idempotency keys).
+## 5. กฎทางธุรกิจ (Business Rules - BR)
+- **BR-01:** การดำเนินการ (Action Taken) ต้องเป็นของตั๋วเพียงหนึ่งใบเท่านั้น
+- **BR-02:** เจ้าของตั๋ว (Ticket Owner) เป็นผู้ประสานงานตั๋ว แต่การดำเนินการอาจกระทำโดยเจ้าหน้าที่ไอทีคนอื่น
+- **BR-03:** "ผู้ดำเนินการ" จะดึงมาจากเซสชันที่ผ่านการยืนยันตัวตนอย่างเคร่งครัด จะไม่มีการยอมรับข้อมูลจากเนื้อหาคำขอ (Request Body)
+- **BR-04:** หาก "ต้องการการติดตามผล (Follow-Up Required)" เป็นจริง "บันทึกการติดตามผล (Follow-up Note)" จะเป็นข้อมูลบังคับ (ไม่ว่างเปล่าหลังจากลบช่องว่าง) หากเป็นเท็จ บันทึกการติดตามผลจะถูกลบและเก็บเป็น null
+- **BR-05:** คำอธิบายการดำเนินการและผลลัพธ์เป็นข้อมูลบังคับ ความยาวสูงสุด: คำอธิบาย (2000 ตัวอักษร), ผลลัพธ์ (2000 ตัวอักษร), บันทึกการติดตามผล (1000 ตัวอักษร), บันทึกไฟล์แนบ (1000 ตัวอักษร)
+- **BR-06:** วันที่/เวลาการดำเนินการ ต้องถูกเก็บเป็น UTC, ต้องเป็นวันที่มาตรฐาน ISO-8601 ที่ถูกต้อง, และต้องไม่เกิน 5 นาทีในอนาคต โดยจะแสดงผลในเขตเวลาท้องถิ่นของผู้ใช้ (Asia/Bangkok)
+- **BR-07:** การดำเนินการมีรูปแบบเป็นการเพิ่มข้อมูลเท่านั้น (Append-only) ไม่สามารถลบข้อมูลแบบล้างทิ้ง (Hard-delete) ได้ โดยจะเรียงลำดับแบบคงที่ (ตามวันที่ดำเนินการจากน้อยไปมาก, จากนั้น createdAt, จากนั้น id) การแก้ไขจะเพิ่ม version token ของการดำเนินการ และอัปเดต `updatedAt` และ `updatedBy`
+- **BR-08:** ผู้ร้องขอ (Requester) สามารถดูการดำเนินการทั้งหมดในตั๋วของตนเองได้ แต่ไม่สามารถสร้าง, แก้ไข, หรือเข้าถึงตั๋วของผู้ใช้คนอื่นได้
+- **BR-09:** การดำเนินการสามารถถูกสร้างและแก้ไขได้ในตั๋วที่มีสถานะใดๆ ยกเว้น `CLOSED` และ `CANCELLED`
+- **BR-10:** เจ้าของตั๋วที่ได้รับมอบหมายต้องเป็นผู้ใช้ที่ยังใช้งานอยู่ (Active) และมีบทบาทเป็น IT Staff หรือ Administrator ผู้ใช้ที่ไม่ใช้งานจะถูกปฏิเสธ
+- **BR-11:** สถานะตั๋วต้องจำกัดอยู่ใน: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`
+- **BR-12:** การเปลี่ยนสถานะจะได้รับอนุญาตอย่างเคร่งครัดตามเมทริกซ์การเปลี่ยนสถานะในหัวข้อที่ 8
+- **BR-13:** ตั๋วสามารถเปลี่ยนสถานะเป็น `RESOLVED` ได้ก็ต่อเมื่อ: ผู้กระทำคือ IT Staff/Admin, ตั๋วมีเจ้าของ, มีการดำเนินการอย่างน้อยหนึ่งรายการที่มีผลลัพธ์ไม่ว่างเปล่า, และคำขอมี version token ที่ถูกต้อง
+- **BR-14:** ธง "ปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" ของผู้ร้องขอ เป็นเพียงคำแนะนำและไม่เปลี่ยนสถานะของตั๋ว
+- **BR-15:** การเปลี่ยนแปลงเวิร์กโฟลว์ของตั๋วและการแก้ไขการดำเนินการต้องมี version token หากไม่ตรงกันจะส่งผลให้ตอบกลับด้วย `409 Conflict` พร้อมข้อความที่ปลอดภัย
+- **BR-16:** ตัวชี้วัดของแดชบอร์ดถูกคำนวณโดยเซิร์ฟเวอร์จากข้อมูลที่เชื่อถือได้ ตัวชี้วัดแต่ละตัวมีคำสั่ง Query ที่กำหนดไว้, พฤติกรรมเมื่อว่างเปล่า (คืนค่า 0/รายการว่างเปล่า), และลิงก์เจาะลึก
+- **BR-17:** ขอบเขตวันที่ของแดชบอร์ดใช้เขตเวลา `Asia/Bangkok` คำว่า "ล่าสุด (Recent)" หมายถึง 7 วันที่ผ่านมา
+- **BR-18:** ตั๋วเก่าที่มีศูนย์การดำเนินการ (Zero Actions Taken) จะยังคงใช้งานได้, แสดงหน้าจอว่างเปล่าใน UI, และแดชบอร์ดสามารถประมวลผลได้ตามปกติ
+- **BR-19:** การคลิกซ้ำหรือการลองใหม่ของเครือข่ายต้องไม่สร้างการดำเนินการซ้ำหรือเปลี่ยนสถานะซ้ำ (จัดการผ่านสถานะปิดการใช้งานบนไคลเอนต์และคีย์ Idempotency ของเซิร์ฟเวอร์)
 
-## 6 UI Specification Summary
-The UI adheres to the Zen Green design system.
-- **IT Staff / Admin Dashboard:** Displays metric cards (Unassigned, My Owned, By Status, By IT Priority) and a "Recently Updated" list. Features Quick Actions (Create Ticket, Search, My Queue).
-- **Requester Dashboard:** Displays metric cards (My Open Tickets, Waiting for Me, Recently Resolved) and a "Recently Updated" list of their own tickets. Features Quick Actions.
-- **Ticket Detail - Actions Taken:** For staff, a table/list view with a create form mode and view/edit modes for each action. For Requesters, a read-only list.
-- **Feedback & Controls:** Status controls are dynamically rendered based on allowed transitions fetched from the API. The UI displays clear safe-error banners for 409 Conflicts (with a Reload option), 403 Forbidden, and 400 Validation errors (inline).
-- **Responsive & A11Y:** Screens must adapt gracefully to 360px, 768px, and 1280px without horizontal scrolling. Semantic HTML, visible focus states, and ARIA labels are required.
-- See `docs/lab-04/ui-spec.md` for complete details.
+## 6. สรุปข้อกำหนด UI (UI Specification Summary)
+UI จะต้องเป็นไปตามระบบการออกแบบ Zen Green
+- **IT Staff / Admin Dashboard:** แสดงการ์ดตัวชี้วัด (ยังไม่ได้มอบหมาย, เป็นเจ้าของ, ตามสถานะ, ตามความสำคัญ) และรายการ "อัปเดตล่าสุด" มีเมนูการทำงานด่วน (สร้างตั๋ว, ค้นหา, คิวของฉัน)
+- **Requester Dashboard:** แสดงการ์ดตัวชี้วัด (ตั๋วที่เปิดอยู่ของฉัน, รอฉันอยู่, เพิ่งแก้ไขล่าสุด) และรายการ "อัปเดตล่าสุด" ของตั๋วตนเอง มีเมนูการทำงานด่วน
+- **Ticket Detail - Actions Taken:** สำหรับเจ้าหน้าที่ จะมีมุมมองตาราง/รายการ พร้อมโหมดฟอร์มสร้างและโหมดดู/แก้ไขสำหรับการดำเนินการแต่ละรายการ สำหรับผู้ร้องขอ จะมีรายการแบบอ่านได้อย่างเดียว
+- **Feedback & Controls:** การควบคุมสถานะจะแสดงแบบไดนามิกตามการเปลี่ยนสถานะที่อนุญาตซึ่งดึงมาจาก API UI จะแสดงแบนเนอร์ข้อผิดพลาดที่ปลอดภัยชัดเจนสำหรับความขัดแย้ง 409 (พร้อมตัวเลือกให้โหลดซ้ำ), ข้อผิดพลาดการปฏิเสธ 403, และข้อผิดพลาดการตรวจสอบข้อมูล 400 (แบบแทรกในบรรทัด)
+- **Responsive & A11Y:** หน้าจอต้องปรับให้เข้ากับความกว้าง 360px, 768px, และ 1280px ได้อย่างราบรื่นโดยไม่มีการเลื่อนแนวนอน (Horizontal Scroll) ต้องใช้ HTML Semantic, มีสถานะ Focus ที่มองเห็นได้, และต้องมีป้ายกำกับ ARIA
+- ดู `docs/lab-04/ui-spec.md` สำหรับรายละเอียดฉบับเต็ม
 
-## 7 Data Changes
-- **ActionTaken Model:** Added with `id`, `ticketId` (FK), `actionAt` (DateTime, UTC), `description`, `result`, `performedById` (FK), `followUpRequired` (Boolean), `followUpNote` (String, nullable), `attachmentNotes` (String, nullable), `version` (Int), `createdAt`, `updatedAt`, `updatedById` (String, nullable).
-- **Ticket Model:** Added `version` (Int, default 1) for optimistic concurrency and `requesterMarkedResolvedAt` (DateTime, nullable) for the advisory flag.
-- **Relationships:** `Ticket` has many `ActionTaken` (`onDelete: Restrict`).
-- **Indexes:** Composite index on `ActionTaken` (`ticketId, actionAt, createdAt, id`) for stable sorting. Index on `performedById`.
-- **Database Design Decisions:**
-  1. **Integer Version Token for Concurrency:** Chosen over `updatedAt` timestamps to avoid precision loss or clock synchronization issues across distributed environments, ensuring robust strict equality checks for optimistic locking.
-  2. **`onDelete: Restrict` for Actions:** Chosen to strictly enforce the append-only and auditability requirement. Deleting a ticket should be blocked if actions exist, preventing accidental loss of critical IT audit trails.
-- **Migration & Backfill:** Migration is additive. Legacy tickets will have zero actions and a default version of 1. Rollback involves restoring a pre-migration DB snapshot and applying a down-migration script.
-- **Seed Requirements:** Idempotent upserts. Covers all statuses, priorities, assigned/unassigned, 0/1/many actions, an inactive staff user, and scenarios producing both zero and non-zero metrics.
+## 7. การเปลี่ยนแปลงข้อมูล (Data Changes)
+- **โมเดล ActionTaken:** เพิ่มเติม `id`, `ticketId` (FK), `actionAt` (DateTime, UTC), `description`, `result`, `performedById` (FK), `followUpRequired` (Boolean), `followUpNote` (String, nullable), `attachmentNotes` (String, nullable), `version` (Int), `createdAt`, `updatedAt`, `updatedById` (String, nullable)
+- **โมเดล Ticket:** เพิ่ม `version` (Int, ค่าเริ่มต้น 1) เพื่อการควบคุมภาวะพร้อมกัน (Optimistic Concurrency) และ `requesterMarkedResolvedAt` (DateTime, nullable) สำหรับธงแนะนำ
+- **ความสัมพันธ์ (Relationships):** `Ticket` มีหลาย `ActionTaken` (`onDelete: Restrict`)
+- **ดัชนี (Indexes):** ดัชนีประกอบใน `ActionTaken` (`ticketId, actionAt, createdAt, id`) เพื่อการจัดเรียงที่คงที่ และดัชนีใน `performedById`
+- **การตัดสินใจออกแบบฐานข้อมูล (Database Design Decisions):**
+  1. **ใช้ Integer Version Token เพื่อจัดการ Concurrency:** ถูกเลือกใช้แทน timestamps (`updatedAt`) เพื่อหลีกเลี่ยงการสูญเสียความแม่นยำหรือปัญหาการซิงโครไนซ์เวลาในสภาพแวดล้อมแบบกระจาย เพื่อให้มั่นใจได้ว่าการตรวจสอบความเท่าเทียมอย่างเคร่งครัดสำหรับการล็อคในแง่ดี (Optimistic Locking) ทำงานได้อย่างแข็งแกร่ง
+  2. **`onDelete: Restrict` สำหรับ Actions:** ถูกเลือกใช้เพื่อบังคับใช้อย่างเข้มงวดกับข้อกำหนดที่ให้เพิ่มข้อมูลได้อย่างเดียวและการตรวจสอบ การลบตั๋วจะถูกระงับหากมีการดำเนินการอยู่ เพื่อป้องกันการสูญเสียบันทึกเส้นทางการตรวจสอบ (Audit Trails) ด้านไอทีที่สำคัญโดยไม่ตั้งใจ
+- **Migration & Backfill:** การย้ายข้อมูลเป็นแบบเพิ่ม (Additive) ตั๋วเก่าจะมีศูนย์การดำเนินการและ version เป็น 1 โดยค่าเริ่มต้น การย้อนกลับ (Rollback) จะเกี่ยวข้องกับการกู้คืนภาพรวมฐานข้อมูลก่อนการย้ายและการรันสคริปต์ลดรุ่นย้ายข้อมูล (Down-migration)
+- **ข้อกำหนด Seed:** อัปเสิร์ตที่ Idempotent ครอบคลุมสถานะทั้งหมด, ความสำคัญ, มี/ไม่มีเจ้าของ, มี 0/1/หลายการดำเนินการ, ผู้ใช้ที่เป็นพนักงานที่ไม่ทำงาน (Inactive), และสถานการณ์ที่สร้างตัวชี้วัดที่เป็นศูนย์และไม่ใช่ศูนย์
 
-## 8 API Contract (Summary)
-- **Actions Taken:** `GET`, `POST`, `PATCH` at `/api/tickets/:ticketId/actions-taken`. Protected by role. No `DELETE` endpoint.
-- **Ticket Status Transition Matrix:**
-  | From \ To | Permitted Roles | New Status |
+## 8. สรุปข้อกำหนด API (API Contract Summary)
+- **Actions Taken:** `GET`, `POST`, `PATCH` ที่ `/api/tickets/:ticketId/actions-taken` ได้รับการป้องกันโดยบทบาท ไม่มีปลายทาง `DELETE`
+- **เมทริกซ์การเปลี่ยนสถานะตั๋ว (Ticket Status Transition Matrix):**
+  | จากสถานะ (From) \ ไปยังสถานะ (To) | บทบาทที่อนุญาต (Permitted Roles) | สถานะใหม่ (New Status) |
   |---|---|---|
   | `NEW` | IT Staff, Admin | `OPEN` |
-  | `NEW` | Requester (own), IT Staff, Admin | `CANCELLED` |
+  | `NEW` | Requester (ของตัวเอง), IT Staff, Admin | `CANCELLED` |
   | `OPEN` | IT Staff, Admin | `IN_PROGRESS`, `WAITING_FOR_REQUESTER` |
-  | `OPEN` | Requester (own), IT Staff, Admin | `CANCELLED` |
-  | `IN_PROGRESS` | IT Staff, Admin | `WAITING_FOR_REQUESTER`, `RESOLVED` (gated) |
+  | `OPEN` | Requester (ของตัวเอง), IT Staff, Admin | `CANCELLED` |
+  | `IN_PROGRESS` | IT Staff, Admin | `WAITING_FOR_REQUESTER`, `RESOLVED` (มีการจำกัด) |
   | `IN_PROGRESS` | IT Staff, Admin | `CANCELLED` |
-  | `WAITING_FOR_REQUESTER` | IT Staff, Admin | `IN_PROGRESS`, `RESOLVED` (gated) |
+  | `WAITING_FOR_REQUESTER` | IT Staff, Admin | `IN_PROGRESS`, `RESOLVED` (มีการจำกัด) |
   | `WAITING_FOR_REQUESTER` | IT Staff, Admin | `CANCELLED` |
   | `RESOLVED` | IT Staff, Admin | `CLOSED` |
-  | `RESOLVED` | Requester (own), IT Staff, Admin | `REOPENED` |
+  | `RESOLVED` | Requester (ของตัวเอง), IT Staff, Admin | `REOPENED` |
   | `CLOSED` | IT Staff, Admin | `REOPENED` |
   | `REOPENED` | IT Staff, Admin | `OPEN`, `IN_PROGRESS`, `CANCELLED` |
-  | `CANCELLED` | (Terminal state) | None |
-- **Status Transition:** `POST` at `/api/tickets/:ticketId/status` requiring the version token.
-- **Allowed Transitions:** `GET` at `/api/tickets/:ticketId/allowed-transitions` to drive UI controls safely.
-- **Advisory Flag:** `POST` at `/api/tickets/:ticketId/requester-resolved-indication` for Requesters.
-- **Dashboards:** `GET` at `/api/dashboard/requester` and `/api/dashboard/staff`.
-- **Conflicts & Errors:** Standardized safe error envelope. 409 Conflict includes the current version state.
-- **Legacy Compatibility:** All Lab 2-3 endpoints continue to function as specified previously.
-- See `docs/lab-04/api-spec.md` for complete details.
+  | `CANCELLED` | (สถานะสุดท้าย) | (ไม่มี) |
+- **Status Transition:** `POST` ที่ `/api/tickets/:ticketId/status` ต้องใช้ version token
+- **Allowed Transitions:** `GET` ที่ `/api/tickets/:ticketId/allowed-transitions` เพื่อช่วยขับเคลื่อนการควบคุม UI อย่างปลอดภัย
+- **Advisory Flag:** `POST` ที่ `/api/tickets/:ticketId/requester-resolved-indication` สำหรับผู้ร้องขอ
+- **Dashboards:** `GET` ที่ `/api/dashboard/requester` และ `/api/dashboard/staff`
+- **Conflicts & Errors:** รูปแบบข้อผิดพลาดที่ปลอดภัยแบบมาตรฐาน ความขัดแย้ง 409 จะรวมสถานะเวอร์ชันปัจจุบันด้วย
+- **Legacy Compatibility:** ปลายทาง Lab 2-3 ทั้งหมดต้องยังคงทำงานตามที่ระบุไว้ก่อนหน้านี้
+- ดู `docs/lab-04/api-spec.md` สำหรับรายละเอียดฉบับเต็ม
 
-## 9 Acceptance Criteria
-
-| ID | Criterion (Given / When / Then) |
+## 9. เกณฑ์การยอมรับ (Acceptance Criteria - AC)
+| รหัส (ID) | เกณฑ์ (กำหนดให้ / เมื่อ / ดังนั้น) (Given / When / Then) |
 |---|---|
-| AC-01 | Given a permitted IT Staff user and valid data, when an Action Taken is created, then it is saved under the correct Ticket with the authenticated user as Performed by. (API-01, E2E-01) |
-| AC-02 | Given an authenticated Requester, when dashboard data is retrieved, then only metrics and recent Tickets owned by that Requester are returned. (RD-01, E2E-03) |
-| AC-03 | Given Follow-Up Required = true and an empty Follow-up Note, when saving, then the API returns a 400/422 validation error and nothing is saved. (API-03, UI-06, E2E-01) |
-| AC-04 | Given Follow-Up Required = false, when saving with a note, then the note is cleared and stored as null. (API-04) |
-| AC-05 | Given a missing/blank Action Description or Result, or text over the max length, when saving, then the request is rejected with field-level errors. (API-02, UI-06) |
-| AC-06 | Given an invalid or far-future Action Date/Time, when saving, then it is rejected; valid values are stored in UTC. (API-05) |
-| AC-07 | Given a request body containing `performedBy`, when an Action is created, then the value is ignored and the authenticated user is recorded. (API-01, API-06) |
-| AC-08 | Given an IT Staff user who is not the Ticket Owner, when creating an Action, then it succeeds and Performed by is that user. (API-07, E2E-01) |
-| AC-09 | Given a Requester, when POST/PATCH is sent to Actions Taken, then 403 is returned and no data changes. (AUTHZ-01, AUTHZ-02, UI-08) |
-| AC-10 | Given a Requester viewing their own Ticket, then all Actions Taken are visible read-only; for a foreign Ticket the API returns 403. (AUTHZ-03, AUTHZ-04, UI-05, UI-08, E2E-01) |
-| AC-11 | Given IT Staff/Admin and the current version token, when an Action is updated, then fields change, `version` increments, and immutables are preserved. (API-08, UI-07, E2E-01) |
-| AC-12 | Given a stale version token, when an Action is updated, then 409 is returned and the earlier change is preserved. (API-09, UI-07, E2E-04) |
-| AC-13 | Given multiple Actions on a Ticket, when listed, then order is deterministic (actionAt, createdAt, id). (API-10) |
-| AC-14 | Given any client, when attempting to delete an Action Taken, then no delete route exists (404/405) and records persist. (API-11) |
-| AC-15 | Given a Ticket in a Closed/Cancelled state, when creating an Action, then it is rejected with a clear message. (API-12) |
-| AC-16 | Given an inactive user, when selected as Ticket Owner, then the request is rejected. (WF-07, UI-12, E2E-02) |
-| AC-17 | Given an active IT Staff/Admin user, when assigned as Ticket Owner, then the owner changes; Requester targets are rejected. (WF-06, UI-12) |
-| AC-18 | Given a double click or network retry, when creating an Action, then exactly one record exists. (API-13, UI-09) |
-| AC-19 | Given Attachment Notes, when saved, then they are optional, length-limited, and escaped on output. (API-14) |
-| AC-20 | Given each allowed transition in the matrix and permitted role, when requested, then the status changes and `version` increments. (WF-01, E2E-02) |
-| AC-21 | Given a transition not in the matrix, when requested, then 409/422 is returned and status is unchanged. (WF-02) |
-| AC-22 | Given a Requester, when attempting to set Resolved via API, then 403 is returned. (AUTHZ-05, E2E-02) |
-| AC-23 | Given a Requester's "appears resolved" indication, then Ticket status is unchanged and IT Staff see the flag. (WF-03, E2E-02) |
-| AC-24 | Given the resolution gate rules, when IT Staff attempts to Resolve a Ticket that fails the gate, then it is rejected. (WF-04, E2E-02) |
-| AC-25 | Given a stale Ticket version, when a status change is submitted, then 409 is returned. (WF-05, UI-11, E2E-04) |
-| AC-26 | Given any Ticket and user, then status controls show only permitted transitions from the server. (WF-08, UI-10, UI-11, E2E-02) |
-| AC-27 | Given status changes, then each is recorded append-only with actor and time. (WF-09) |
-| AC-28 | Given a Requester, then staff-only content (Internal Notes) remains hidden. (WF-10, E2E-05) |
-| AC-29 | Given the seeded dataset, when the IT Staff dashboard is retrieved, then every count equals the DB query result. (SD-01, UI-01, E2E-03) |
-| AC-30 | Given the seeded dataset, when the Requester dashboard is retrieved, then every count equals the DB query result for that Requester. (RD-02, UI-03, E2E-03) |
-| AC-31 | Given no matching records, then dashboards return zeros/empty lists without errors. (SD-02, RD-03, UI-02, UI-04) |
-| AC-32 | Given a Requester calling the staff dashboard, then 403 is returned. (AUTHZ-06, SD-03) |
-| AC-33 | Given an Administrator, then the dashboard reuses staff metrics and adds user-account counts. (SD-04) |
-| AC-34 | Given a metric card, when activated, then the user lands on the correct filtered view. (UI-01, UI-03, E2E-03) |
-| AC-35 | Given any dashboard endpoint, then the response is concise and never returns whole Ticket collections. (SD-05, RD-04) |
-| AC-36 | Given Tickets updated near midnight, then date boundaries follow the documented time zone. (SD-06, RD-05) |
-| AC-37 | Given loading, error, forbidden, and success states, then the dashboard UI renders specified feedback. (UI-02, UI-04) |
-| AC-38 | Given each role, then navigation shows the role-appropriate Dashboard item with active indication. (UI-13, E2E-03) |
-| AC-39 | Given a populated Lab 3 database, when the Lab 4 migration is applied, then existing data is unchanged. (MIG-01) |
-| AC-40 | Given legacy Tickets without Actions Taken, then Ticket Detail shows an empty state and no errors. (MIG-02, UI-05) |
-| AC-41 | Given the seed is run twice, then row counts are identical and coverage is met. (MIG-03) |
-| AC-42 | Given a failed migration, then rollback steps restore the Lab 3 state. (MIG-04) |
-| AC-43 | Given the Lab 1-3 suites and E2E paths, then all pass on main. (REG-01, REG-02, REG-03, E2E-05) |
-| AC-44 | Given any server failure, then responses use the documented envelope with no stack traces. (API-16, UI-11) |
-| AC-45 | Given a recoverable failure on a form, then entered data is preserved. (UI-06, UI-14) |
-| AC-46 | Given a walk through all screens, then there are no console errors or broken links. (REG-04) |
-| AC-47 | Given 360/768/1280 px viewports, then no Lab 4 screen has horizontal scroll or clipping. (RESP-01) |
-| AC-48 | Given keyboard-only use, then controls are reachable and focus is visible. (A11Y-01, A11Y-02) |
-| AC-49 | Given status and priority, then each is conveyed by text/icon in addition to color. (STY-01, A11Y-01) |
-| AC-50 | Given the final app, then Zen Green tokens are used consistently. (STY-01, REG-04) |
-| AC-51 | Given a fresh clone, then README instructions work end-to-end. (REG-05) |
-| AC-52 | Given seeded data, then dashboard endpoints respond within threshold with no N+1 queries. (PERF-01) |
-| AC-53 | Given an unauthenticated request to any new endpoint, then 401 is returned. (API-15) |
-| AC-54 | Given the health endpoint, then it reports status without sensitive details. (API-17) |
+| AC-01 | กำหนดให้เจ้าหน้าที่ไอทีที่ได้รับอนุญาตมีข้อมูลที่ถูกต้อง เมื่อมีการสร้างการดำเนินการ ดังนั้นข้อมูลจะถูกบันทึกภายใต้ตั๋วที่ถูกต้อง โดยมีผู้ใช้ที่ผ่านการรับรองสิทธิ์เป็น "ผู้ดำเนินการ" (API-01, E2E-01) |
+| AC-02 | กำหนดให้ผู้ร้องขอที่ผ่านการรับรองสิทธิ์ เมื่อเรียกข้อมูลแดชบอร์ด ดังนั้นระบบจะแสดงผลเฉพาะตัวชี้วัดและตั๋วล่าสุดที่เป็นของผู้ร้องขอคนนั้นเท่านั้น (RD-01, E2E-03) |
+| AC-03 | กำหนดให้ ต้องการการติดตามผล = จริง และช่องบันทึกการติดตามผลว่างเปล่า เมื่อบันทึก ดังนั้น API ส่งคืนข้อผิดพลาด 400/422 และไม่บันทึกข้อมูลใดๆ (API-03, UI-06, E2E-01) |
+| AC-04 | กำหนดให้ ต้องการการติดตามผล = เท็จ เมื่อบันทึกพร้อมข้อความติดตามผล ดังนั้นข้อความนั้นจะถูกล้างและเก็บเป็น null (API-04) |
+| AC-05 | กำหนดให้ขาดคำอธิบายการดำเนินการหรือผลลัพธ์ หรือมีความยาวเกินขีดจำกัด เมื่อบันทึก ดังนั้นคำขอจะถูกปฏิเสธพร้อมข้อผิดพลาดในระดับฟิลด์ (API-02, UI-06) |
+| AC-06 | กำหนดให้วันที่/เวลาการดำเนินการไม่ถูกต้องหรือเป็นอนาคตเกินไป เมื่อบันทึก ดังนั้นจะถูกปฏิเสธ; ค่าที่ถูกต้องจะถูกเก็บในรูปแบบ UTC (API-05) |
+| AC-07 | กำหนดให้มีฟิลด์ `performedBy` ใน Request Body เมื่อสร้างการดำเนินการ ดังนั้นค่าที่ส่งมาจะถูกละเว้นและจะบันทึกจากผู้ใช้ที่ผ่านการรับรองสิทธิ์เท่านั้น (API-01, API-06) |
+| AC-08 | กำหนดให้เจ้าหน้าที่ไอทีที่ไม่ใช่เจ้าของตั๋ว เมื่อสร้างการดำเนินการ ดังนั้นระบบจะทำรายการสำเร็จและผู้ดำเนินการคือเจ้าหน้าที่คนนั้น (API-07, E2E-01) |
+| AC-09 | กำหนดให้ผู้ร้องขอ เมื่อส่งคำขอ POST/PATCH ไปยัง Actions Taken ดังนั้นจะถูกตอบกลับด้วย 403 และไม่มีการเปลี่ยนแปลงข้อมูล (AUTHZ-01, AUTHZ-02, UI-08) |
+| AC-10 | กำหนดให้ผู้ร้องขอกำลังดูตั๋วของตนเอง ดังนั้นการดำเนินการทั้งหมดจะมองเห็นได้แบบอ่านได้อย่างเดียว; หากเป็นตั๋วของบุคคลอื่น API จะส่งคืน 403 (AUTHZ-03, AUTHZ-04, UI-05, UI-08, E2E-01) |
+| AC-11 | กำหนดให้เจ้าหน้าที่ไอที/ผู้ดูแลระบบและ version token ปัจจุบันถูกต้อง เมื่ออัปเดตการดำเนินการ ดังนั้นฟิลด์จะถูกเปลี่ยน, ค่า `version` เพิ่มขึ้น, และข้อมูลที่แก้ไขไม่ได้จะถูกรักษาไว้ (API-08, UI-07, E2E-01) |
+| AC-12 | กำหนดให้ version token เก่า/ไม่ตรงกัน เมื่ออัปเดตการดำเนินการ ดังนั้นจะถูกตอบกลับด้วย 409 และการเปลี่ยนแปลงก่อนหน้านี้จะถูกรักษาไว้ (API-09, UI-07, E2E-04) |
+| AC-13 | กำหนดให้มีการดำเนินการหลายรายการในตั๋วใบเดียว เมื่อแสดงรายการ ดังนั้นลำดับจะต้องถูกจัดเรียงแบบคงที่ (actionAt, createdAt, id) (API-10) |
+| AC-14 | กำหนดให้ไคลเอนต์ใดๆ เมื่อพยายามลบการดำเนินการ ดังนั้นจะไม่มีเส้นทางการลบให้ใช้งาน (404/405) และบันทึกข้อมูลจะยังคงอยู่ (API-11) |
+| AC-15 | กำหนดให้ตั๋วอยู่ในสถานะ Closed/Cancelled เมื่อพยายามสร้างการดำเนินการ ดังนั้นคำขอจะถูกปฏิเสธพร้อมข้อความที่ชัดเจน (API-12) |
+| AC-16 | กำหนดให้เลือกผู้ใช้ที่ไม่ทำงาน (Inactive) เมื่อกำหนดเป็นเจ้าของตั๋ว ดังนั้นคำขอจะถูกปฏิเสธ (WF-07, UI-12, E2E-02) |
+| AC-17 | กำหนดให้ผู้ใช้เจ้าหน้าที่ไอที/ผู้ดูแลระบบที่ยังทำงานอยู่ เมื่อได้รับมอบหมายเป็นเจ้าของตั๋ว ดังนั้นเจ้าของตั๋วจะเปลี่ยนไป; การมอบหมายให้ผู้ร้องขอจะถูกปฏิเสธ (WF-06, UI-12) |
+| AC-18 | กำหนดให้มีการคลิกซ้ำหรือการลองใหม่ของเครือข่าย เมื่อสร้างการดำเนินการ ดังนั้นจะมีบันทึกที่เกิดขึ้นเพียงรายการเดียว (API-13, UI-09) |
+| AC-19 | กำหนดให้มีการส่งบันทึกไฟล์แนบ เมื่อบันทึก ดังนั้นจะถือว่าเป็นทางเลือก (Optional) จำกัดความยาว และหลีกเลี่ยงอักขระพิเศษ (Escaped) เมื่อแสดงผล (API-14) |
+| AC-20 | กำหนดให้มีการเปลี่ยนสถานะตามที่อนุญาตในเมทริกซ์และด้วยบทบาทที่ได้รับอนุญาต เมื่อร้องขอ ดังนั้นสถานะตั๋วจะเปลี่ยนและ `version` เพิ่มขึ้น (WF-01, E2E-02) |
+| AC-21 | กำหนดให้มีการเปลี่ยนสถานะที่ไม่มีในเมทริกซ์ เมื่อร้องขอ ดังนั้นจะถูกตอบกลับด้วย 409/422 และสถานะยังคงเดิม (WF-02) |
+| AC-22 | กำหนดให้ผู้ร้องขอพยายามตั้งสถานะตั๋วเป็น Resolved ผ่าน API ดังนั้นจะถูกตอบกลับด้วย 403 (AUTHZ-05, E2E-02) |
+| AC-23 | กำหนดให้ผู้ร้องขอตั้งธง "ปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" ดังนั้นสถานะตั๋วจะไม่เปลี่ยนแปลง และเจ้าหน้าที่ไอทีจะเห็นธงนั้น (WF-03, E2E-02) |
+| AC-24 | กำหนดให้ใช้กฎข้อจำกัดการปิดงาน เมื่อเจ้าหน้าที่ไอทีพยายามเปลี่ยนสถานะตั๋วที่ติดข้อจำกัด (ไม่ผ่านเกณฑ์) ดังนั้นคำขอจะถูกปฏิเสธ (WF-04, E2E-02) |
+| AC-25 | กำหนดให้ version ตั๋วเป็นค่าเก่า เมื่อส่งการเปลี่ยนสถานะ ดังนั้นจะถูกตอบกลับด้วย 409 (WF-05, UI-11, E2E-04) |
+| AC-26 | กำหนดให้ตั๋วหรือผู้ใช้ใดๆ ดังนั้นการควบคุมสถานะในหน้าจอจะแสดงเฉพาะการเปลี่ยนสถานะที่อนุญาตจากเซิร์ฟเวอร์เท่านั้น (WF-08, UI-10, UI-11, E2E-02) |
+| AC-27 | กำหนดให้มีการเปลี่ยนสถานะ ดังนั้นแต่ละการเปลี่ยนแปลงจะถูกบันทึกประวัติแบบเพิ่มข้อมูลพร้อมกับผู้กระทำและเวลา (WF-09) |
+| AC-28 | กำหนดให้ผู้ร้องขอเข้าใช้งาน ดังนั้นเนื้อหาเฉพาะของเจ้าหน้าที่ (เช่น บันทึกภายใน) จะยังคงถูกซ่อน (WF-10, E2E-05) |
+| AC-29 | กำหนดให้ใช้ชุดข้อมูลตั้งต้น (Seeded) เมื่อดึงข้อมูล IT Staff Dashboard ดังนั้นทุกตัวนับจะต้องตรงกับผลลัพธ์ของการ Query ฐานข้อมูล (SD-01, UI-01, E2E-03) |
+| AC-30 | กำหนดให้ใช้ชุดข้อมูลตั้งต้น เมื่อดึงข้อมูล Requester Dashboard ดังนั้นทุกตัวนับจะต้องตรงกับผลลัพธ์การ Query ของผู้ร้องขอคนนั้น (RD-02, UI-03, E2E-03) |
+| AC-31 | กำหนดให้ไม่มีข้อมูลใดๆ ที่ตรงกัน ดังนั้นแดชบอร์ดจะส่งคืนค่าศูนย์/รายการว่างเปล่าโดยไม่มีข้อผิดพลาด (SD-02, RD-03, UI-02, UI-04) |
+| AC-32 | กำหนดให้ผู้ร้องขอพยายามดึงข้อมูล Staff Dashboard ดังนั้นจะถูกตอบกลับด้วย 403 (AUTHZ-06, SD-03) |
+| AC-33 | กำหนดให้เป็นผู้ดูแลระบบ ดังนั้นแดชบอร์ดจะใช้ข้อมูลตัวชี้วัดเดียวกันกับ Staff และเพิ่มตัวนับจำนวนบัญชีผู้ใช้ (SD-04) |
+| AC-34 | กำหนดให้มีการ์ดตัวชี้วัดใดๆ เมื่อกดคลิก ดังนั้นผู้ใช้จะถูกนำไปยังมุมมองรายการที่ถูกกรองอย่างถูกต้อง (UI-01, UI-03, E2E-03) |
+| AC-35 | กำหนดให้มีการร้องขอแดชบอร์ดใดๆ ดังนั้นข้อมูลตอบกลับจะต้องสั้นกระชับและไม่มีการส่งคืนชุดข้อมูลตั๋วแบบเต็มทั้งหมด (SD-05, RD-04) |
+| AC-36 | กำหนดให้มีการอัปเดตตั๋วใกล้เวลาเที่ยงคืน ดังนั้นขอบเขตวันที่ต้องเป็นไปตามเขตเวลาที่ระบุในเอกสาร (SD-06, RD-05) |
+| AC-37 | กำหนดให้มีสถานะกำลังโหลด, ข้อผิดพลาด, การปฏิเสธ, และสถานะสำเร็จ ดังนั้น UI ของแดชบอร์ดจะแสดงข้อเสนอแนะตามที่กำหนด (UI-02, UI-04) |
+| AC-38 | กำหนดให้ใช้งานในแต่ละบทบาท ดังนั้นการนำทาง (Navigation) จะแสดงเมนูแดชบอร์ดที่เหมาะสมกับบทบาทและบ่งชี้การเปิดใช้งานหน้าต่างปัจจุบัน (UI-13, E2E-03) |
+| AC-39 | กำหนดให้มีฐานข้อมูลของ Lab 3 เมื่อทำการ Migration ของ Lab 4 ดังนั้นข้อมูลที่มีอยู่แล้วจะต้องไม่เปลี่ยนแปลง (MIG-01) |
+| AC-40 | กำหนดให้ตั๋วเก่าไม่มีข้อมูลการดำเนินการ (Actions) ดังนั้นหน้ารายละเอียดตั๋วจะแสดงสถานะว่างเปล่าและไม่มีข้อผิดพลาด (MIG-02, UI-05) |
+| AC-41 | กำหนดให้รันข้อมูลตั้งต้น (Seed) ซ้ำเป็นครั้งที่สอง ดังนั้นจำนวนแถวของข้อมูลจะต้องเท่าเดิมและครอบคลุมตามเป้าหมาย (MIG-03) |
+| AC-42 | กำหนดให้การย้ายข้อมูลล้มเหลว ดังนั้นขั้นตอนการย้อนกลับ (Rollback) จะสามารถกู้คืนฐานข้อมูลกลับไปสู่สถานะ Lab 3 ได้ (MIG-04) |
+| AC-43 | กำหนดให้มีชุดทดสอบของ Lab 1-3 และพาธ E2E ดังนั้นการทดสอบทั้งหมดจะต้องผ่านบน branch `main` (REG-01, REG-02, REG-03, E2E-05) |
+| AC-44 | กำหนดให้เซิร์ฟเวอร์มีข้อผิดพลาดใดๆ ดังนั้นรูปแบบการตอบกลับจะใช้ซองจดหมายข้อผิดพลาด (Error envelope) ตามที่กำหนดโดยไม่มี stack traces (API-16, UI-11) |
+| AC-45 | กำหนดให้ฟอร์มล้มเหลวแบบแก้ไขได้ ดังนั้นข้อมูลที่กรอกลงไปจะถูกรักษาไว้ในช่องรับข้อมูล (UI-06, UI-14) |
+| AC-46 | กำหนดให้ทำการคลิกดูทุกหน้าจอ ดังนั้นจะต้องไม่มีข้อผิดพลาดในหน้าต่าง Console หรือลิงก์ที่เสียหาย (REG-04) |
+| AC-47 | กำหนดให้เปิดหน้าจอในระดับความกว้าง 360/768/1280 px ดังนั้นทุกหน้าจอของ Lab 4 จะต้องไม่มีการเลื่อนในแนวนอน หรือมีข้อความที่ถูกตัดขาด (RESP-01) |
+| AC-48 | กำหนดให้ใช้งานด้วยคีย์บอร์ดอย่างเดียว ดังนั้นควบคุมทุกจุดสามารถเข้าถึงได้และมีสถานะ Focus ที่มองเห็นชัดเจน (A11Y-01, A11Y-02) |
+| AC-49 | กำหนดให้มีสถานะและความสำคัญ ดังนั้นแต่ละสถานะต้องสื่อความหมายด้วยข้อความ/ไอคอนร่วมกับสีเสมอ (STY-01, A11Y-01) |
+| AC-50 | กำหนดให้ทดสอบกับแอปพลิเคชันฉบับสมบูรณ์ ดังนั้นจะเห็นว่าระบบสี Zen Green ถูกใช้งานอย่างสอดคล้องกัน (STY-01, REG-04) |
+| AC-51 | กำหนดให้ทำการโคลนแบบสดใหม่ ดังนั้นคำแนะนำใน README สามารถทำงานได้อย่างครบถ้วน (REG-05) |
+| AC-52 | กำหนดให้มีข้อมูล Seed ดังนั้นปลายทางของ Dashboard จะต้องตอบสนองภายในเวลาที่กำหนดและไม่มี N+1 queries (PERF-01) |
+| AC-53 | กำหนดให้มีการส่งคำขอที่ไม่ผ่านการยืนยันตัวตนไปยังปลายทางใหม่ๆ ดังนั้นจะได้รับรหัสกลับเป็น 401 (API-15) |
+| AC-54 | กำหนดให้ใช้ปลายทาง /api/health ดังนั้นระบบจะส่งสถานะกลับโดยไม่มีรายละเอียดที่อ่อนไหว (API-17) |
 
-## 10 Definition of Done
-- [ ] All FR/BR/AC implemented and traceable to tests in `tests.md`.
-- [ ] All planned tests pass on `main` (unit, API, UI, authz, workflow, migration, perf, E2E).
-- [ ] Lab 1-3 regression tests pass.
-- [ ] Prisma migration applies cleanly to a populated Lab 3 DB; rollback procedure tested.
-- [ ] Seed is idempotent and covers all specified metrics/states.
-- [ ] Backend authorization is enforced on every write and verified bypassing the UI.
-- [ ] No console errors, broken links, placeholder text, or unfinished controls.
-- [ ] Responsive and accessibility checklists complete.
-- [ ] Screenshots captured in `artifacts/lab-04/screenshots/`.
-- [ ] README is current, `.gitignore` is correct, no secrets committed.
-- [ ] All Issues in Done, PRs reviewed and merged by reviewer, `reviewer.md` complete.
-- [ ] `ai-use.md` is complete with student reflections.
+## 10. นิยามความสำเร็จของผลิตภัณฑ์ (Definition of Done - DoD)
+- [ ] FR/BR/AC ทั้งหมดถูกนำไปใช้งานและสามารถตรวจสอบย้อนกลับไปยังการทดสอบใน `tests.md` ได้
+- [ ] การทดสอบที่วางแผนไว้ทั้งหมดต้องผ่านบน branch `main` (unit, API, UI, authz, workflow, migration, perf, E2E)
+- [ ] การทดสอบ Regression ของ Lab 1-3 ผ่าน
+- [ ] Prisma migration สามารถประยุกต์ใช้กับฐานข้อมูลที่เตรียมไว้จาก Lab 3 ได้อย่างสะอาดหมดจด; มีการทดสอบขั้นตอนการย้อนกลับแล้ว
+- [ ] การทำ Seed เป็นไปแบบ Idempotent และครอบคลุมตัวชี้วัด/สถานะทั้งหมดที่ระบุ
+- [ ] Backend authorization บังคับใช้ในทุกการเขียนและยืนยันการหลบเลี่ยงจาก UI ได้
+- [ ] ไม่มีข้อผิดพลาดบน Console, ลิงก์ที่เสีย, ข้อความยึดพื้นที่ชั่วคราว, หรือคอนโทรลที่ยังทำไม่เสร็จ
+- [ ] รายการตรวจสอบ Responsive และ Accessibility ครบถ้วน
+- [ ] ภาพบันทึกหน้าจอถูกจับภาพและเก็บใน `artifacts/lab-04/screenshots/`
+- [ ] README เป็นปัจจุบัน, `.gitignore` ถูกต้อง, ไม่มีการคอมมิตข้อมูลส่วนตัวหรือความลับ (secrets)
+- [ ] ทุกปัญหาถูกตั้งเป็น Done, Pull Request ได้รับการตรวจสอบและรวมแล้วโดยผู้ตรวจทาน (reviewer), และ `reviewer.md` สมบูรณ์
+- [ ] `ai-use.md` เสร็จสมบูรณ์พร้อมมุมมองสะท้อนความคิดของนักศึกษา
 
-## 11 Assumptions and Decisions
-1. **Actions on Closed/Cancelled Tickets:** Rejected. Modifying a completed or discarded ticket breaks audit trails.
-2. **Action-level State:** No Action-level state machine. "Complete/cancel" refer to Ticket-level transitions. Actions are append-only work logs.
-3. **Requester Access to Staff Dashboard:** Returns `403 Forbidden`.
-4. **Staff Access to Requester Dashboard:** Returns `403 Forbidden`. Staff should use the Staff dashboard.
-5. **Foreign Ticket Access (Requester):** Returns `403 Forbidden` rather than `404`, to maintain consistency with Lab 3's explicit prohibition mechanism while not leaking data.
-6. **Follow-up Note when Required is False:** Cleared (stored as null) to maintain data consistency.
-7. **Action Date/Time Constraints:** Stored in UTC. Allowed future tolerance is 5 minutes to account for minor client clock drift. Displayed in `Asia/Bangkok`.
-8. **Dashboard Time Zone & Window:** `Asia/Bangkok` is used for date boundary calculations. "Recent" is defined as the last 7 days. "From yesterday" deltas are omitted to keep scope manageable.
-9. **Concurrency Token:** Integer `version` token on Ticket and ActionTaken for optimistic locking.
-10. **Idempotency:** Utilizes an `Idempotency-Key` header on create requests alongside UI disabled-while-pending states.
-11. **Status History:** The system will append a history record for each transition (reusing or extending Lab 3 logic if present, else a minimal append-only mechanism).
-12. **Resolution Gate Rule:** Actor is IT Staff/Admin AND Ticket has an owner AND at least one Action Taken exists with a non-empty Result. Unresolved follow-ups do not block resolution.
+## 11. สมมติฐานและการตัดสินใจ (Assumptions and Decisions)
+1. **การดำเนินการในตั๋วที่ถูก Closed/Cancelled:** ถูกปฏิเสธ การดัดแปลงตั๋วที่เสร็จสิ้นหรือยกเลิกจะเป็นการทำลายบันทึกเส้นทางการตรวจสอบ
+2. **สถานะระดับการดำเนินการ (Action-level State):** ไม่มีการจำลองการเปลี่ยนสถานะ (State machine) ในระดับ Action การ "complete/cancel" หมายถึงการเปลี่ยนสถานะของตัวตั๋ว การดำเนินการ (Actions) จะทำหน้าที่เหมือนประวัติการทำงานแบบเพิ่มได้อย่างเดียวเท่านั้น
+3. **การเข้าถึง Staff Dashboard โดย Requester:** ส่งค่า `403 Forbidden`
+4. **การเข้าถึง Requester Dashboard โดย Staff:** ส่งค่า `403 Forbidden` Staff ควรใช้งานในส่วน Staff Dashboard เท่านั้น
+5. **การเข้าถึงตั๋วของผู้อื่น (Requester):** จะส่งค่า `403 Forbidden` แทน `404` เพื่อรักษาความสอดคล้องกับกลไกการห้ามการเข้าถึงอย่างชัดเจนของ Lab 3 โดยไม่ทำให้ข้อมูลรั่วไหล
+6. **บันทึกการติดตามผลเมื่อไม่ได้ถูกกำหนดให้บันทึก (Required is False):** ถูกเคลียร์ออก (บันทึกค่าในฐานข้อมูลเป็น null) เพื่อให้ข้อมูลคงความสอดคล้องกัน
+7. **เงื่อนไขเวลาของการดำเนินการ (Action Date/Time Constraints):** จัดเก็บค่าแบบ UTC ระบบยอมรับความคลาดเคลื่อนล่วงหน้าในอนาคตได้ 5 นาทีเผื่อเวลาของไคลเอนต์คลาดเคลื่อน โดยนำเสนอในเขตเวลา `Asia/Bangkok`
+8. **Time Zone ของ Dashboard และรอบระยะเวลา:** เขตเวลา `Asia/Bangkok` ถูกนำไปใช้สำหรับการคำนวณขอบเขตวันที่ คำว่า "ล่าสุด" ให้นับตั้งแต่ 7 วันที่ผ่านมา และจะไม่มีการใช้ค่าส่วนต่าง "จากเมื่อวาน" เพื่อให้การควบคุมขอบเขตโครงการไม่บานปลาย
+9. **Concurrency Token:** ใช้งานชนิด Integer เป็น `version` token ทั้งในโมเดล Ticket และ ActionTaken สำหรับการล็อคสิทธิ์แบบ Optimistic
+10. **Idempotency:** ใช้งาน Header ชื่อ `Idempotency-Key` ร่วมกับการส่งค่าแบบ disabled-while-pending บนสถานะของ UI ในการรับเรื่องขอสร้างข้อมูล (Create request)
+11. **ประวัติสถานะ (Status History):** ระบบจะเก็บประวัติการกระทำทุกการเปลี่ยนแปลง (นำกลับมาใช้ใหม่ หรือต่อขยายลอจิกจากของเดิมใน Lab 3 หากมี หรือมิฉะนั้นจะใช้กลไกแบบเพิ่มข้อมูลประวัติเท่านั้นแบบเรียบง่าย)
+12. **ข้อจำกัดสำหรับการจบงาน (Resolution Gate Rule):** ผู้กระทำต้องเป็น IT Staff/Admin, ตั๋วต้องมีเจ้าของ, และมี Action Taken ที่ได้ผลลัพธ์ (Result) แบบไม่ว่างเปล่าอยู่อย่างน้อย 1 รายการ และสถานะการติดตามผลที่ยังไม่คลี่คลาย จะไม่มาปิดกั้นหรือเป็นอุปสรรคต่อการแก้ไขปัญหาตั๋ว

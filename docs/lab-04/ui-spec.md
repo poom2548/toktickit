@@ -1,69 +1,69 @@
-# Lab 4 UI Specification
+# ข้อกำหนด UI Lab 4 (UI Specification)
 
-## 1. Design System & Zen Green Tokens
-The Lab 4 UI extends the existing Zen Green design language from Lab 3.
-- **Tokens in Use:** `#006B3C` (Primary Green), `#0B7A46` (Secondary/Hover), `#F5F7F6` (Background), `#FFFFFF` (Cards), `#EAF6EF` (Pale Green/Highlight).
-- **Private vs Shared Content:** Internal Notes and IT Staff-only components must be visually distinct using the `bg-amber-50 border-amber-300 text-amber-900` warning palette and a lock icon, preventing confusion with shared Public Comments and Actions.
-- **Editable vs Read-Only:** Editable fields must have a distinct border (`border-gray-300`), white background, and visible focus rings (`focus:ring-2 focus:ring-[#006B3C]`). Read-only fields use a muted background (`bg-gray-50`) and lack borders.
-- **Non-Color Status Cues:** All badges indicating Ticket Status, Priority, or Follow-up must include a semantic text label or recognizable icon alongside the color to ensure accessibility for color-blind users.
+## 1. ระบบการออกแบบ (Design System) & Zen Green Tokens
+UI ของ Lab 4 ขยายจากรูปแบบการออกแบบ Zen Green เดิมใน Lab 3
+- **Tokens ที่ใช้งาน:** `#006B3C` (Primary Green), `#0B7A46` (Secondary/Hover), `#F5F7F6` (Background), `#FFFFFF` (Cards), `#EAF6EF` (Pale Green/Highlight)
+- **เนื้อหาส่วนตัวเทียบกับเนื้อหาที่แชร์:** บันทึกภายใน (Internal Notes) และองค์ประกอบเฉพาะเจ้าหน้าที่ไอที ต้องมีความแตกต่างทางสายตาอย่างชัดเจน โดยใช้จานสีคำเตือน `bg-amber-50 border-amber-300 text-amber-900` พร้อมกับไอคอนแม่กุญแจ เพื่อป้องกันความสับสนกับความคิดเห็นสาธารณะ (Public Comments) และการดำเนินการ (Actions) ที่แชร์ร่วมกัน
+- **สามารถแก้ไขได้เทียบกับอ่านได้อย่างเดียว:** ฟิลด์ที่แก้ไขได้ต้องมีเส้นขอบที่ชัดเจน (`border-gray-300`), พื้นหลังสีขาว, และวงแหวน Focus ที่มองเห็นได้ (`focus:ring-2 focus:ring-[#006B3C]`) ฟิลด์ที่อ่านได้อย่างเดียวจะใช้พื้นหลังสีหม่น (`bg-gray-50`) และไม่มีเส้นขอบ
+- **ตัวบ่งชี้สถานะที่ไม่พึ่งพาสี:** ป้ายกำกับ (Badges) ทั้งหมดที่ระบุสถานะตั๋ว, ความสำคัญ, หรือการติดตามผล ต้องมีข้อความระบุความหมาย (Semantic text) หรือไอคอนที่จดจำได้ควบคู่ไปกับสี เพื่อให้ผู้ใช้ที่ตาบอดสีสามารถเข้าถึงและเข้าใจได้
 
-## 2. Screen Inventory
+## 2. รายการหน้าจอ (Screen Inventory)
 
-### Screen 1: IT Staff Dashboard (and Administrator)
-*   **Layout (1280px):** Multi-column grid. Metric cards across the top. Below, a two-column layout: "Recently Updated Tickets" on the left (60%), "Quick Actions" on the right (40%).
-*   **Layout (768px):** Metric cards wrap to a 2x2 grid. Main sections stack vertically.
-*   **Layout (360px):** Single column. Metric cards stack vertically. Lists convert to stacked cards. No horizontal scroll.
-*   **Elements:**
-    *   **Metric Cards:** "Unassigned", "My Owned", "By Status", "By IT Priority". Administrators see an additional "User Accounts" card. Each card must act as a clickable drill-down link to the filtered queue.
-    *   **Recently Updated List:** A capped list (e.g., top 5) of tickets. Includes Title, Status, Priority, and Updated time.
-    *   **Quick Actions:** Buttons to "Create Ticket", "Search Tickets", "My Queue".
-*   **States:** Loading (skeletons), Empty (zero state messaging), Error/Safe-Failure (banner with retry).
+### หน้าจอ 1: IT Staff Dashboard (และ Administrator)
+*   **รูปแบบ (1280px):** กริดแบบหลายคอลัมน์ การ์ดตัวชี้วัดเรียงขวางด้านบน ด้านล่างแบ่งเป็นเค้าโครงสองคอลัมน์: "ตั๋วที่อัปเดตล่าสุด" ทางซ้าย (60%) และ "การทำงานด่วน (Quick Actions)" ทางขวา (40%)
+*   **รูปแบบ (768px):** การ์ดตัวชี้วัดจะถูกปัดบรรทัดเป็นกริด 2x2 ส่วนเนื้อหาหลักจะซ้อนทับกันในแนวตั้ง
+*   **รูปแบบ (360px):** คอลัมน์เดียว การ์ดตัวชี้วัดซ้อนกันในแนวตั้ง รายการตารางเปลี่ยนเป็นการ์ดเรียงซ้อน ไม่มีแถบเลื่อนแนวนอน
+*   **องค์ประกอบ (Elements):**
+    *   **การ์ดตัวชี้วัด:** "ยังไม่ได้มอบหมาย (Unassigned)", "เป็นเจ้าของ (My Owned)", "ตามสถานะ (By Status)", "ตามความสำคัญไอที (By IT Priority)" ผู้ดูแลระบบจะเห็นการ์ด "บัญชีผู้ใช้ (User Accounts)" เพิ่มเติม การ์ดแต่ละใบต้องทำหน้าที่เป็นลิงก์ที่สามารถคลิกเจาะลึกไปยังคิวที่ถูกกรองได้
+    *   **รายการตั๋วที่อัปเดตล่าสุด:** รายการตั๋วที่มีการจำกัดจำนวน (เช่น 5 อันดับแรก) ประกอบด้วย ชื่อ, สถานะ, ความสำคัญ, และเวลาที่อัปเดต
+    *   **การทำงานด่วน:** ปุ่มสำหรับ "สร้างตั๋ว", "ค้นหาตั๋ว", "คิวของฉัน"
+*   **สถานะ (States):** กำลังโหลด (ใช้ skeletons), ว่างเปล่า (ข้อความสถานะศูนย์), ข้อผิดพลาด/ล้มเหลวอย่างปลอดภัย (แบนเนอร์พร้อมปุ่มลองใหม่)
 
-### Screen 2: Requester Dashboard
-*   **Layout:** Similar responsive breakpoints to the IT Staff Dashboard.
-*   **Elements:**
-    *   **Metric Cards:** "My Open Tickets", "Waiting for Me", "Recently Resolved". Clicks drill down to the filtered "My Tickets" list.
-    *   **My Recent Tickets:** A capped list of their own tickets.
-    *   **Quick Actions:** "Create Ticket", "View All My Tickets".
-*   **Role Behavior:** Accessing the IT Staff Dashboard returns a 403 Forbidden state with a safe, polite message and a link back to their own dashboard.
+### หน้าจอ 2: Requester Dashboard
+*   **รูปแบบ:** มีจุดเปลี่ยนขนาดหน้าจอ (Breakpoints) ที่คล้ายกับ IT Staff Dashboard
+*   **องค์ประกอบ:**
+    *   **การ์ดตัวชี้วัด:** "ตั๋วที่เปิดอยู่ของฉัน", "รอฉันอยู่", "เพิ่งแก้ไขล่าสุด" เมื่อคลิกจะเจาะลึกไปยังรายการ "ตั๋วของฉัน" ที่ถูกกรอง
+    *   **ตั๋วล่าสุดของฉัน:** รายการตั๋วของตนเองที่จำกัดจำนวน
+    *   **การทำงานด่วน:** "สร้างตั๋ว", "ดูตั๋วทั้งหมดของฉัน"
+*   **พฤติกรรมตามบทบาท (Role Behavior):** หากผู้ร้องขอพยายามเข้าถึง Staff Dashboard ระบบจะส่งคืนสถานะ `403 Forbidden` พร้อมข้อความแจ้งเตือนที่ปลอดภัยและสุภาพ และมีลิงก์กลับไปยังแดชบอร์ดของตนเอง
 
-### Screen 3: Ticket Detail - Actions Taken Area
-*   **Layout (1280px/768px):** Rendered as a Data Table below the ticket description.
-*   **Layout (360px):** Table transforms into stacked mobile cards.
-*   **Elements:**
-    *   **Columns/Fields:** Date/Time, Description, Result, Performed By (read-only), Follow-Up (badge + note), Attachment Notes.
-    *   **Create Mode (Staff/Admin):** Form appears inline or in a modal. Date defaults to now. "Follow-up Note" dynamically appears/becomes required when the "Follow-up Required" toggle is ON. Submit/Cancel buttons.
-    *   **View/Edit Mode (Staff/Admin):** Clicking an action switches it to edit mode.
-    *   **Read-Only Mode (Requester):** Requesters see the list of Actions on their ticket. No "Create" or "Edit" buttons are rendered.
-*   **States:**
-    *   **Loading:** Table skeletons.
-    *   **Empty:** "No actions have been recorded yet." message.
-    *   **Pending (Submit):** Submit button disables, shows spinner. Form data is preserved if submission fails.
-    *   **Conflict (409):** A prominent banner appears above the edit form: "This action was updated by someone else. [Reload]". The user's typed text remains in the form fields.
+### หน้าจอ 3: หน้ารายละเอียดตั๋ว - ส่วนของ Actions Taken
+*   **รูปแบบ (1280px/768px):** แสดงเป็นตารางข้อมูล (Data Table) ด้านล่างคำอธิบายตั๋ว
+*   **รูปแบบ (360px):** ตารางจะแปลงเป็นการ์ดจัดเรียงซ้อนกันสำหรับมือถือ
+*   **องค์ประกอบ:**
+    *   **คอลัมน์/ฟิลด์:** วันที่/เวลา, คำอธิบาย, ผลลัพธ์, ผู้ดำเนินการ (อ่านได้อย่างเดียว), การติดตามผล (ป้ายกำกับ + บันทึก), บันทึกไฟล์แนบ
+    *   **โหมดการสร้าง (Staff/Admin):** ฟอร์มจะแสดงแบบแทรกในหน้าจอ (Inline) หรือในหน้าต่าง (Modal) วันที่จะถูกตั้งเป็นปัจจุบันโดยปริยาย ฟิลด์ "บันทึกการติดตามผล" จะปรากฏและกลายเป็นข้อมูลบังคับ (Required) แบบไดนามิกเมื่อเปิดสวิตช์ "ต้องการการติดตามผล" มีปุ่มตกลง/ยกเลิก
+    *   **โหมดดู/แก้ไข (Staff/Admin):** การคลิกที่การดำเนินการจะสลับเปลี่ยนเป็นโหมดแก้ไข
+    *   **โหมดอ่านได้อย่างเดียว (Requester):** ผู้ร้องขอจะเห็นรายการ Actions ในตั๋วของพวกเขา โดยจะไม่มีการแสดงปุ่ม "สร้าง" หรือ "แก้ไข"
+*   **สถานะ:**
+    *   **กำลังโหลด:** โครงกระดูกตาราง (Table skeletons)
+    *   **ว่างเปล่า:** ข้อความ "ยังไม่มีการบันทึกการดำเนินการใดๆ"
+    *   **รอดำเนินการ (Submit):** ปุ่มตกลงถูกปิดการใช้งาน และแสดงไอคอนหมุน (Spinner) ข้อมูลในฟอร์มจะยังคงอยู่หากการส่งข้อมูลล้มเหลว
+    *   **ความขัดแย้ง (409):** จะมีแบนเนอร์ที่เห็นได้ชัดเจนปรากฏเหนือฟอร์มแก้ไข: "การดำเนินการนี้ถูกอัปเดตโดยบุคคลอื่น [โหลดซ้ำ]" โดยข้อความที่ผู้ใช้พิมพ์ไว้ยังคงอยู่ในฟิลด์ของฟอร์ม
 
-### Screen 4: Ticket Status Controls
-*   **Behavior:** The UI fetches `allowed-transitions` from the API. The transition dropdown/buttons render *only* the permitted options. The UI does not hardcode the transition matrix.
-*   **Feedback:** Upon successful transition, the Ticket summary status badge refreshes immediately. If a 409 conflict or resolution gate failure occurs, an inline safe error banner explains the issue.
-*   **Owner Assignment:** The dropdown lists only *active* IT Staff/Admin users.
-*   **Requester Indication:** Requesters see a "Mark as appears resolved" button. Staff see a banner indicating "Requester marked this as resolved" if the flag is true.
+### หน้าจอ 4: ส่วนควบคุมสถานะตั๋ว (Ticket Status Controls)
+*   **พฤติกรรม:** UI จะดึง `allowed-transitions` จาก API เมนู Dropdown/ปุ่มสำหรับการเปลี่ยนสถานะจะแสดง *เฉพาะ* ตัวเลือกที่ได้รับอนุญาตเท่านั้น UI จะต้องไม่กำหนดตารางเมทริกซ์สถานะแบบ Hardcode ในโค้ด
+*   **ข้อเสนอแนะ:** เมื่อทำการเปลี่ยนสถานะสำเร็จ ป้ายกำกับสถานะในส่วนสรุปตั๋วจะต้องอัปเดตทันที หากเกิดความขัดแย้ง 409 หรือไม่ผ่านข้อจำกัดในการแก้ปัญหา (Resolution gate) แบนเนอร์ข้อผิดพลาดที่ปลอดภัยจะแสดงขึ้นมาเพื่ออธิบายปัญหาในบรรทัดเดียวกัน
+*   **การมอบหมายเจ้าของตั๋ว:** เมนู Dropdown จะแสดงเฉพาะผู้ใช้ IT Staff/Admin ที่ยัง *ใช้งานอยู่ (Active)* เท่านั้น
+*   **ข้อบ่งชี้ของผู้ร้องขอ:** ผู้ร้องขอจะเห็นปุ่ม "ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" เจ้าหน้าที่จะเห็นแบนเนอร์ระบุว่า "ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว" หากค่าธงเป็นจริง
 
-### Screen 5: Navigation
-*   **Role Behavior:** Navigation renders "Dashboard" pointing to the correct role-specific dashboard.
-*   **Active Page Indication:** The active navigation item must have a distinct visual style (e.g., darker background, bold text, left border) and the `aria-current="page"` attribute.
+### หน้าจอ 5: การนำทาง (Navigation)
+*   **พฤติกรรมตามบทบาท:** เมนูการนำทางจะแสดง "แดชบอร์ด" ซึ่งชี้ไปยังแดชบอร์ดเฉพาะบทบาทที่ถูกต้อง
+*   **การระบุหน้าที่กำลังใช้งาน (Active Page):** รายการเมนูที่กำลังใช้งานอยู่จะต้องมีรูปแบบทางสายตาที่โดดเด่น (เช่น พื้นหลังที่เข้มขึ้น, ข้อความตัวหนา, ขอบด้านซ้าย) และใช้แอตทริบิวต์ `aria-current="page"`
 
-## 3. Keyboard, Focus, and ARIA Rules
-- All interactive elements (links, buttons, form fields) must be reachable via the `Tab` key.
-- The visual focus ring (`focus:outline-none focus:ring-2 focus:ring-[#006B3C] focus:ring-offset-2`) must be clearly visible on all interactive elements.
-- Form validation messages must be placed immediately adjacent to the input field and linked using `aria-describedby` or `aria-live="polite"` so screen readers announce them.
-- If modals/dialogs are used (e.g., for creating an Action), they must trap focus within the modal while open, allow closing via the `Esc` key, and restore focus to the triggering element upon closing.
+## 3. กฎของคีย์บอร์ด, Focus และ ARIA
+- องค์ประกอบที่โต้ตอบได้ทั้งหมด (ลิงก์, ปุ่ม, ฟิลด์ฟอร์ม) ต้องสามารถเข้าถึงได้ผ่านปุ่ม `Tab` บนคีย์บอร์ด
+- วงแหวนแจ้งสถานะการ Focus ทางสายตา (`focus:outline-none focus:ring-2 focus:ring-[#006B3C] focus:ring-offset-2`) ต้องมองเห็นได้ชัดเจนบนองค์ประกอบที่โต้ตอบได้ทั้งหมด
+- ข้อความแจ้งข้อผิดพลาดของการตรวจสอบฟอร์ม (Validation messages) จะต้องจัดวางติดกับฟิลด์รับข้อมูลนั้นๆ ทันที และเชื่อมโยงกันด้วย `aria-describedby` หรือ `aria-live="polite"` เพื่อให้โปรแกรมอ่านหน้าจอ (Screen readers) สามารถประกาศข้อความเหล่านั้นได้
+- หากใช้ Modal หรือ Dialog (เช่น สำหรับสร้าง Action) จะต้องดักจับสถานะ Focus ให้อยู่ภายใน Modal ในขณะที่กำลังเปิดใช้งานอยู่, อนุญาตให้ปิดผ่านปุ่ม `Esc`, และคืนสถานะ Focus ไปยังองค์ประกอบที่เรียกใช้หลังจากปิด Modal นั้น
 
-## 4. Visual and Accessibility Checklist
+## 4. รายการตรวจสอบภาพรวมและการเข้าถึง (Visual and Accessibility Checklist)
 
-- [ ] **Design Consistency:** Zen Green tokens are applied correctly. No leftover/duplicate UI from earlier labs.
-- [ ] **Dashboards:** Loading, empty, and safe-error states render correctly. Metric cards link to correct drill-down views.
-- [ ] **Actions Taken:** Table transforms to cards on mobile (360px). Follow-up note field conditionally appears.
-- [ ] **Form States:** Editable fields are distinct from read-only. Form data is preserved on recoverable failures (e.g., validation error).
-- [ ] **Validation Placement:** Errors appear adjacent to fields and are announced to screen readers.
-- [ ] **Keyboard Focus:** Focus rings are visible on all interactive elements. Dialogs trap and restore focus.
-- [ ] **Layout (360/768/1280):** No clipped text, overlapping controls, or horizontal page scroll at any breakpoint.
-- [ ] **Non-Color Cues:** Status, priority, follow-up, and private vs. shared content convey meaning via icons or text, not color alone.
+- [ ] **ความสอดคล้องในการออกแบบ:** มีการปรับใช้โทนสี Zen Green อย่างถูกต้อง ไม่มีชิ้นส่วน UI ที่ตกค้างหรือซ้ำซ้อนจากแล็บก่อนหน้า
+- [ ] **แดชบอร์ด:** สถานะกำลังโหลด, สถานะว่างเปล่า, และสถานะข้อผิดพลาดที่ปลอดภัยแสดงผลได้อย่างถูกต้อง การ์ดตัวชี้วัดลิงก์ไปยังมุมมองแบบเจาะลึกอย่างถูกต้อง
+- [ ] **Actions Taken:** ตารางข้อมูลสามารถเปลี่ยนเป็นการ์ดในมุมมองมือถือ (360px) ฟิลด์บันทึกการติดตามผลแสดงแบบมีเงื่อนไขอย่างถูกต้อง
+- [ ] **สถานะฟอร์ม:** ฟิลด์ที่แก้ไขได้มีความแตกต่างจากฟิลด์ที่อ่านได้อย่างเดียว ข้อมูลในฟอร์มถูกเก็บรักษาไว้เมื่อเกิดความล้มเหลวที่แก้ไขได้ (เช่น ข้อมูลผิดพลาดจากการ Validate)
+- [ ] **การวางตำแหน่งการแจ้งข้อผิดพลาด:** แจ้งข้อผิดพลาดปรากฏอยู่ข้างฟิลด์และมีการประกาศผ่านตัวอ่านหน้าจอ
+- [ ] **Keyboard Focus:** มองเห็นวงแหวน Focus บนองค์ประกอบที่สามารถโต้ตอบได้ทั้งหมด กล่องโต้ตอบ Modal จับและคืนสถานะ Focus ได้อย่างเหมาะสม
+- [ ] **รูปแบบโครงสร้าง (360/768/1280):** ไม่มีข้อความถูกตัดขาด, ไม่มีคอนโทรลที่ซ้อนทับกัน, หรือการเลื่อนหน้าในแนวนอนที่ทุกขนาดหน้าจอการแสดงผล
+- [ ] **ตัวบ่งชี้ที่ไม่พึ่งพาสี:** สถานะ, ความสำคัญ, การติดตามผล, และเนื้อหาส่วนตัวเทียบกับส่วนรวม สื่อความหมายผ่านไอคอนหรือข้อความด้วย ไม่ใช่แค่เพียงการใช้สีเท่านั้น

@@ -1,9 +1,9 @@
-# Lab 4 API Specification
+# ข้อกำหนด API Lab 4 (API Specification)
 
-## 1. Concurrency, Idempotency, and Safe Errors
-- **Optimistic Concurrency:** Endpoints that mutate existing records (e.g., updating an Action Taken or changing a Ticket's status) require the current `version` token in the request body. A mismatch results in a `409 Conflict`.
-- **Idempotency:** Creation endpoints support an optional `Idempotency-Key` header. The server will de-duplicate requests with the same key within a specific timeframe to prevent duplicate records from double-clicks or network retries.
-- **Safe Error Envelope:** All errors return a standardized JSON envelope. Stack traces, SQL errors, or deep server internals are never exposed.
+## 1. การจัดการ Concurrency, Idempotency และข้อผิดพลาดที่ปลอดภัย (Safe Errors)
+- **Optimistic Concurrency:** ปลายทาง (Endpoints) ที่แก้ไขระเบียนที่มีอยู่ (เช่น การอัปเดต Action Taken หรือการเปลี่ยนสถานะของตั๋ว) ต้องการข้อมูล `version` token ปัจจุบันในเนื้อหาคำขอ หากค่าไม่ตรงกัน จะส่งผลให้เกิดข้อผิดพลาด `409 Conflict`
+- **Idempotency:** ปลายทางสำหรับการสร้างข้อมูลรองรับ Header `Idempotency-Key` (เป็นทางเลือก) เซิร์ฟเวอร์จะกำจัดคำขอที่ซ้ำซ้อนด้วยคีย์เดียวกันภายในกรอบเวลาเฉพาะ เพื่อป้องกันการสร้างระเบียนซ้ำซ้อนจากการดับเบิลคลิกหรือการลองส่งใหม่ของเครือข่าย
+- **Safe Error Envelope:** ข้อผิดพลาดทั้งหมดจะถูกส่งคืนในรูปแบบมาตรฐาน (JSON envelope) ห้ามเปิดเผยข้อมูล Stack traces, ข้อผิดพลาดของ SQL, หรือรายละเอียดเชิงลึกของเซิร์ฟเวอร์โดยเด็ดขาด
   ```json
   {
     "error": {
@@ -15,7 +15,7 @@
     }
   }
   ```
-  For conflicts:
+  สำหรับกรณีข้อขัดแย้ง:
   ```json
   {
     "error": {
@@ -26,11 +26,11 @@
   }
   ```
 
-## 2. Actions Taken Endpoints
+## 2. ปลายทางสำหรับการดำเนินการ (Actions Taken Endpoints)
 
 ### `GET /api/tickets/:ticketId/actions-taken`
-- **Auth required:** Yes (Requester for own Ticket, IT Staff, Admin).
-- **Success (200):** Returns a list of Actions Taken in stable order (actionAt ASC, createdAt ASC, id ASC).
+- **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง, เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Success (200):** ส่งคืนรายการ Actions Taken โดยเรียงลำดับอย่างคงที่ (actionAt น้อยไปมาก, createdAt น้อยไปมาก, id น้อยไปมาก)
   ```json
   {
     "actions": [
@@ -49,11 +49,11 @@
     ]
   }
   ```
-- **Errors:** 401 (Unauthenticated), 403 (Requester accessing foreign ticket), 404 (Ticket not found).
+- **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอเข้าถึงตั๋วของผู้อื่น), 404 (ไม่พบตั๋ว)
 
 ### `POST /api/tickets/:ticketId/actions-taken`
-- **Auth required:** Yes (IT Staff, Admin).
-- **Headers:** `Idempotency-Key` (optional string).
+- **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Headers:** `Idempotency-Key` (สตริงทางเลือก)
 - **Request body:**
   ```json
   {
@@ -65,13 +65,13 @@
     "attachmentNotes": null
   }
   ```
-  *(Note: `performedBy` is populated automatically from the session. Any `performedBy` in the payload is ignored.)*
-- **Success (201):** Returns the created Action Taken.
-- **Errors:** 400/422 (Validation failed), 401 (Unauthenticated), 403 (Requester attempt), 404 (Ticket not found), 409 (Ticket is CLOSED or CANCELLED).
+  *(หมายเหตุ: `performedBy` ถูกเติมโดยอัตโนมัติจากเซสชันของผู้ใช้ หากมีการระบุ `performedBy` ใน payload ข้อมูลนั้นจะถูกละเว้น)*
+- **Success (201):** ส่งคืนรายการ Action Taken ที่ถูกสร้าง
+- **Errors:** 400/422 (ข้อมูลไม่ถูกต้อง), 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามสร้าง), 404 (ไม่พบตั๋ว), 409 (ตั๋วอยู่ในสถานะ CLOSED หรือ CANCELLED)
 
 ### `PATCH /api/tickets/:ticketId/actions-taken/:actionId`
-- **Auth required:** Yes (IT Staff, Admin).
-- **Request body:** Requires `version` and the fields to update.
+- **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Request body:** ต้องมี `version` และฟิลด์ที่ต้องการอัปเดต
   ```json
   {
     "version": 1,
@@ -79,47 +79,47 @@
     "result": "Restarted the router and updated firmware."
   }
   ```
-- **Success (200):** Returns the updated Action Taken with `version` incremented.
-- **Errors:** 400/422 (Validation failed), 401 (Unauthenticated), 403 (Requester attempt), 404 (Action/Ticket not found), 409 (Stale version).
+- **Success (200):** ส่งคืนรายการ Action Taken ที่ถูกอัปเดตพร้อมกับค่า `version` ที่เพิ่มขึ้น
+- **Errors:** 400/422 (ข้อมูลไม่ถูกต้อง), 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามแก้ไข), 404 (ไม่พบตั๋วหรือ Action), 409 (ค่า version ล้าสมัย)
 
-## 3. Ticket Workflow Endpoints
+## 3. ปลายทางสำหรับเวิร์กโฟลว์ตั๋ว (Ticket Workflow Endpoints)
 
-### `POST /api/tickets/:ticketId/status` (or `PATCH /api/tickets/:ticketId/status`)
-- **Auth required:** Yes (IT Staff, Admin, or Requester for permitted cancelation of own ticket).
-- **Request body:** Requires `version` and new `status`.
+### `POST /api/tickets/:ticketId/status` (หรือ `PATCH /api/tickets/:ticketId/status`)
+- **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ, หรือผู้ร้องขอสำหรับการยกเลิกตั๋วของตนเองที่ได้รับอนุญาต)
+- **Request body:** ต้องมี `version` และ `status` ใหม่
   ```json
   {
     "version": 2,
     "status": "RESOLVED"
   }
   ```
-- **Success (200):** Returns the updated Ticket summary.
-- **Errors:** 401, 403 (Forbidden role), 404, 409 (Stale version), 422 (Invalid transition or fails resolution gate).
+- **Success (200):** ส่งคืนข้อมูลสรุปของตั๋วที่ถูกอัปเดต
+- **Errors:** 401, 403 (บทบาทไม่ได้รับอนุญาต), 404, 409 (ค่า version ล้าสมัย), 422 (การเปลี่ยนสถานะไม่ถูกต้องหรือไม่ผ่านข้อจำกัดการปิดงาน)
 
 ### `GET /api/tickets/:ticketId/allowed-transitions`
-- **Auth required:** Yes (Requester for own Ticket, IT Staff, Admin).
-- **Success (200):** Returns the transitions allowed for the current user and the current Ticket status.
+- **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง, เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Success (200):** ส่งคืนสถานะที่อนุญาตให้เปลี่ยนได้สำหรับผู้ใช้ปัจจุบันและสถานะตั๋วปัจจุบัน
   ```json
   {
     "allowedTransitions": ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"]
   }
   ```
 
-### `POST /api/tickets/:ticketId/requester-resolved-indication` (or `PATCH`)
-- **Auth required:** Yes (Requester for own Ticket).
+### `POST /api/tickets/:ticketId/requester-resolved-indication` (หรือ `PATCH`)
+- **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง)
 - **Request body:**
   ```json
   {
     "problemAppearsResolved": true
   }
   ```
-- **Success (200):** Returns updated Ticket summary. Does not change the status enum.
+- **Success (200):** ส่งคืนข้อมูลสรุปตั๋วที่อัปเดตแล้ว โดยไม่มีการเปลี่ยนแปลงค่าสถานะ (status enum)
 - **Errors:** 401, 403, 404.
 
-## 4. Dashboard Endpoints
+## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
 
 ### `GET /api/dashboard/requester`
-- **Auth required:** Yes (Requester).
+- **Auth required:** ใช่ (ผู้ร้องขอ)
 - **Success (200):**
   ```json
   {
@@ -152,10 +152,10 @@
     ]
   }
   ```
-- **Errors:** 401 (Unauthenticated), 403 (Staff/Admin attempt).
+- **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (เจ้าหน้าที่ไอที/ผู้ดูแลระบบพยายามเข้าถึง)
 
 ### `GET /api/dashboard/staff`
-- **Auth required:** Yes (IT Staff, Admin).
+- **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Success (200):**
   ```json
   {
@@ -191,11 +191,11 @@
     ]
   }
   ```
-- **Errors:** 401 (Unauthenticated), 403 (Requester attempt).
+- **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามเข้าถึง)
 
-## 5. System Endpoints
+## 5. ปลายทางของระบบ (System Endpoints)
 ### `GET /api/health`
-- **Auth required:** No.
+- **Auth required:** ไม่
 - **Success (200):**
   ```json
   {
@@ -204,8 +204,8 @@
   }
   ```
 
-## 6. Preserved Lab 2-3 Endpoints
-The following endpoints from previous labs must continue to function exactly as specified:
+## 6. ปลายทางเดิมจาก Lab 2-3 ที่รักษาไว้ (Preserved Lab 2-3 Endpoints)
+ปลายทางต่อไปนี้จากแล็บก่อนหน้าจะต้องทำงานตามที่ระบุไว้อย่างครบถ้วน:
 - `POST /auth/login`
 - `POST /auth/logout`
 - `GET /auth/me`

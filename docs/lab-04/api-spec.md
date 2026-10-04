@@ -8,6 +8,7 @@
   - หากคีย์เดิมแต่เนื้อหา body เปลี่ยน จะส่งคืน `422 IDEMPOTENCY_KEY_REUSED`
 
 ### แคตตาล็อกรหัสข้อผิดพลาด (Error Code Catalog)
+
 | รหัสข้อผิดพลาด (Code) | HTTP Status | กรณีที่ใช้งาน (When Used) |
 | :--- | :--- | :--- |
 | `VALIDATION_FAILED` | 422 | ข้อมูลใน Request ไม่ถูกต้องตามข้อกำหนด |
@@ -64,7 +65,11 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Headers:** `Idempotency-Key` (สตริงทางเลือก)
 
+  - **หมายเหตุ:** ฟิลด์ `performedBy` และ `ticketId` ที่ส่งมาใน Request Body จะถูกเพิกเฉยเสมอ โดยระบบจะใช้ค่าจาก Session ของผู้ใช้ปัจจุบันและ ID จาก URL แทน
+
+
 **ตารางการตรวจสอบข้อมูล (Validation)**
+
 | ฟิลด์ | Required (POST) | ชนิดข้อมูล | ข้อกำหนดความยาว / รูปแบบ |
 | :--- | :--- | :--- | :--- |
 | `description` | ใช่ | String | สูงสุด 2000 ตัวอักษร |
@@ -123,6 +128,14 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ, หรือผู้ร้องขอสำหรับการยกเลิกตั๋วของตนเองที่ได้รับอนุญาต) ผู้ร้องขอสามารถส่งเปลี่ยนได้เฉพาะสถานะที่ตนเองมีสิทธิ์ตามเมทริกซ์การเปลี่ยนสถานะ
 - **Headers:** `Idempotency-Key` (สตริงทางเลือก)
 - **Request body:** ต้องมี `version` และ `status` ใหม่
+
+  - **กระบวนการภายใน (Transaction):** การเปลี่ยนแปลงสถานะที่สำเร็จจะต้องทำภายใน 1 Transaction เดียว โดยประกอบด้วย:
+    1. ตรวจสอบ `version` และตรวจสอบสิทธิ์จากเมทริกซ์การเปลี่ยนสถานะ
+    2. เขียนสถานะใหม่และเพิ่ม `version` ขึ้น 1
+    3. เพิ่มแถวข้อมูลใน `TicketStatusHistory`
+    4. ล้างค่า `requesterMarkedResolvedAt` (ตั้งเป็น null)
+  - **หมายเหตุ:** หาก Requester พยายามเปลี่ยนสถานะในแบบที่ Requester ไม่มีสิทธิ์ จะได้รับ 403 FORBIDDEN, แต่หากเป็นการเปลี่ยนสถานะจาก->ไปยังสถานะที่ไม่ถูกต้อง (Invalid pair) จะได้รับ 422 INVALID_TRANSITION
+
   ```json
   {
     "version": 2,
@@ -182,24 +195,24 @@
     ```
 
 ### `POST /api/tickets/:id/requester-resolved-indication`
-- **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง)
-- **Request body:**
-  ```json
-  {
-    "problemAppearsResolved": true
-  }
-  ```
-- **Success (200):** ส่งคืนข้อมูลสรุปตั๋วที่อัปเดตแล้ว โดยไม่มีการเปลี่ยนแปลงค่าสถานะ (status enum) ของตั๋ว และการส่ง `true` จะประทับเวลา `requesterMarkedResolvedAt` ส่วน `false` จะล้างค่า (clear) ให้เป็น `null`
-  ```json
-  {
-    "id": 123,
-    "ticketNumber": "TKT-001",
-    "status": "OPEN",
-    "version": 2,
-    "requesterMarkedResolvedAt": "2026-10-03T10:15:00Z"
-  }
-  ```
-- **Errors:** 401, 403, 404
+  - **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง)
+  - **Request body:**
+    ```json
+    {
+      "problemAppearsResolved": true
+    }
+    ```
+
+  - **กฎการใช้งาน:** 
+    - อนุญาตเฉพาะตั๋วที่อยู่ในสถานะกลุ่มเปิด (ยกเว้น NEW) คือ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED
+    - ไม่ต้องส่ง `version` และการดำเนินการนี้ **ไม่ทำให้ version เพิ่มขึ้น** (จะคืนค่า version ปัจจุบันกลับไป)
+    - หากส่งค่า `true` ซ้ำ จะคง timestamp เดิมไว้
+    - แฟล็กนี้จะถูกล้างค่าโดยอัตโนมัติเมื่อมีการเปลี่ยนสถานะ
+  - **Errors:** 
+    - `409 INVALID_TICKET_STATE` ถ้าระบุสำหรับสถานะอื่น
+    - `403 FORBIDDEN` หากไม่ใช่ผู้ร้องขอหรือเป็นตั๋วของผู้อื่น
+    - `404 NOT_FOUND` หากไม่พบตั๋ว
+
 
 ### `PATCH /staff/tickets/:id/owner` (ปรับปรุงจาก Lab 3)
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
@@ -213,6 +226,25 @@
 - **Success (200):** ส่งคืนข้อมูลตั๋วที่อัปเดตแล้วพร้อม `version` ใหม่
 - **Errors:** 422 `INVALID_ASSIGNEE` (ผู้ใช้ไม่แอคทีฟ หรือไม่มีบทบาท IT_STAFF/ADMINISTRATOR), 409 `CONFLICT` (ค่า version ล้าสมัย), 403 (Requester พยายามเรียกใช้งาน), 404
 
+
+    ```json
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "ticketNumber": "TCK-001",
+      "status": "OPEN",
+      "version": 2,
+      "owner": {
+        "id": "staff-uuid",
+        "name": "Jane Staff"
+      }
+    }
+    ```
+  - **กฎการใช้งาน:** 
+    - สามารถส่ง `ownerId: null` เพื่อยกเลิกการมอบหมายได้ (อิงตามพฤติกรรมเดิมของ Lab 3)
+    - หากตั๋วอยู่ในสถานะถูกล็อก (CLOSED/CANCELLED) จะคืนค่า `409 TICKET_LOCKED`
+    - หากตั๋วมีการขัดแย้ง จะคืนค่า `409 CONFLICT`
+  - **Errors:** `422 VALIDATION_FAILED` สำหรับ `ownerId` ไม่ถูกต้องหรือหายไป (นอกเหนือจาก null), `422 INVALID_ASSIGNEE`, `409 TICKET_LOCKED`, `409 CONFLICT`, `404 NOT_FOUND`
+
 ## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
 
 ### `GET /api/dashboard/requester`
@@ -224,7 +256,7 @@
       "openTickets": {
         "label": "My Open Tickets",
         "value": 3,
-        "drillDown": "/tickets?status=open"
+        "drillDown": "/tickets?statusGroup=open"
       },
       "waitingForMe": {
         "label": "Waiting for Me",
@@ -260,21 +292,21 @@
       "unassigned": {
         "label": "Unassigned",
         "value": 5,
-        "drillDown": "/staff/tickets?status=unassigned"
+        "drillDown": "/staff/tickets?statusGroup=open&assignee=unassigned"
       },
       "myOwned": {
         "label": "My Owned",
         "value": 4,
-        "drillDown": "/staff/tickets?status=mine"
+        "drillDown": "/staff/tickets?statusGroup=open&assignee=me"
       },
       "statusCounts": {
-        "label": "By Status",
-        "values": { "NEW": 2, "OPEN": 5, "IN_PROGRESS": 3, "WAITING_FOR_REQUESTER": 1 },
+      "label": "By Status",
+      "values": { "NEW": 0, "OPEN": 0, "IN_PROGRESS": 0, "WAITING_FOR_REQUESTER": 0, "REOPENED": 0 },
         "drillDownBase": "/staff/tickets?status="
       },
       "priorityCounts": {
-        "label": "By IT Priority",
-        "values": { "CRITICAL": 1, "HIGH": 2, "MEDIUM": 5, "LOW": 3 },
+      "label": "By IT Priority",
+      "values": { "LOW": 0, "MEDIUM": 0, "HIGH": 0, "CRITICAL": 0 },
         "drillDownBase": "/staff/tickets?priority="
       }
     },

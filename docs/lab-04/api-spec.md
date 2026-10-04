@@ -3,7 +3,7 @@
 ## 1. ข้อกำหนดพื้นฐานและข้อผิดพลาด (Conventions and Errors)
 - **Base Path Convention:** API ทั้งหมดในเอกสารนี้ใช้ Base Path `/api` (สำหรับ Requester, Attachments และ Workflow) หรือ `/staff` หรือ `/admin` ตามกลุ่มผู้ใช้งาน พารามิเตอร์รหัสตั๋วจะใช้ `:id` เป็นมาตรฐานเดียวกันทั้งหมด
 - **Optimistic Concurrency:** ปลายทางที่แก้ไขข้อมูลต้องการ `version` token ปัจจุบัน หากค่าไม่ตรงกัน จะส่งคืนข้อผิดพลาด `409 Conflict`
-- **Idempotency:** การรับเรื่องขอสร้างข้อมูล (POST) และการเปลี่ยนสถานะ รองรับ Header `Idempotency-Key` ระยะเวลาเก็บคีย์คือ 24 ชั่วโมง โดยมีขอบเขต (scope) แยกตาม User + Endpoint + Key 
+- **Idempotency:** การรับเรื่องขอสร้างข้อมูล (POST) และการเปลี่ยนสถานะ รองรับ Header `Idempotency-Key` ระยะเวลาเก็บคีย์คือ 24 ชั่วโมง (กำหนดโดยฟิลด์ `expiresAt` ในตาราง `IdempotencyKey` — ดูโมเดลในหัวข้อ 7 ของ specification) โดยมีขอบเขต (scope) แยกตาม User + Endpoint + Key 
   - หากส่งคำขอด้วยคีย์เดิมและ body เดิม จะส่งคืน response เดิม (เช่น 201/200) พร้อมกับ Header `Idempotent-Replayed: true`
   - หากคีย์เดิมแต่เนื้อหา body เปลี่ยน จะส่งคืน `422 IDEMPOTENCY_KEY_REUSED`
 
@@ -21,6 +21,7 @@
 | `RESOLUTION_GATE_FAILED` | 422 | ไม่ผ่านเงื่อนไขการปิดงาน (มี `reason` อธิบายสาเหตุ) |
 | `INVALID_ASSIGNEE` | 422 | ผู้รับมอบหมายไม่ถูกต้อง หรือเป็น Inactive user |
 | `IDEMPOTENCY_KEY_REUSED` | 422 | ส่ง Idempotency Key ซ้ำแต่ Request Body ไม่ตรงกับของเดิม |
+| `INVALID_TICKET_STATE` | 409 | การดำเนินการนี้ไม่ได้รับอนุญาตในสถานะปัจจุบันของตั๋ว |
 | `INTERNAL_ERROR` | 500 | ข้อผิดพลาดที่ฝั่งเซิร์ฟเวอร์ (ส่งคืนข้อความทั่วไปแบบ Generic เท่านั้น) |
 
 - **Safe Error Envelope:** ข้อผิดพลาดทั้งหมดจะถูกส่งคืนในรูปแบบมาตรฐาน (JSON envelope) ห้ามเปิดเผยข้อมูลรายละเอียดเชิงลึกของเซิร์ฟเวอร์โดยเด็ดขาด
@@ -36,6 +37,17 @@
   }
   ```
 
+- **ตัวอย่าง 409 Conflict:**
+  ```json
+  {
+    "error": {
+      "code": "CONFLICT",
+      "message": "The ticket was modified by another user.",
+      "currentVersion": 3
+    }
+  }
+  ```
+
 ## 2. ปลายทางสำหรับการดำเนินการ (Actions Taken Endpoints)
 
 ### `GET /api/tickets/:id/actions-taken`
@@ -45,11 +57,11 @@
   {
     "actions": [
       {
-        "id": "cuid...",
+        "id": "clxxxxxx",
         "actionAt": "2026-10-03T10:00:00Z",
         "description": "Investigated the network issue.",
         "result": "Restarted the router.",
-        "performedBy": { "id": "...", "name": "IT Staff Member" },
+        "performedBy": { "id": "clxxxxxx", "name": "IT Staff Member" },
         "followUpRequired": false,
         "followUpNote": null,
         "attachmentNotes": "See network_logs.txt",
@@ -108,11 +120,11 @@
 - **Success (200):** ส่งคืนรายการ Action Taken ที่ถูกอัปเดตพร้อมกับค่า `version` ที่เพิ่มขึ้น
   ```json
   {
-    "id": "cuid...",
+    "id": "clxxxxxx",
     "actionAt": "2026-10-03T10:00:00Z",
     "description": "Investigated the network issue extensively.",
     "result": "Restarted the router and updated firmware.",
-    "performedBy": { "id": "...", "name": "IT Staff Member" },
+    "performedBy": { "id": "clxxxxxx", "name": "IT Staff Member" },
     "followUpRequired": true,
     "followUpNote": "Check again in 2 hours.",
     "attachmentNotes": null,
@@ -145,12 +157,12 @@
 - **Success (200):** ส่งคืนข้อมูลสรุปของตั๋วที่ถูกอัปเดต
   ```json
   {
-    "id": 123,
-    "ticketNumber": "TKT-001",
+    "id": 42,
+    "ticketNumber": "TKT-0042",
     "status": "RESOLVED",
     "version": 3,
     "updatedAt": "2026-10-03T10:10:00Z",
-    "owner": { "id": "...", "name": "IT Staff Member" }
+    "owner": { "id": "clxxxxxx", "name": "IT Staff Member" }
   }
   ```
 - **Errors:** 401, 403, 404, 409 `CONFLICT` (ค่า version ล้าสมัย)
@@ -208,8 +220,14 @@
     - ไม่ต้องส่ง `version` และการดำเนินการนี้ **ไม่ทำให้ version เพิ่มขึ้น** (จะคืนค่า version ปัจจุบันกลับไป)
     - หากส่งค่า `true` ซ้ำ จะคง timestamp เดิมไว้
     - แฟล็กนี้จะถูกล้างค่าโดยอัตโนมัติเมื่อมีการเปลี่ยนสถานะ
-  - **Errors:** 
-    - `409 INVALID_TICKET_STATE` ถ้าระบุสำหรับสถานะอื่น
+  - **Success (200):**
+    ```json
+    { "id": 42, "ticketNumber": "TKT-0042", "status": "OPEN",
+      "version": 2, "requesterMarkedResolvedAt": "2026-10-04T08:00:00Z" }
+    ```
+    *(เมื่อส่ง `false`: `requesterMarkedResolvedAt` จะเป็น `null`)*
+  - **Errors:**
+    - `409 INVALID_TICKET_STATE` ถ้าตั๋วอยู่ในสถานะที่ไม่อนุญาต (NEW, CLOSED, CANCELLED)
     - `403 FORBIDDEN` หากไม่ใช่ผู้ร้องขอหรือเป็นตั๋วของผู้อื่น
     - `404 NOT_FOUND` หากไม่พบตั๋ว
 
@@ -218,32 +236,19 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Request body:**
   ```json
-  {
-    "version": 2,
-    "ownerId": "cuid_of_staff"
-  }
+  { "version": 2, "ownerId": "cuid_of_staff" }
   ```
-- **Success (200):** ส่งคืนข้อมูลตั๋วที่อัปเดตแล้วพร้อม `version` ใหม่
-- **Errors:** 422 `INVALID_ASSIGNEE` (ผู้ใช้ไม่แอคทีฟ หรือไม่มีบทบาท IT_STAFF/ADMINISTRATOR), 409 `CONFLICT` (ค่า version ล้าสมัย), 403 (Requester พยายามเรียกใช้งาน), 404
-
-
-    ```json
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "ticketNumber": "TCK-001",
-      "status": "OPEN",
-      "version": 2,
-      "owner": {
-        "id": "staff-uuid",
-        "name": "Jane Staff"
-      }
-    }
-    ```
-  - **กฎการใช้งาน:** 
-    - สามารถส่ง `ownerId: null` เพื่อยกเลิกการมอบหมายได้ (อิงตามพฤติกรรมเดิมของ Lab 3)
-    - หากตั๋วอยู่ในสถานะถูกล็อก (CLOSED/CANCELLED) จะคืนค่า `409 TICKET_LOCKED`
-    - หากตั๋วมีการขัดแย้ง จะคืนค่า `409 CONFLICT`
-  - **Errors:** `422 VALIDATION_FAILED` สำหรับ `ownerId` ไม่ถูกต้องหรือหายไป (นอกเหนือจาก null), `422 INVALID_ASSIGNEE`, `409 TICKET_LOCKED`, `409 CONFLICT`, `404 NOT_FOUND`
+  *(ส่ง `ownerId: null` เพื่อยกเลิกการมอบหมาย — Lab 3 รองรับแล้ว)*
+- **กฎ:**
+  1. ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) → `409 TICKET_LOCKED`
+  2. version ล้าสมัย → `409 CONFLICT`
+  3. สำเร็จ → version เพิ่มขึ้น 1
+- **Success (200):**
+  ```json
+  { "id": 42, "ticketNumber": "TKT-0042", "status": "OPEN", "version": 3,
+    "owner": { "id": "clxxxxxx", "name": "Jane Staff" } }
+  ```
+- **Errors:** 422 `VALIDATION_FAILED`, 422 `INVALID_ASSIGNEE`, 409 `TICKET_LOCKED`, 409 `CONFLICT`, 403 `FORBIDDEN`, 404 `NOT_FOUND`, 401
 
 ## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
 
@@ -271,8 +276,8 @@
     },
     "recentlyUpdated": [
       {
-        "id": 123,
-        "ticketNumber": "TKT-001",
+        "id": 42,
+        "ticketNumber": "TKT-0042",
         "title": "Cannot access VPN",
         "status": "OPEN",
         "priority": "MEDIUM",
@@ -300,13 +305,13 @@
         "drillDown": "/staff/tickets?statusGroup=open&assignee=me"
       },
       "statusCounts": {
-      "label": "By Status",
-      "values": { "NEW": 0, "OPEN": 0, "IN_PROGRESS": 0, "WAITING_FOR_REQUESTER": 0, "REOPENED": 0 },
+        "label": "By Status",
+        "values": { "NEW": 2, "OPEN": 5, "IN_PROGRESS": 3, "WAITING_FOR_REQUESTER": 1, "REOPENED": 1 },
         "drillDownBase": "/staff/tickets?status="
       },
       "priorityCounts": {
-      "label": "By IT Priority",
-      "values": { "LOW": 0, "MEDIUM": 0, "HIGH": 0, "CRITICAL": 0 },
+        "label": "By IT Priority",
+        "values": { "LOW": 1, "MEDIUM": 5, "HIGH": 3, "CRITICAL": 1 },
         "drillDownBase": "/staff/tickets?priority="
       }
     },
@@ -317,8 +322,8 @@
     },
     "recentlyUpdated": [
       {
-        "id": 124,
-        "ticketNumber": "TKT-002",
+        "id": 43,
+        "ticketNumber": "TKT-0043",
         "title": "Email sync issue",
         "status": "WAITING_FOR_REQUESTER",
         "priority": "HIGH",
@@ -329,6 +334,13 @@
   ```
   *(หมายเหตุ: `userCounts` จะแสดงเฉพาะเมื่อผู้ใช้มีบทบาท Administrator เท่านั้น หากเป็น IT Staff ฟิลด์นี้จะถูกละเว้น)*
 - **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามเข้าถึง)
+
+**ตัวกรองที่ต้องเพิ่มในหน้ารายการ (สำหรับ Issue #8):**
+GET /api/tickets และ GET /staff/tickets ต้องรองรับ parameter เพิ่มเติมดังนี้:
+- **ยังไม่มีในระบบ (ต้องเพิ่ม):** `statusGroup` (กลุ่มสถานะ เช่น `open`), `assignee` (`me` หรือ `unassigned`)
+- **มีอยู่แล้วใน GET /staff/tickets:** `status`, `priority`, `search`, `requestedPriority`
+- **มีอยู่แล้วใน GET /api/tickets:** `status`, `priority`, `search`, `categoryId`
+
 
 ## 5. ปลายทางของระบบ (System Endpoints)
 ### `GET /api/health`

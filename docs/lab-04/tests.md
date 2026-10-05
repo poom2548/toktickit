@@ -262,3 +262,27 @@
 
 ## 7. How final status will be updated
 ผลลัพธ์ Final Status ในตารางข้างต้นจะยังเป็น 'Planned (Red)' ใน Issue นี้ และจะถูกเปลี่ยนเป็น 'Pass' เมื่อฟีเจอร์ต่างๆ ถูกพัฒนาเสร็จสิ้นใน Issue ถัดๆ ไป และถูกรวมผลการรันผ่านบน `main` (ใน Issue ที่เกี่ยวข้องกัน)
+
+
+## โครงสร้างพื้นฐานสำหรับการทดสอบ (Test Helpers)
+
+| Helper | Path | Purpose | Verified by |
+| --- | --- | --- | --- |
+| Viewport | \e2e/lab-04/helpers/viewport.ts\ | ตั้งค่าขนาดหน้าจอ 360/768/1280 และตรวจจับแนวนอนไม่ให้เลื่อน (no-horizontal-scroll) | HELPER-06 |
+| Axe | \e2e/lab-04/helpers/axe.ts\ | ตรวจสอบการเข้าถึง (Accessibility) ดักจับเฉพาะระดับ serious/critical | HELPER-07 |
+| Data Factories | \server/tests/lab-04/helpers.ts\ | สร้างข้อมูลจำลอง User/Ticket/Comment/Note/Attachment (รันได้ทันที) และเตรียมฟังก์ชันสำหรับ Action/History/Idempotency ที่จะทำงานได้เมื่อ Issue #3 ผสานโค้ดแล้ว | HELPER-02, HELPER-05 |
+| Server Auth & Cleanup | \server/tests/lab-04/helpers.ts\ | ให้ระบบล็อกอิน (\loginAs\), และ esetTestData()\ พร้อม Guard \ssertTestDatabase()\ เพื่อป้องกันข้อมูลสูญหาย | HELPER-01, HELPER-03, HELPER-04 |
+| E2E Auth & Network | \e2e/lab-04/helpers/auth.ts\ | เข้าสู่ระบบหน้าเว็บ UI (\loginAs\) และดักจับ Network/Console Errors | HELPER-08 |
+
+### Helper Self-checks
+
+| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| HELPER-01 | unit | - | ตรวจสอบ Guard ของ \ssertTestDatabase()\ | หาก NODE_ENV ไม่ใช่ test ระบบจะปฏิเสธ | \server/tests/lab-04/helpers.selfcheck.test.ts\ | Pass |
+| HELPER-02 | unit | - | ตรวจสอบการทำงาน Data Factories ที่มีอยู่แล้ว | สามารถสร้าง User 4 ประเภท และ Ticket สถานะต่าง ๆ ได้สำเร็จ | \server/tests/lab-04/helpers.selfcheck.test.ts\ | Pass |
+| HELPER-03 | unit | - | ตรวจสอบ Auth Helper ฝั่ง Server | Request แบบ Anonymous คืนค่า 401 และ Request จาก \loginAs\ รันได้ปกติ (200) | \server/tests/lab-04/helpers.selfcheck.test.ts\ | Pass |
+| HELPER-04 | unit | - | ตรวจสอบระบบ Cleanup | ระบบลบข้อมูลออกอย่างปลอดภัย (เฉพาะที่สร้างใหม่โดย Factory) | \server/tests/lab-04/helpers.selfcheck.test.ts\ | Pass |
+| HELPER-05 | unit | - | ตรวจสอบ Factory ของ Model Lab 4 ที่ยังไม่มา | ระบบแจ้งเตือนชัดเจนว่า Model ยังไม่มี หรือถ้ามีจะสร้างผ่าน | \server/tests/lab-04/helpers.selfcheck.test.ts\ | Pass |
+| HELPER-06 | E2E | - | ตรวจสอบ Viewport Helper | ปรับเปลี่ยนขนาดจอและตรวจจับการเลื่อนแนวนอนของ Layout ได้สำเร็จ | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |
+| HELPER-07 | E2E | - | ตรวจสอบ Axe Helper | ไม่ดักจับ Error บนหน้าสะอาด แต่สามารถจับ Serious Violations บนหน้าที่มีข้อบกพร่องได้ | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |
+| HELPER-08 | E2E | - | ตรวจสอบ Auth Helper ฝั่ง E2E | เข้าสู่ระบบสำเร็จและนำทางไปยังหน้าที่กำหนดได้อย่างถูกต้อง | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |

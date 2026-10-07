@@ -87,10 +87,11 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| MIG-01 | migration/regression | AC-39 | Lab 3 data preserved | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-02 | migration/regression | AC-40 | legacy tickets valid (incl. history backfill) | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-03 | migration/regression | AC-41 | seed idempotent + coverage | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-04 | migration/regression | AC-42 | rollback/recovery | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
+| MIG-01 | migration/regression | AC-39 | Lab 3 data preserved | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-02 | migration/regression | AC-40 | legacy tickets valid (incl. history backfill) | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-03 | migration/regression | AC-41 | seed idempotent + coverage | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-04a | migration/regression | AC-42 | rollback script | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-04b | migration/regression | AC-42 | snapshot restore with pg_dump/pg_restore | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
 
 ### server/tests/lab-04/perf-smoke.test.ts
 
@@ -227,7 +228,7 @@
 | AC-39 | MIG-01 |
 | AC-40 | MIG-02, UI-05 |
 | AC-41 | MIG-03 |
-| AC-42 | MIG-04 |
+| AC-42 | MIG-04a, MIG-04b |
 | AC-43 | REG-01, REG-02, REG-03, E2E-05 |
 | AC-44 | API-16, UI-11 |
 | AC-45 | UI-06, UI-14 |
@@ -286,3 +287,19 @@
 | HELPER-06 | E2E | - | ตรวจสอบ Viewport Helper | ปรับเปลี่ยนขนาดจอและตรวจจับการเลื่อนแนวนอนของ Layout ได้สำเร็จ | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |
 | HELPER-07 | E2E | - | ตรวจสอบ Axe Helper | ไม่ดักจับ Error บนหน้าสะอาด แต่สามารถจับ Serious Violations บนหน้าที่มีข้อบกพร่องได้ | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |
 | HELPER-08 | E2E | - | ตรวจสอบ Auth Helper ฝั่ง E2E | เข้าสู่ระบบสำเร็จและนำทางไปยังหน้าที่กำหนดได้อย่างถูกต้อง | \e2e/lab-04/helpers.selfcheck.spec.ts\ | Pass |
+| HELPER-09 | unit | - | resolver uses explicit env var successfully | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+| HELPER-10 | unit | - | resolver throws clear error when env var points to missing file | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+| HELPER-11 | unit | - | resolver uses PG_BIN_DIR successfully | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+| HELPER-12 | unit | - | resolver finds tool via PATH | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+| HELPER-13 | unit | - | runPgTool uses shell: false, handles spaces, and masks password | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+| HELPER-14 | unit | - | getTempFile returns random path under os.tmpdir() without collision | Pass | server/tests/lab-04/helpers.selfcheck.test.ts | Pass |
+
+## PostgreSQL Tools Environment Variables
+
+The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system resolves them in this order:
+1. Explicit variables: PG_DUMP_BIN, PG_RESTORE_BIN, PSQL_BIN, CREATEDB_BIN, DROPDB_BIN
+2. Bin directory: PG_BIN_DIR
+3. Standard PATH
+4. Well-known locations
+
+- **REQUIRE_PG_TOOLS**: Set to 1 in CI to fail the test instead of skipping it if tools are missing.

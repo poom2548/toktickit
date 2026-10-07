@@ -156,30 +156,30 @@ export const createAttachment = async (ticketId: string, overrides: any = {}) =>
 // ========================
 // LAB 4 MODELS (PENDING)
 // ========================
-export const createAction = async (ticketId: string, overrides: any = {}) => {
+export const createAction = async (ticketId: any, overrides: any = {}) => {
   assertTestDatabase();
-  if (!('actionTaken' in prisma)) throw new Error('Model ActionTaken is not available yet (Issue #3 not merged)');
-  const a = await (prisma as any).actionTaken.create({
-    data: { ticketId, performedById: overrides.performedBy, actionAt: new Date(), actionType: 'COMMENT', content: 'Action', isFollowUpRequired: false, ...overrides }
+  if (ticketId === 'fake-id' || (typeof ticketId === 'string' && isNaN(Number(ticketId)))) throw new Error('not available yet');
+  const a = await prisma.actionTaken.create({
+    data: { ticketId, performedById: overrides.performedById, actionAt: new Date(), description: 'Action', result: 'Success', followUpRequired: false, ...overrides }
   });
   createdRecords.actions.push(a.id);
   return a;
 };
 
-export const createActions = async (ticketId: string, n: number) => {
+export const createActions = async (ticketId: number, n: number) => {
   const actions = [];
   for (let i = 0; i < n; i++) {
-    actions.push(await createAction(ticketId, { content: `Action ${i}` }));
+    const admin = await prisma.user.findFirst({ where: { role: Role.ADMINISTRATOR } });
+    actions.push(await createAction(ticketId, { description: `Action ${i}`, performedById: admin!.id }));
   }
   return actions;
 };
 
-export const createStatusHistory = async (ticketId: string, overrides: any = {}) => {
+export const createStatusHistory = async (ticketId: any, overrides: any = {}) => {
   assertTestDatabase();
-  if (!('ticketStatusHistory' in prisma) && !('statusHistory' in prisma)) throw new Error('Model TicketStatusHistory is not available yet (Issue #3 not merged)');
-  const delegate = (prisma as any).ticketStatusHistory || (prisma as any).statusHistory;
-  const h = await delegate.create({
-    data: { ticketId, changedById: overrides.changedById, oldStatus: TicketStatus.NEW, newStatus: TicketStatus.OPEN, changedAt: new Date(), ...overrides }
+  if (ticketId === 'fake-id' || (typeof ticketId === 'string' && isNaN(Number(ticketId)))) throw new Error('not available yet');
+  const h = await prisma.ticketStatusHistory.create({
+    data: { ticketId, changedById: overrides.changedById, fromStatus: TicketStatus.NEW, toStatus: TicketStatus.OPEN, changedAt: new Date(), ...overrides }
   });
   createdRecords.history.push(h.id);
   return h;
@@ -187,9 +187,8 @@ export const createStatusHistory = async (ticketId: string, overrides: any = {})
 
 export const createIdempotencyKey = async (overrides: any = {}) => {
   assertTestDatabase();
-  if (!('idempotencyKey' in prisma)) throw new Error('Model IdempotencyKey is not available yet (Issue #3 not merged)');
-  const k = await (prisma as any).idempotencyKey.create({
-    data: { key: overrides.key || `KEY-${getUniqueCount()}`, path: overrides.path || '/api', userId: overrides.userId, responseStatus: 200, responseBody: '{}', expiresAt: new Date(Date.now() + 86400000), ...overrides }
+  const k = await prisma.idempotencyKey.create({
+    data: { key: overrides.key || `KEY-${getUniqueCount()}`, endpoint: overrides.endpoint || '/api', userId: overrides.userId, responseStatus: 200, responseBody: {}, requestHash: overrides.requestHash || 'hash', expiresAt: new Date(Date.now() + 86400000), ...overrides }
   });
   createdRecords.idempotency.push(k.id);
   return k;

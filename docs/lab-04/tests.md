@@ -87,10 +87,10 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| MIG-01 | migration/regression | AC-39 | Lab 3 data preserved | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-02 | migration/regression | AC-40 | legacy tickets valid (incl. history backfill) | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-03 | migration/regression | AC-41 | seed idempotent + coverage | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
-| MIG-04 | migration/regression | AC-42 | rollback/recovery | 200 OK | server/tests/lab-04/migration.test.ts | Planned (Red) |
+| MIG-01 | migration/regression | AC-39 | Lab 3 data preserved | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-02 | migration/regression | AC-40 | legacy tickets valid (incl. history backfill) | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-03 | migration/regression | AC-41 | seed idempotent + coverage | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
+| MIG-04 | migration/regression | AC-42 | rollback/recovery | 200 OK | server/tests/lab-04/migration.test.ts | Pass |
 
 ### server/tests/lab-04/perf-smoke.test.ts
 

@@ -35,20 +35,24 @@ enum Priority {
 }
 
 model User {
-  id                    String    @id @default(cuid())
-  name                  String
-  email                 String    @unique
-  passwordHash          String
-  role                  Role
-  isActive              Boolean   @default(true)
+  id                     String   @id @default(cuid())
+  name                   String
+  email                  String   @unique
+  passwordHash           String
+  role                   Role
+  isActive               Boolean  @default(true)
   requiresPasswordChange Boolean  @default(true)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  submittedTickets      Ticket[]  @relation("TicketRequester")
-  ownedTickets          Ticket[]  @relation("TicketOwner")
-  publicComments        PublicComment[]
-  internalNotes         InternalNote[]
+  submittedTickets Ticket[]              @relation("TicketRequester")
+  ownedTickets     Ticket[]              @relation("TicketOwner")
+  publicComments   PublicComment[]
+  internalNotes    InternalNote[]
+  performedActions ActionTaken[]         @relation("ActionPerformedBy")
+  updatedActions   ActionTaken[]         @relation("ActionUpdatedBy")
+  statusHistories  TicketStatusHistory[] @relation("HistoryChangedBy")
+  idempotencyKeys  IdempotencyKey[]
 }
 
 // ---------------------------------------------------------------------------
@@ -87,44 +91,48 @@ model Requester {
 // Ticket — the core entity
 // ---------------------------------------------------------------------------
 model Ticket {
-  id                Int      @id @default(autoincrement())
-  ticketNumber      String   @unique          // e.g. TKT-0001
-  summary           String                   // max 100 chars (validated in controller)
-  description       String                   // max 1000 chars (validated in controller)
-  status            TicketStatus @default(NEW)
-  requestedPriority Priority   @default(LOW)
-  itPriority        Priority?
-  requesterId       String
-  ownerId           String?
-  categoryId        Int
-  relatedSystemId   Int
-  problemAppearsResolved Boolean @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                        Int          @id @default(autoincrement())
+  ticketNumber              String       @unique // e.g. TKT-0001
+  summary                   String // max 100 chars (validated in controller)
+  description               String // max 1000 chars (validated in controller)
+  status                    TicketStatus @default(NEW)
+  requestedPriority         Priority     @default(LOW)
+  itPriority                Priority?
+  requesterId               String
+  ownerId                   String?
+  categoryId                Int
+  relatedSystemId           Int
+  problemAppearsResolved    Boolean      @default(false)
+  version                   Int          @default(1)
+  requesterMarkedResolvedAt DateTime?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
 
-  requester     User          @relation("TicketRequester", fields: [requesterId], references: [id])
-  owner         User?         @relation("TicketOwner", fields: [ownerId], references: [id])
-  category      Category      @relation(fields: [categoryId], references: [id])
-  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
-  attachments   Attachment[]
+  requester      User                  @relation("TicketRequester", fields: [requesterId], references: [id])
+  owner          User?                 @relation("TicketOwner", fields: [ownerId], references: [id])
+  category       Category              @relation(fields: [categoryId], references: [id])
+  relatedSystem  RelatedSystem         @relation(fields: [relatedSystemId], references: [id])
+  attachments    Attachment[]
   publicComments PublicComment[]
   internalNotes  InternalNote[]
+  actions        ActionTaken[]
+  statusHistory  TicketStatusHistory[]
 }
 
 // ---------------------------------------------------------------------------
 // Attachment — files attached to a ticket (soft-delete enabled)
 // ---------------------------------------------------------------------------
 model Attachment {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   ticketId    Int
   filename    String
   mimetype    String
   size        Int
-  storagePath String   @default("")   // on-disk path; empty for legacy rows
-  isRemoved   Boolean  @default(false)
+  storagePath String    @default("") // on-disk path; empty for legacy rows
+  isRemoved   Boolean   @default(false)
   deletedAt   DateTime?
   deletedBy   String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   ticket Ticket @relation(fields: [ticketId], references: [id])
 }
@@ -133,13 +141,13 @@ model Attachment {
 // PublicComment — public comments on tickets
 // ---------------------------------------------------------------------------
 model PublicComment {
-  id          String    @id @default(cuid())
-  ticketId    Int
-  ticket      Ticket    @relation(fields: [ticketId], references: [id])
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
-  content     String
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
 
   @@index([ticketId])
 }
@@ -148,13 +156,76 @@ model PublicComment {
 // InternalNote — internal notes for IT staff
 // ---------------------------------------------------------------------------
 model InternalNote {
-  id          String    @id @default(cuid())
-  ticketId    Int
-  ticket      Ticket    @relation(fields: [ticketId], references: [id])
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
-  content     String
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
 
   @@index([ticketId])
+}
+
+// ---------------------------------------------------------------------------
+// ActionTaken — recorded actions on a ticket
+// ---------------------------------------------------------------------------
+model ActionTaken {
+  id               String   @id @default(cuid())
+  ticketId         Int
+  actionAt         DateTime
+  description      String   @db.Text
+  result           String   @db.Text
+  performedById    String
+  followUpRequired Boolean  @default(false)
+  followUpNote     String?  @db.Text
+  attachmentNotes  String?  @db.Text
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  updatedById      String?
+
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  performedBy User   @relation("ActionPerformedBy", fields: [performedById], references: [id])
+  updatedBy   User?  @relation("ActionUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([ticketId, actionAt, createdAt, id])
+  @@index([performedById])
+}
+
+// ---------------------------------------------------------------------------
+// TicketStatusHistory — history of status changes
+// ---------------------------------------------------------------------------
+model TicketStatusHistory {
+  id          String        @id @default(cuid())
+  ticketId    Int
+  fromStatus  TicketStatus?
+  toStatus    TicketStatus
+  changedById String
+  changedAt   DateTime
+
+  ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  changedBy User   @relation("HistoryChangedBy", fields: [changedById], references: [id])
+
+  @@index([ticketId, changedAt])
+}
+
+// ---------------------------------------------------------------------------
+// IdempotencyKey — idempotency records
+// ---------------------------------------------------------------------------
+model IdempotencyKey {
+  id             String   @id @default(cuid())
+  userId         String
+  endpoint       String
+  key            String
+  requestHash    String
+  responseStatus Int
+  responseBody   Json
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint, key])
+  @@index([expiresAt])
 }

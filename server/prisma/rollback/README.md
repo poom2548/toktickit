@@ -42,3 +42,5 @@ pg_restore -U <user> -h <host> -d <database_name> -1 <snapshot_path>
 After performing the rollback or restore, verify the state:
 1. Run `npx prisma migrate status` to confirm that the Lab 4 migration is listed as pending (unapplied).
 2. Check that the row counts for `Ticket` and `User` tables match the counts before the migration, and the new Lab 4 tables do not exist.
+
+Note: The automated snapshot-restore test locates the PostgreSQL tools (such as pg_dump and pg_restore) through environment variables (PG_DUMP_BIN, PG_RESTORE_BIN, PG_BIN_DIR) or PATH.

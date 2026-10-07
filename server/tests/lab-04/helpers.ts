@@ -223,7 +223,7 @@ export const getSeededAccount = async (role: Role) => {
 export const resetTestData = async () => {
   assertTestDatabase();
   // Safe FK-order cleanup using the registry
-  if ('actionTaken' in prisma) {
+  if ('actionTaken' in prisma && createdRecords.tickets.length > 0) {
     await (prisma as any).actionTaken.deleteMany({ where: { ticketId: { in: createdRecords.tickets } } });
   }
   if ('statusHistory' in prisma && createdRecords.history.length > 0) {

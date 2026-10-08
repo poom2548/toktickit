@@ -63,9 +63,36 @@ describe('Server Helper Self-Checks', () => {
   });
 
   it('HELPER-04: cleanup removes only created test data', async () => {
-    await resetTestData();
-    const count = await prisma.user.count({ where: { email: { contains: '@test.com' } } });
-    expect(count).toBe(0);
+    // Create a factory user to be cleaned up
+    const factoryUser = await createRequester();
+
+    // Create a control user explicitly outside the factory
+    const controlEmail = `control_${Date.now()}@test.com`;
+    const controlUser = await prisma.user.create({
+      data: {
+        name: 'Control User',
+        email: controlEmail,
+        passwordHash: 'hash',
+        role: 'REQUESTER',
+        isActive: true,
+        requiresPasswordChange: false,
+      }
+    });
+
+    try {
+      await resetTestData();
+      
+      // Factory user should be gone
+      const factoryUserCount = await prisma.user.count({ where: { id: factoryUser.id } });
+      expect(factoryUserCount).toBe(0);
+
+      // Control user should survive
+      const controlUserCount = await prisma.user.count({ where: { id: controlUser.id } });
+      expect(controlUserCount).toBe(1);
+    } finally {
+      // Clean up the control row
+      await prisma.user.delete({ where: { id: controlUser.id } }).catch(() => {});
+    }
   });
 
   it('HELPER-05: createAction throws not available yet or creates record if exists', async () => {

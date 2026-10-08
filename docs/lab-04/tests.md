@@ -23,27 +23,27 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| API-01 | API/integration | AC-01, AC-07 | create valid Action as IT Staff, performedBy = actor | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-02 | API/integration | AC-05 | required/blank/over-length | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-03 | API/integration | AC-03 | follow-up true + empty note -> 422 | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-04 | API/integration | AC-04 | follow-up false clears note | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-05 | API/integration | AC-06 | invalid/far-future date, UTC storage | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-06 | API/integration | AC-07 | body performedBy ignored | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-07 | API/integration | AC-08 | non-owner staff creates, owner unchanged | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-08 | API/integration | AC-11 | update with current version | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-09 | API/integration | AC-12 | stale version -> 409 CONFLICT | 409 Conflict | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-10 | API/integration | AC-13 | stable ordering | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-11 | API/integration | AC-14 | DELETE -> 404/405, record persists | 405 Method Not Allowed | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-12 | API/integration | AC-15 | create on CLOSED/CANCELLED -> 409 TICKET_LOCKED | 409 Conflict | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-13 | API/integration | AC-18 | duplicate submit / same Idempotency-Key = 1 record | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-14 | API/integration | AC-19 | attachment notes plain text, escaped | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-15 | API/integration | AC-53 | unauthenticated -> 401 on every new endpoint | 401 Unauthorized | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-16 | API/integration | AC-44 | error envelope, no leaks | 400 Bad Request | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| API-17 | API/integration | AC-54 | health endpoint safe payload | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| AUTHZ-01 | authorization | AC-09 | Requester POST Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| AUTHZ-02 | authorization | AC-09 | Requester PATCH Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| AUTHZ-03 | authorization | AC-10 | Requester reads own Actions | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
-| AUTHZ-04 | authorization | AC-10 | Requester reads another's Actions -> documented 403/404 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Planned (Red) |
+| API-01 | API/integration | AC-01, AC-07 | create valid Action as IT Staff, performedBy = actor | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-02 | API/integration | AC-05 | required/blank/over-length | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-03 | API/integration | AC-03 | follow-up true + empty note -> 422 | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-04 | API/integration | AC-04 | follow-up false clears note | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-05 | API/integration | AC-06 | invalid/far-future date, UTC storage | 422 Unprocessable Entity | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-06 | API/integration | AC-07 | body performedBy ignored | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-07 | API/integration | AC-08 | non-owner staff creates, owner unchanged | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-08 | API/integration | AC-11 | update with current version | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-09 | API/integration | AC-12 | stale version -> 409 CONFLICT | 409 Conflict | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-10 | API/integration | AC-13 | stable ordering | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-11 | API/integration | AC-14 | DELETE -> 404/405, record persists | 405 Method Not Allowed | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-12 | API/integration | AC-15 | create on CLOSED/CANCELLED -> 409 TICKET_LOCKED | 409 Conflict | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-13 | API/integration | AC-18 | duplicate submit / same Idempotency-Key = 1 record | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-14 | API/integration | AC-19 | attachment notes plain text, escaped | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| AUTHZ-01 | authorization | AC-09 | Requester POST Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| AUTHZ-02 | authorization | AC-09 | Requester PATCH Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| AUTHZ-03 | authorization | AC-10 | Requester reads own Actions | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| AUTHZ-04 | authorization | AC-10 | Requester reads another's Actions -> documented 403/404 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
 
 ### server/tests/lab-04/ticket-workflow.api.test.ts
 

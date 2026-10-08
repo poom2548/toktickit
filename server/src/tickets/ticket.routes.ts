@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { getTickets, createTicket, getTicketById, postComment, getComments, setResolvedFlag } from "./ticket.controller.js";
 import { postInternalNote, getInternalNotes } from "../controllers/notes.controller.js";
+import { actionsTakenRouter } from "../actions-taken/actions-taken.routes.js";
 
 export const ticketRouter = Router();
 
@@ -24,3 +25,7 @@ ticketRouter.patch("/:id/resolved-flag", requireAuth, requireRole("REQUESTER"), 
 // Internal notes endpoints (stubs replaced)
 ticketRouter.post("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), postInternalNote);
 ticketRouter.get("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRATOR"), getInternalNotes);
+
+// Actions Taken endpoints (Issue 4)
+ticketRouter.use("/:id/actions-taken", actionsTakenRouter);
+

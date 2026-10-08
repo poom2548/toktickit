@@ -6,6 +6,7 @@ import { hashPassword } from '../../src/utils/password';
 export const prisma = new PrismaClient();
 export const TEST_PASSWORD = 'password123';
 let counter = 0;
+const processRunId = Math.random().toString(36).substring(2, 8);
 
 export function assertTestDatabase() {
   if (process.env.NODE_ENV !== 'test') {
@@ -13,9 +14,11 @@ export function assertTestDatabase() {
   }
 }
 
-function getUniqueCount() {
-  return `${Date.now()}_${counter++}`;
+export function getUniqueCount() {
+  return `${processRunId}_${Date.now()}_${counter++}`;
 }
+
+export const getProcessRunId = () => processRunId;
 
 const createdRecords = {
   users: [] as string[],

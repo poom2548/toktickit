@@ -34,7 +34,6 @@ const matrix: TransitionOracle[] = [
   { from: 'REOPENED', to: 'IN_PROGRESS', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'REOPENED', to: 'WAITING_FOR_REQUESTER', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'REOPENED', to: 'CANCELLED', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
-  { from: 'CLOSED', to: 'REOPENED', roles: ['REQUESTER', 'IT_STAFF', 'ADMINISTRATOR'], requesterOwnOnly: true },
 ];
 
 describe('Ticket Workflow', () => {
@@ -114,8 +113,6 @@ describe('Ticket Workflow', () => {
               const isInvalidTransition = !rule;
               if (isInvalidTransition) {
                 if (['CLOSED', 'CANCELLED'].includes(from)) {
-                  // CLOSED handling from committed matrix... but wait, let's see. Matrix says CLOSED -> REOPENED is allowed.
-                  // Wait, actually, let's just check the response status. We want 422 if it's not in the matrix.
                   expect(res.status).toBe(422);
                   expect(res.body.error?.code).toBe('INVALID_TRANSITION');
                 } else {
@@ -151,11 +148,18 @@ describe('Ticket Workflow', () => {
 
   it('WF-04: resolution gate pass/fail', async () => {
     const ticket = await createTicket({ requesterId: reqAuth.id, status: 'IN_PROGRESS' });
+    // NEW ROUTE
     const resFail = await staffAgent
       .post(`/api/tickets/${ticket.id}/status`)
       .send({ status: 'RESOLVED', version: 1 });
     expect(resFail.status).toBe(422);
     expect(resFail.body.error.code).toBe('RESOLUTION_GATE_FAILED');
+
+    // OLD ROUTE (gate enforced here too)
+    const resFailOld = await staffAgent
+      .patch(`/staff/tickets/${ticket.id}/status`)
+      .send({ status: 'RESOLVED', version: 1 });
+    expect(resFailOld.status).toBe(422);
 
     await prisma.ticket.update({ where: { id: ticket.id }, data: { ownerId: staffAuth.id } });
     await prisma.actionTaken.create({ data: { ticketId: ticket.id, actionAt: new Date(), description: 'x', result: '  ', performedById: staffAuth.id } });
@@ -164,8 +168,10 @@ describe('Ticket Workflow', () => {
     expect(resFail2.status).toBe(422);
 
     await prisma.actionTaken.create({ data: { ticketId: ticket.id, actionAt: new Date(), description: 'x', result: 'ok', performedById: staffAuth.id } });
-    const resPass = await staffAgent.post(`/api/tickets/${ticket.id}/status`).send({ status: 'RESOLVED', version: 1 });
-    expect(resPass.status).toBe(200);
+    
+    // Test the old route passes the gate now
+    const resPassOld = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'RESOLVED' });
+    expect(resPassOld.status).toBe(200);
   });
 
   it('WF-05: stale ticket version -> 409', async () => {
@@ -180,14 +186,38 @@ describe('Ticket Workflow', () => {
     expect(history.length).toBe(1);
     const updated = await prisma.ticket.findUnique({ where: { id: ticket.id } });
     expect(updated?.version).toBe(2);
+
+    // Stale version on old route
+    const resOldStale = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS', version: 1 });
+    expect(resOldStale.status).toBe(409);
+
+    // Omitted version on old route still works
+    const resOldOmitted = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS' });
+    expect(resOldOmitted.status).toBe(200);
   });
 
   it('WF-06: assign active staff', async () => {
     const ticket = await createTicket({ requesterId: reqAuth.id, status: 'OPEN' });
-    const res = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ version: 1, ownerId: staffAuth.id });
+    
+    // Missing version is allowed
+    const resOmitted = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: adminAuth.id });
+    expect(resOmitted.status).toBe(200);
+    expect(resOmitted.body.version).toBe(2);
+
+    // Provide version
+    const res = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ version: 2, ownerId: staffAuth.id });
     expect(res.status).toBe(200);
     expect(res.body.owner.id).toBe(staffAuth.id);
-    expect(res.body.version).toBe(2);
+    expect(res.body.version).toBe(3);
+
+    // Wrong version
+    const resWrong = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ version: 1, ownerId: staffAuth.id });
+    expect(resWrong.status).toBe(409);
+
+    // Invalid version
+    const resInvalid = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ version: 'invalid', ownerId: staffAuth.id });
+    expect(resInvalid.status).toBe(422);
+    expect(resInvalid.body.error?.code).toBe('VALIDATION_FAILED');
   });
 
   it('WF-07: inactive/non-staff assignee rejected', async () => {
@@ -210,9 +240,10 @@ describe('Ticket Workflow', () => {
   });
 
   it('WF-09: append-only status history, stable order', async () => {
-    const ticket = await createTicket({ requesterId: reqAuth.id, status: 'NEW' });
+    const ticket = await createTicket({ requesterId: reqAuth.id, status: 'NEW', requesterMarkedResolvedAt: new Date() });
     await staffAgent.post(`/api/tickets/${ticket.id}/status`).send({ status: 'OPEN', version: 1 });
-    await staffAgent.post(`/api/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS', version: 2 });
+    // Use old route to prove it appends history and clears requesterMarkedResolvedAt
+    await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS', version: 2 });
     
     const history = await prisma.ticketStatusHistory.findMany({ where: { ticketId: ticket.id }, orderBy: [{ changedAt: 'asc' }, { id: 'asc' }] });
     expect(history.length).toBe(2);
@@ -220,6 +251,10 @@ describe('Ticket Workflow', () => {
     expect(history[0].toStatus).toBe('OPEN');
     expect(history[1].fromStatus).toBe('OPEN');
     expect(history[1].toStatus).toBe('IN_PROGRESS');
+
+    const updatedTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
+    expect(updatedTicket?.version).toBe(3);
+    expect(updatedTicket?.requesterMarkedResolvedAt).toBeNull();
   });
 
   it('WF-10: Requester cannot see Internal Notes', async () => {

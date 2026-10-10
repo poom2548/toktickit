@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+﻿import { Request, Response, NextFunction } from "express";
 import { PrismaClient, Role } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
 import { generateTicketNumber } from '../utils/ticketNumber.js'
@@ -66,12 +66,12 @@ const VALID_STATUSES = ["New", "In Progress", "Resolved", "Closed"] as const;
  * Returns a paginated, filterable list of tickets for the authenticated requester.
  *
  * Query params:
- *   search     — case-insensitive substring match on summary OR description
- *   categoryId — filter by category ID
- *   priority   — filter by requestedPriority (Low | Medium | High)
- *   status     — filter by status (New | In Progress | Resolved | Closed)
- *   page       — page number, default 1
- *   limit      — items per page, default 10, max 50
+ *   search     โ€” case-insensitive substring match on summary OR description
+ *   categoryId โ€” filter by category ID
+ *   priority   โ€” filter by requestedPriority (Low | Medium | High)
+ *   status     โ€” filter by status (New | In Progress | Resolved | Closed)
+ *   page       โ€” page number, default 1
+ *   limit      โ€” items per page, default 10, max 50
  *
  * Always returns 200 OK; empty results produce data: [] with valid pagination.
  */
@@ -84,12 +84,12 @@ export async function getTickets(
     const prisma = getPrisma();
     const requesterId: string = req.user!.id;
 
-    // ── Pagination ──────────────────────────────────────────────────────────
+    // โ”€โ”€ Pagination โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
     const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10) || 1);
     const limit = Math.max(1, Math.min(50, parseInt(String(req.query.limit ?? "10"), 10) || 10));
     const skip = (page - 1) * limit;
 
-    // ── Filters ─────────────────────────────────────────────────────────────
+    // โ”€โ”€ Filters โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
     const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
     const rawCategoryId = req.query.categoryId;
     const categoryId =
@@ -99,7 +99,7 @@ export async function getTickets(
     const priority = typeof req.query.priority === "string" && VALID_PRIORITIES.includes(req.query.priority as any) ? (req.query.priority.toUpperCase() as any) : undefined;
     const status = typeof req.query.status === "string" && VALID_STATUSES.includes(req.query.status as any) ? (req.query.status.toUpperCase().replace(" ", "_") as any) : undefined;
 
-    // Build where clause — always scoped to the authenticated requester
+    // Build where clause โ€” always scoped to the authenticated requester
     const where = {
       requesterId,
       ...(categoryId !== undefined && { categoryId }),
@@ -113,7 +113,7 @@ export async function getTickets(
       }),
     };
 
-    // ── Query ───────────────────────────────────────────────────────────────
+    // โ”€โ”€ Query โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
     const [tickets, totalItems] = await Promise.all([
       prisma.ticket.findMany({
         where,
@@ -152,7 +152,7 @@ export async function getTickets(
 
 /**
  * Creates a new ticket for the authenticated requester.
- * - Validates body fields (summary ≤100, description ≤1000, required FKs)
+ * - Validates body fields (summary โค100, description โค1000, required FKs)
  * - Auto-generates ticketNumber as TKT-xxxx inside a transaction
  * - Sets status to "New"
  */

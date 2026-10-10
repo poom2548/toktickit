@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
-import { isTransitionPermitted, PERMITTED_TRANSITIONS } from '../utils/statusTransitions.js'
+import { PrismaClient, TicketStatus } from '@prisma/client'
+import { isLockedStatus, getAllowedTransitions } from '../utils/statusTransitions.js'
+import { changeTicketStatus } from '../ticket-workflow/ticket-workflow.service.js'
+import { ServiceError } from '../actions-taken/actions-taken.service.js'
 
 const prisma = new PrismaClient()
 
@@ -56,7 +58,13 @@ export async function getStaffTicketDetail(req: Request, res: Response): Promise
 export async function updateTicketOwner(req: Request, res: Response): Promise<any> {
   const ticketId = parseInt(req.params.id, 10)
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
-  const { ownerId } = req.body
+  const { ownerId, version } = req.body
+
+  if (version !== undefined && !Number.isInteger(version)) {
+    return res.status(422).json({
+      error: { code: 'VALIDATION_FAILED', message: 'version must be an integer.' }
+    })
+  }
 
   if (ownerId !== null && typeof ownerId !== 'string') {
     return res.status(400).json({ error: 'ownerId must be a string (user ID) or null.' })
@@ -70,24 +78,44 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
       })
 
       if (!assignee) {
-        return res.status(422).json({ error: 'User not found.' })
+        return res.status(422).json({ error: 'User not found.' }) // Lab 3 format
       }
       if (!assignee.isActive) {
-        return res.status(422).json({ error: 'Cannot assign an inactive user as Ticket Owner.' })
+        return res.status(422).json({ error: 'Cannot assign an inactive user as Ticket Owner.' }) // Lab 3 format
       }
       if (assignee.role === 'REQUESTER') {
-        return res.status(422).json({ error: 'Cannot assign a Requester as Ticket Owner. Only active IT Staff or Administrators may be owners.' })
+        return res.status(422).json({ error: 'Cannot assign a Requester as Ticket Owner. Only active IT Staff or Administrators may be owners.' }) // Lab 3 format
       }
     }
 
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } })
     if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found.' })
+      return res.status(404).json({ error: 'Ticket not found.' }) // Lab 3 format
+    }
+
+    if (isLockedStatus(ticket.status)) {
+      return res.status(409).json({
+        error: { code: 'TICKET_LOCKED', message: 'Ticket is locked.' } // Lab 4 format
+      })
+    }
+
+    if (version !== undefined && ticket.version !== version) {
+      return res.status(409).json({
+        error: { code: 'CONFLICT', message: 'The ticket was modified by another user.', currentVersion: ticket.version } // Lab 4 format
+      })
+    }
+
+    const whereClause: any = { id: ticketId };
+    if (version !== undefined) {
+      whereClause.version = version;
     }
 
     const updated = await prisma.ticket.update({
-      where: { id: ticketId },
-      data: { ownerId },
+      where: whereClause,
+      data: { 
+        ownerId,
+        version: { increment: 1 }
+      },
       include: {
         owner: { select: { id: true, name: true, role: true } },
       },
@@ -95,6 +123,15 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
 
     return res.status(200).json(updated)
   } catch (err) {
+    if (err instanceof Error && err.name === 'PrismaClientKnownRequestError' && (err as any).code === 'P2025') {
+       const currentTicket = await prisma.ticket.findUnique({ where: { id: ticketId } })
+       if (currentTicket && version !== undefined) {
+         return res.status(409).json({
+           error: { code: 'CONFLICT', message: 'The ticket was modified by another user.', currentVersion: currentTicket.version } // Lab 4 format
+         })
+       }
+       return res.status(404).json({ error: 'Ticket not found.' })
+    }
     console.error('Update ticket owner error:', err)
     return res.status(500).json({ error: 'An unexpected error occurred.' })
   }
@@ -140,7 +177,7 @@ const VALID_STATUSES = [
 export async function updateTicketStatus(req: Request, res: Response): Promise<any> {
   const ticketId = parseInt(req.params.id, 10)
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
-  const { status: newStatus } = req.body
+  const { status: newStatus, version } = req.body
 
   if (!newStatus || !VALID_STATUSES.includes(newStatus)) {
     return res.status(400).json({
@@ -148,33 +185,39 @@ export async function updateTicketStatus(req: Request, res: Response): Promise<a
     })
   }
 
+  const user = (req as any).user;
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
   try {
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: ticketId },
-      select: { id: true, status: true },
-    })
-
-    if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found.' })
+    const { ticket } = await changeTicketStatus(ticketId, newStatus as TicketStatus, user, version, undefined, "PATCH /staff/tickets/:id/status");
+    return res.status(200).json({
+      id: ticket.id,
+      status: ticket.status,
+      updatedAt: ticket.updatedAt
+    });
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      if (err.status === 422 && err.code === 'INVALID_TRANSITION') {
+        const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+        const currentStatus = ticket?.status as TicketStatus;
+        const permittedTransitions = currentStatus ? getAllowedTransitions(currentStatus, user.role, false) : [];
+        return res.status(422).json({
+          error: `Status transition from "${currentStatus}" to "${newStatus}" is not permitted.`,
+          currentStatus,
+          permittedTransitions
+        });
+      }
+      if (err.status === 404) {
+        return res.status(404).json({ error: 'Ticket not found.' });
+      }
+      if (err.status === 403) {
+        return res.status(403).json({ error: err.message });
+      }
+      // Return Lab 4 envelope for other errors like CONFLICT and RESOLUTION_GATE_FAILED
+      return res.status(err.status).json({
+        error: { code: err.code, message: err.message, ...err.extra }
+      });
     }
-
-    if (!isTransitionPermitted(ticket.status, newStatus)) {
-      const allowed = PERMITTED_TRANSITIONS[ticket.status] ?? []
-      return res.status(422).json({
-        error: `Status transition from "${ticket.status}" to "${newStatus}" is not permitted.`,
-        currentStatus: ticket.status,
-        permittedTransitions: allowed,
-      })
-    }
-
-    const updated = await prisma.ticket.update({
-      where: { id: ticketId },
-      data: { status: newStatus },
-      select: { id: true, status: true, updatedAt: true },
-    })
-
-    return res.status(200).json(updated)
-  } catch (err) {
     console.error('Update ticket status error:', err)
     return res.status(500).json({ error: 'An unexpected error occurred.' })
   }

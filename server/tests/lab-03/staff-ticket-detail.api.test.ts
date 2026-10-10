@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
 import { PrismaClient } from '@prisma/client';
@@ -49,7 +49,7 @@ describe('Staff Ticket Detail API', () => {
         status: "NEW",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId, ownerId: frankUserId, actions: { create: { actionAt: new Date(), description: 'investigated', result: 'fixed', performedById: frankUserId } }
+        requesterId: baseTicket.requesterId
       }
     });
     newStatusTicketId = newTicket.id;
@@ -63,7 +63,16 @@ describe('Staff Ticket Detail API', () => {
         status: "IN_PROGRESS",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId, ownerId: frankUserId, actions: { create: { actionAt: new Date(), description: 'investigated', result: 'fixed', performedById: frankUserId } }
+        requesterId: baseTicket.requesterId,
+        ownerId: frankUserId,
+        actions: {
+          create: {
+            actionAt: new Date(),
+            description: 'investigated',
+            result: 'fixed',
+            performedById: frankUserId
+          }
+        }
       }
     });
     inProgressTicketId = inProgressTicket.id;
@@ -77,7 +86,7 @@ describe('Staff Ticket Detail API', () => {
         status: "RESOLVED",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId, ownerId: frankUserId, actions: { create: { actionAt: new Date(), description: 'investigated', result: 'fixed', performedById: frankUserId } }
+        requesterId: baseTicket.requesterId
       }
     });
     resolvedTicketId = resolvedTicket.id;
@@ -91,18 +100,19 @@ describe('Staff Ticket Detail API', () => {
         status: "CLOSED",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId, ownerId: frankUserId, actions: { create: { actionAt: new Date(), description: 'investigated', result: 'fixed', performedById: frankUserId } }
+        requesterId: baseTicket.requesterId
       }
     });
     closedTicketId = closedTicket.id;
   });
 
-  afterAll(async () => { await prisma.ticketStatusHistory.deleteMany(); await prisma.actionTaken.deleteMany();
-    await prisma.ticket.deleteMany({
-      where: {
-        id: { in: [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id) }
-      }
-    });
+  afterAll(async () => {
+    const createdIds = [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id);
+    if (createdIds.length > 0) {
+      await prisma.actionTaken.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticketStatusHistory.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticket.deleteMany({ where: { id: { in: createdIds } } });
+    }
   });
 
   describe('GET /staff/tickets/:id', () => {
@@ -236,7 +246,7 @@ describe('Staff Ticket Detail API', () => {
   });
 
   describe('PATCH /staff/tickets/:id/status', () => {
-    it('transitions NEW โ’ OPEN successfully', async () => {
+    it('transitions NEW → OPEN successfully', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${newStatusTicketId}/status`)
@@ -246,7 +256,7 @@ describe('Staff Ticket Detail API', () => {
       expect(res.body.status).toBe('OPEN');
     });
 
-    it('transitions IN_PROGRESS โ’ RESOLVED successfully', async () => {
+    it('transitions IN_PROGRESS → RESOLVED successfully', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${inProgressTicketId}/status`)
@@ -256,7 +266,7 @@ describe('Staff Ticket Detail API', () => {
       expect(res.body.status).toBe('RESOLVED');
     });
 
-    it('returns 422 for RESOLVED โ’ NEW (not a permitted transition)', async () => {
+    it('returns 422 for RESOLVED → NEW (not a permitted transition)', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${resolvedTicketId}/status`)
@@ -268,7 +278,7 @@ describe('Staff Ticket Detail API', () => {
       expect(res.body.permittedTransitions).toContain('REOPENED');
     });
 
-    it('returns 422 for CLOSED โ’ anything (terminal state)', async () => {
+    it('returns 422 for CLOSED → anything (terminal state)', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
       const res = await request(app)
         .patch(`/staff/tickets/${closedTicketId}/status`)

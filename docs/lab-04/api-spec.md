@@ -236,7 +236,7 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Request body:**
   ```json
-  { "version": 2, "ownerId": "cuid_of_staff" }
+  { "version": 2, "ownerId": "cuid_of_staff" } (version is optional for backward compatibility)
   ```
   *(ส่ง `ownerId: null` เพื่อยกเลิกการมอบหมาย — Lab 3 รองรับแล้ว)*
 - **กฎ:**
@@ -368,6 +368,7 @@ GET /api/tickets และ GET /staff/tickets ต้องรองรับ par
 - `POST /api/tickets/:id/comments`
 - `GET /api/tickets/:id/comments`
 - `POST /api/tickets/:id/notes`
+- `PATCH /staff/tickets/:id/status` *(หมายเหตุ: version is optional during compatibility window; enforced when sent; errors like 422 INVALID_TRANSITION and 404 keep the Lab 3 format, while CONFLICT uses Lab 4 envelope)*
 - `GET /api/tickets/:id/notes`
 - `GET /staff/tickets`
 - `GET /staff/tickets/:id` *(หมายเหตุ: การตอบกลับมีการเพิ่มฟิลด์ `version` และ `requesterMarkedResolvedAt` กฎการมองเห็นโน้ตภายในสำหรับ IT Staff เหมือนเดิม)*

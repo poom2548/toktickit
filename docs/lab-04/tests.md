@@ -49,17 +49,17 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| WF-01 | workflow | AC-20 | allowed transitions (table-driven, per role) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-02 | workflow | AC-21 | disallowed -> 422/403, unchanged | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-03 | workflow | AC-23 | appears resolved does not change status | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-04 | workflow | AC-24 | resolution gate pass/fail | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-05 | workflow | AC-25 | stale ticket version -> 409 | 409 Conflict | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-06 | workflow | AC-17 | assign active staff | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-07 | workflow | AC-16 | inactive/non-staff assignee rejected | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-08 | workflow | AC-26 | allowed-transitions endpoint | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-09 | workflow | AC-27 | append-only status history, stable order | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| WF-10 | workflow | AC-28 | Requester cannot see Internal Notes | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
-| AUTHZ-05 | authorization | AC-22 | Requester sets RESOLVED -> 403 | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Planned (Red) |
+| WF-01 | workflow | AC-20 | allowed transitions (table-driven, per role) (167 cases combined with WF-02) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-02 | workflow | AC-21 | disallowed -> 422/403, unchanged | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-03 | workflow | AC-23 | appears resolved does not change status | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-04 | workflow | AC-24 | resolution gate pass/fail | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-05 | workflow | AC-25 | stale ticket version -> 409 | 409 Conflict | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-06 | workflow | AC-17 | assign active staff | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-07 | workflow | AC-16 | inactive/non-staff assignee rejected | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-08 | workflow | AC-26 | allowed-transitions endpoint | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-09 | workflow | AC-27 | append-only status history, stable order | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-10 | workflow | AC-28 | Requester cannot see Internal Notes | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| AUTHZ-05 | authorization | AC-22 | Requester sets RESOLVED -> 403 | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
 
 ### server/tests/lab-04/requester-dashboard.api.test.ts
 
@@ -303,3 +303,8 @@ The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system 
 4. Well-known locations
 
 - **REQUIRE_PG_TOOLS**: Set to 1 in CI to fail the test instead of skipping it if tools are missing.
+
+**หมายเหตุ (Issue #5):**
+1. API-15 ถูกขยายให้ครอบคลุมการตรวจสอบ 401 ของ endpoints ใหม่ทั้งหมด (POST /status, GET /allowed-transitions, POST /requester-resolved-indication, PATCH /owner)
+2. WF-05 ถูกปรับปรุงให้มี legacy routes compatibility test ตรวจสอบการอนุญาตที่ไม่ส่ง version ในช่วงเวลาเปลี่ยนผ่าน (compatibility window)
+3. มีแก้ไข setup ของ test 'transitions IN_PROGRESS → RESOLVED successfully' ในไฟล์ `server/tests/lab-03/staff-ticket-detail.api.test.ts` โดยเพิ่ม `ownerId` และ `ActionTaken` เพื่อให้ผ่านเงื่อนไข Resolution Gate

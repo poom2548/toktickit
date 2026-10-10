@@ -332,8 +332,19 @@ describe('Actions Taken API', () => {
   });
 
   it('API-15: unauthenticated -> 401', async () => {
-    const res = await request(app).get('/api/tickets/999/actions-taken');
-    expect(res.status).toBe(401);
+    const endpoints = [
+      { method: 'get', url: '/api/tickets/999/actions-taken' },
+      { method: 'post', url: '/api/tickets/999/actions-taken' },
+      { method: 'patch', url: '/api/tickets/999/actions-taken/999' },
+      { method: 'post', url: '/api/tickets/999/status' },
+      { method: 'get', url: '/api/tickets/999/allowed-transitions' },
+      { method: 'post', url: '/api/tickets/999/requester-resolved-indication' },
+      { method: 'patch', url: '/staff/tickets/999/owner' }
+    ];
+    for (const ep of endpoints) {
+      const res = await (request(app) as any)[ep.method](ep.url);
+      expect(res.status).toBe(401);
+    }
   });
 
   it('API-16: error envelope, no leaks', async () => {

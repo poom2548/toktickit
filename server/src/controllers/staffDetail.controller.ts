@@ -191,9 +191,9 @@ export async function updateTicketStatus(req: Request, res: Response): Promise<a
   try {
     const { ticket } = await changeTicketStatus(ticketId, newStatus as TicketStatus, user, version, undefined, "PATCH /staff/tickets/:id/status");
     return res.status(200).json({
-      id: ticket.id,
-      status: ticket.status,
-      updatedAt: ticket.updatedAt
+      id: (ticket as any).id,
+      status: (ticket as any).status,
+      updatedAt: (ticket as any).updatedAt
     });
   } catch (err: any) {
     if (err instanceof ServiceError) {

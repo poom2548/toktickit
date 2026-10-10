@@ -19,11 +19,11 @@ export const TRANSITION_MATRIX: TransitionRule[] = [
   { from: 'IN_PROGRESS', to: 'CANCELLED', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'WAITING_FOR_REQUESTER', to: 'IN_PROGRESS', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'WAITING_FOR_REQUESTER', to: 'RESOLVED', roles: ['IT_STAFF', 'ADMINISTRATOR'], gated: true },
-  { from: 'WAITING_FOR_REQUESTER', to: 'CANCELLED', roles: ['REQUESTER', 'IT_STAFF', 'ADMINISTRATOR'], requesterOwnOnly: true },
+  { from: 'WAITING_FOR_REQUESTER', to: 'CANCELLED', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'RESOLVED', to: 'CLOSED', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'RESOLVED', to: 'REOPENED', roles: ['REQUESTER', 'IT_STAFF', 'ADMINISTRATOR'], requesterOwnOnly: true },
+  { from: 'REOPENED', to: 'OPEN', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'REOPENED', to: 'IN_PROGRESS', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
-  { from: 'REOPENED', to: 'WAITING_FOR_REQUESTER', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
   { from: 'REOPENED', to: 'CANCELLED', roles: ['IT_STAFF', 'ADMINISTRATOR'] },
 ];
 

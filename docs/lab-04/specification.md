@@ -58,7 +58,7 @@
 - **BR-12:** การเปลี่ยนสถานะจะได้รับอนุญาตอย่างเคร่งครัดตามเมทริกซ์การเปลี่ยนสถานะในหัวข้อที่ 8
 - **BR-13:** ตั๋วสามารถเปลี่ยนสถานะเป็น `RESOLVED` ได้ก็ต่อเมื่อ: ผู้กระทำคือ IT Staff/Admin, ตั๋วมีเจ้าของ, มีการดำเนินการอย่างน้อยหนึ่งรายการที่มีผลลัพธ์ไม่ว่างเปล่า, และคำขอมี version token ที่ถูกต้อง
 - **BR-14:** ธง "ปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" ของผู้ร้องขอ เป็นเพียงคำแนะนำและไม่เปลี่ยนสถานะของตั๋ว
-- **BR-15:** การเปลี่ยนแปลงเวิร์กโฟลว์ของตั๋วและการแก้ไขการดำเนินการต้องมี version token หากไม่ตรงกันจะส่งผลให้ตอบกลับด้วย `409 Conflict` พร้อมข้อความที่ปลอดภัย
+- **BR-15:** version is REQUIRED on every Lab 4 endpoint. The two Lab 3 routes PATCH /staff/tickets/:id/owner and PATCH /staff/tickets/:id/status accept a missing version ONLY during a temporary compatibility window; a sent version is always enforced; every successful change increments version. การเปลี่ยนแปลงเวิร์กโฟลว์ของตั๋วและการแก้ไขการดำเนินการต้องมี version token หากไม่ตรงกันจะส่งผลให้ตอบกลับด้วย `409 Conflict` พร้อมข้อความที่ปลอดภัย
 - **BR-16:** ตัวชี้วัดของแดชบอร์ดถูกคำนวณโดยเซิร์ฟเวอร์จากข้อมูลที่เชื่อถือได้ ตัวชี้วัดแต่ละตัวมีคำสั่ง Query ที่กำหนดไว้, พฤติกรรมเมื่อว่างเปล่า (คืนค่า 0/รายการว่างเปล่า), และลิงก์เจาะลึก
 - **BR-17:** ขอบเขตวันที่ของแดชบอร์ดใช้เขตเวลา `Asia/Bangkok` คำว่า "ล่าสุด (Recent)" หมายถึง 7 วันที่ผ่านมา
 - **BR-18:** ตั๋วเก่าที่มีศูนย์การดำเนินการ (Zero Actions Taken) จะยังคงใช้งานได้, แสดงหน้าจอว่างเปล่าใน UI, และแดชบอร์ดสามารถประมวลผลได้ตามปกติ
@@ -148,7 +148,7 @@ UI จะต้องเป็นไปตามระบบการออก�
 | `REOPENED` | IT Staff, Admin | `OPEN`, `IN_PROGRESS`, `CANCELLED` |
 | `CANCELLED` | (สถานะสุดท้าย) | (ไม่มี) |
 
-**การเปลี่ยนแปลงจาก Lab 3:** ไม่มีการเปลี่ยนแปลง — เมทริกซ์นี้ตรงกับโค้ด Lab 3 สำหรับ IT Staff และ Admin ทุกประการ รวมถึงการที่ CLOSED เป็นสถานะสุดท้าย (terminal) ตามเจตนาออกแบบ
+**การเปลี่ยนแปลงจาก Lab 3:** 1. CLOSED เป็นสถานะสุดท้าย (ไม่มีสถานะถัดไป), 2. Requester ไม่สามารถเปลี่ยนจาก WAITING_FOR_REQUESTER เป็น CANCELLED, 3. จาก REOPENED สามารถไป OPEN ได้ แต่ไป WAITING_FOR_REQUESTER ไม่ได้ รวมถึงการที่ CLOSED เป็นสถานะสุดท้าย (terminal) ตามเจตนาออกแบบ
 - **Status Transition:** `POST` ที่ `/api/tickets/:id/status` ต้องใช้ version token
 - **Allowed Transitions:** `GET` ที่ `/api/tickets/:id/allowed-transitions` เพื่อช่วยขับเคลื่อนการควบคุม UI อย่างปลอดภัย
 - **Advisory Flag:** `POST` ที่ `/api/tickets/:id/requester-resolved-indication` สำหรับผู้ร้องขอ
@@ -245,6 +245,6 @@ UI จะต้องเป็นไปตามระบบการออก�
 12. **ข้อจำกัดสำหรับการจบงาน (Resolution Gate Rule):** ผู้กระทำต้องเป็น IT Staff/Admin, ตั๋วต้องมีเจ้าของ, และมี Action Taken ที่ได้ผลลัพธ์ (Result) แบบไม่ว่างเปล่าอยู่อย่างน้อย 1 รายการ และสถานะการติดตามผลที่ยังไม่คลี่คลาย จะไม่มาปิดกั้นหรือเป็นอุปสรรคต่อการแก้ไขปัญหาตั๋ว
 
 15. **Requester "appears resolved" indication:** อนุญาตเฉพาะขณะที่ตั๋วอยู่ในกลุ่มสถานะเปิด (ที่ไม่ใช่ NEW) เท่านั้น (OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED); ไม่ต้องระบุ version และการปรับค่าจะไม่เพิ่ม version ของตั๋ว; การตั้งค่า true ซ้ำจะคง timestamp เดิมไว้; แฟล็กนี้จะถูกล้างค่าอัตโนมัติเมื่อมีการเปลี่ยนสถานะตั๋ว; สถานะอื่นๆ ส่งกลับ 409 INVALID_TICKET_STATE
-16. **Owner assignment:** version optional for backward compatibility with Lab 3; enforced when sent; the Lab 4 UI always sends it. ownerId สามารถส่งค่า null เพื่อยกเลิกการมอบหมายได้ (อิงตามที่ Lab 3 มีอยู่แล้ว); ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) จะปฏิเสธการเปลี่ยนเจ้าของด้วย 409 TICKET_LOCKED; การเปลี่ยนเจ้าของสำเร็จจะเพิ่มค่า version ของตั๋วเสมอ
+16. **Owner assignment:** Legacy routes accept a missing version until the final hardening issue, when the Lab 3 client and tests are updated and version becomes required. ownerId สามารถส่งค่า null เพื่อยกเลิกการมอบหมายได้ (อิงตามที่ Lab 3 มีอยู่แล้ว); ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) จะปฏิเสธการเปลี่ยนเจ้าของด้วย 409 TICKET_LOCKED; การเปลี่ยนเจ้าของสำเร็จจะเพิ่มค่า version ของตั๋วเสมอ
 13. **สิทธิ์การแก้ Action:** เจ้าหน้าที่ IT Staff/Admin ทุกคนมีสิทธิ์ในการแก้ไข Action ใดๆ ก็ได้ในตั๋ว ตราบที่ตั๋วไม่ใช่ CLOSED/CANCELLED
 14. **Legacy Backfill และ Idempotency:** ใช้ ticket.updatedAt เป็นค่าประมาณสำหรับ changedAt ใน TicketStatusHistory backfill; การล้าง IdempotencyKey ที่หมดอายุใช้วิธี lazy cleanup ไม่มี scheduler

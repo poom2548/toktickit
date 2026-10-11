@@ -248,3 +248,6 @@ UI จะต้องเป็นไปตามระบบการออก�
 16. **Owner assignment:** Legacy routes accept a missing version until the final hardening issue, when the Lab 3 client and tests are updated and version becomes required. ownerId สามารถส่งค่า null เพื่อยกเลิกการมอบหมายได้ (อิงตามที่ Lab 3 มีอยู่แล้ว); ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) จะปฏิเสธการเปลี่ยนเจ้าของด้วย 409 TICKET_LOCKED; การเปลี่ยนเจ้าของสำเร็จจะเพิ่มค่า version ของตั๋วเสมอ
 13. **สิทธิ์การแก้ Action:** เจ้าหน้าที่ IT Staff/Admin ทุกคนมีสิทธิ์ในการแก้ไข Action ใดๆ ก็ได้ในตั๋ว ตราบที่ตั๋วไม่ใช่ CLOSED/CANCELLED
 14. **Legacy Backfill และ Idempotency:** ใช้ ticket.updatedAt เป็นค่าประมาณสำหรับ changedAt ใน TicketStatusHistory backfill; การล้าง IdempotencyKey ที่หมดอายุใช้วิธี lazy cleanup ไม่มี scheduler
+17. **Dashboard Field Mapping & Headers:** ฟิลด์ `title` ใน `recentlyUpdated` ถูกแมปจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `itPriority ?? requestedPriority`; ทั้งสองปลายทางส่ง header `Cache-Control: no-store` เนื่องจากข้อมูลเป็นแบบเฉพาะบุคคล
+18. **ขอบเขตตั๋วและสถิติผู้ใช้ของ Staff Dashboard:** เจ้าหน้าที่ไอทีและแอดมินเข้าถึงข้อมูลตั๋วทั้งหมดในระบบตามกฎคิวตั๋วของ Lab 3; ตัวนับ `userCounts` นับจำนวนแถวในโมเดล User ทั้งหมดแยกตามสถานะ `isActive` (active/inactive) และแสดงเฉพาะบทบาท Administrator เท่านั้น (ละเว้นคีย์นี้สำหรับ IT Staff)
+

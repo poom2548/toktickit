@@ -259,6 +259,8 @@
 
 ### `GET /api/dashboard/requester`
 - **Auth required:** ใช่ (ผู้ร้องขอ)
+- **Headers:** `Cache-Control: no-store`
+- **Scope & Field Mapping:** ขอบเขตจำกัดเฉพาะตั๋วที่ผู้ร้องขอเป็นเจ้าของ (`requesterId` ตรงกับ session ของตนเองเท่านั้น โดยละเว้นพารามิเตอร์หรือตัวกรองภายนอก); ฟิลด์ `title` ใน `recentlyUpdated` แมปมาจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `itPriority ?? requestedPriority`
 - **Success (200):**
   ```json
   {
@@ -295,6 +297,8 @@
 
 ### `GET /api/dashboard/staff`
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Headers:** `Cache-Control: no-store`
+- **Scope & Field Mapping:** ขอบเขตครอบคลุมตั๋วทั้งหมดในระบบที่เจ้าหน้าที่เข้าถึงได้ (อิงตามเกณฑ์ของ GET /staff/tickets ใน Lab 3); ฟิลด์ `title` ใน `recentlyUpdated` แมปมาจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `itPriority ?? requestedPriority`
 - **Success (200):**
   ```json
   {

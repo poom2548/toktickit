@@ -65,23 +65,23 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| RD-01 | API/integration | AC-02 | only own data (two Requesters) | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Planned (Red) |
-| RD-02 | API/integration | AC-30 | each metric = DB query | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Planned (Red) |
-| RD-03 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Planned (Red) |
-| RD-04 | API/integration | AC-35 | payload concise | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Planned (Red) |
-| RD-05 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Planned (Red) |
+| RD-01 | API/integration | AC-02 | only own data (two Requesters) | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-02 | API/integration | AC-30 | each metric = DB query | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-03 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-04 | API/integration | AC-35 | payload concise | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-05 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
 
 ### server/tests/lab-04/staff-dashboard.api.test.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| SD-01 | API/integration | AC-29 | each metric = DB query | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| SD-02 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| SD-04 | API/integration | AC-33 | Admin extras | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| SD-05 | API/integration | AC-35 | concise | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
-| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Planned (Red) |
+| SD-01 | API/integration | AC-29 | each metric = DB query | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-02 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-04 | API/integration | AC-33 | Admin extras | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-05 | API/integration | AC-35 | concise | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
 
 ### server/tests/lab-04/migration.test.ts
 
@@ -97,7 +97,7 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| PERF-01 | performance-smoke | AC-52 | dashboards + Ticket Detail latency/query count | Pass (p95 < 500ms) | server/tests/lab-04/perf-smoke.test.ts | Planned (Red) |
+| PERF-01 | performance-smoke | AC-52 | dashboards + Ticket Detail latency/query count | Pass (p95 < 500ms) | server/tests/lab-04/perf-smoke.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/perf-smoke.test.ts", p95 < 500ms over 20 sequential requests after 3 warm-ups on 210 tickets dataset) |
 
 ### client/src/tests/lab-04 tests/StaffDashboard.test.tsx
 
@@ -308,3 +308,8 @@ The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system 
 1. API-15 ถูกขยายให้ครอบคลุมการตรวจสอบ 401 ของ endpoints ใหม่ทั้งหมด (POST /status, GET /allowed-transitions, POST /requester-resolved-indication, PATCH /owner)
 2. WF-05 ถูกปรับปรุงให้มี legacy routes compatibility test ตรวจสอบการอนุญาตที่ไม่ส่ง version ในช่วงเวลาเปลี่ยนผ่าน (compatibility window)
 3. มีแก้ไข setup ของ test 'transitions IN_PROGRESS → RESOLVED successfully' ในไฟล์ `server/tests/lab-03/staff-ticket-detail.api.test.ts` โดยเพิ่ม `ownerId` และ `ActionTaken` เพื่อให้ผ่านเงื่อนไข Resolution Gate
+
+**หมายเหตุ (Issue #6):**
+1. API-15 ถูกขยายเพิ่มเติมให้ครอบคลุมการตรวจสอบ 401 ของ endpoints แดชบอร์ดใหม่ (GET /api/dashboard/requester และ GET /api/dashboard/staff)
+2. PERF-01 กำหนดเกณฑ์ latency ระดับ p95 < 500 ms (ผลทดสอบจริงทุก endpoint < 10 ms) โดยทดสอบ sequential 20 requests หลัง 3 warm-up requests บนชุดข้อมูลตั๋ว 210 รายการ และ payload ปลอดภัยกระชับ (< 10 KB)
+

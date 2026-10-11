@@ -406,6 +406,51 @@ describe('Ticket Workflow', () => {
       const resOwnerInvalid = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id, version: 'abc' });
       expect(resOwnerInvalid.status).toBe(422);
     });
+
+    it('WF-05: idempotency key replay and forced server error handling', async () => {
+      const ticket = await createTicket({ requesterId: reqAuth.id, status: 'NEW' });
+      const idemKey = 'key-status-' + Date.now();
+
+      // First call
+      const res1 = await staffAgent
+        .post(`/api/tickets/${ticket.id}/status`)
+        .set('Idempotency-Key', idemKey)
+        .send({ status: 'OPEN', version: 1 });
+      expect(res1.status).toBe(200);
+
+      // Replay with same body
+      const resReplay = await staffAgent
+        .post(`/api/tickets/${ticket.id}/status`)
+        .set('Idempotency-Key', idemKey)
+        .send({ status: 'OPEN', version: 1 });
+      expect(resReplay.status).toBe(200);
+      expect(resReplay.header['idempotent-replayed']).toBe('true');
+
+      // Replay with different body -> 422
+      const resMismatch = await staffAgent
+        .post(`/api/tickets/${ticket.id}/status`)
+        .set('Idempotency-Key', idemKey)
+        .send({ status: 'CANCELLED', version: 1 });
+      expect(resMismatch.status).toBe(422);
+      expect(resMismatch.body.error?.code).toBe('IDEMPOTENCY_KEY_REUSED');
+
+      // Forced server error (simulate internal DB failure)
+      const mockTicket = await createTicket({ requesterId: reqAuth.id, status: 'OPEN' });
+      const origTransaction = prisma.$transaction;
+      (prisma as any).$transaction = async () => { throw new Error('Simulated internal DB failure'); };
+      try {
+        const res500 = await staffAgent
+          .post(`/api/tickets/${mockTicket.id}/status`)
+          .send({ status: 'IN_PROGRESS', version: 1 });
+        expect(res500.status).toBe(500);
+        expect(res500.body.error?.code).toBe('INTERNAL_ERROR');
+        expect(res500.body.error?.message).toBe('An unexpected error occurred');
+        expect(res500.body.error).not.toHaveProperty('stack');
+        expect(res500.body.error).not.toHaveProperty('sql');
+      } finally {
+        prisma.$transaction = origTransaction;
+      }
+    });
   });
 
   describe('WF-06 & WF-07', () => {

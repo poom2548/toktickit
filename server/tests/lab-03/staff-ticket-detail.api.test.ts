@@ -63,7 +63,16 @@ describe('Staff Ticket Detail API', () => {
         status: "IN_PROGRESS",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId
+        requesterId: baseTicket.requesterId,
+        ownerId: frankUserId,
+        actions: {
+          create: {
+            actionAt: new Date(),
+            description: 'investigated',
+            result: 'fixed',
+            performedById: frankUserId
+          }
+        }
       }
     });
     inProgressTicketId = inProgressTicket.id;
@@ -98,11 +107,12 @@ describe('Staff Ticket Detail API', () => {
   });
 
   afterAll(async () => {
-    await prisma.ticket.deleteMany({
-      where: {
-        id: { in: [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id) }
-      }
-    });
+    const createdIds = [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id);
+    if (createdIds.length > 0) {
+      await prisma.actionTaken.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticketStatusHistory.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticket.deleteMany({ where: { id: { in: createdIds } } });
+    }
   });
 
   describe('GET /staff/tickets/:id', () => {

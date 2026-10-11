@@ -29,3 +29,6 @@ ticketRouter.get("/:id/notes", requireAuth, requireRole("IT_STAFF", "ADMINISTRAT
 // Actions Taken endpoints (Issue 4)
 ticketRouter.use("/:id/actions-taken", actionsTakenRouter);
 
+// Ticket Workflow endpoints (Issue 5)
+import workflowRouter from "../ticket-workflow/ticket-workflow.routes.js";
+ticketRouter.use("/", workflowRouter);

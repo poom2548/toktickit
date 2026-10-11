@@ -141,12 +141,14 @@
 - **Headers:** `Idempotency-Key` (สตริงทางเลือก)
 - **Request body:** ต้องมี `version` และ `status` ใหม่
 
-  - **กระบวนการภายใน (Transaction):** การเปลี่ยนแปลงสถานะที่สำเร็จจะต้องทำภายใน 1 Transaction เดียว โดยประกอบด้วย:
-    1. ตรวจสอบ `version` และตรวจสอบสิทธิ์จากเมทริกซ์การเปลี่ยนสถานะ
-    2. เขียนสถานะใหม่และเพิ่ม `version` ขึ้น 1
-    3. เพิ่มแถวข้อมูลใน `TicketStatusHistory`
-    4. ล้างค่า `requesterMarkedResolvedAt` (ตั้งเป็น null)
-  - **หมายเหตุ:** หาก Requester พยายามเปลี่ยนสถานะในแบบที่ Requester ไม่มีสิทธิ์ จะได้รับ 403 FORBIDDEN, แต่หากเป็นการเปลี่ยนสถานะจาก->ไปยังสถานะที่ไม่ถูกต้อง (Invalid pair) จะได้รับ 422 INVALID_TRANSITION
+  - **ลำดับการตรวจสอบสิทธิ์และการประมวลผล (Order of Checks):**
+    1. ตรวจสอบการยืนยันตัวตน (Authentication): 401 UNAUTHENTICATED
+    2. ตรวจสอบ :id และการมีอยู่ของตั๋ว (Parsing & Existence): 404 NOT_FOUND
+    3. ตรวจสอบสิทธิ์การเข้าถึง (Authorization): ตรวจสอบสิทธิ์ก่อน Body Validation และ Version Concurrency เสมอ หาก Requester ไม่ได้เป็นเจ้าของตั๋ว จะได้รับ 403 FORBIDDEN ทันทีโดยไม่เปิดเผยข้อมูลสถานะหรือ version ของตั๋ว
+    4. ตรวจสอบข้อมูลใน Request (Body Validation): status ต้องถูกต้อง และ version ต้องเป็นจำนวนเต็มบวก (> 0) มิฉะนั้นตอบกลับ 422 VALIDATION_FAILED พร้อม fields
+    5. ตรวจสอบ Version Concurrency, Transition Matrix และ Resolution Gate: version ล้าสมัยตอบกลับ 409 CONFLICT; คู่สถานะที่ไม่อนุญาต/ตั๋วถูกล็อกตอบกลับ 422 INVALID_TRANSITION; เปลี่ยนสถานะที่บทบาทไม่มีสิทธิ์ตอบกลับ 403 FORBIDDEN; ปิดงานไม่ผ่านเกณฑ์ตอบกลับ 422 RESOLUTION_GATE_FAILED
+    6. กระบวนการใน Transaction: บันทึกสถานะใหม่, เพิ่ม version ขึ้น 1, เพิ่มประวัติใน TicketStatusHistory, และล้างค่า requesterMarkedResolvedAt (ตั้งเป็น null) และ problemAppearsResolved (ตั้งเป็น false)
+  - **การป้องกันข้อมูลรั่วไหล (No Leakage):** ข้อมูลสรุปตั๋วที่ส่งคืนประกอบด้วยเฉพาะฟิลด์ id, ticketNumber, status, version, updatedAt, requesterMarkedResolvedAt, owner ({id, name} หรือ null) ไม่เปิดเผยข้อมูลอีเมล, รหัสผ่าน, โน้ตภายใน หรือ IT priority
 
   ```json
   {
@@ -207,7 +209,8 @@
     ```
 
 ### `POST /api/tickets/:id/requester-resolved-indication`
-  - **Auth required:** ใช่ (ผู้ร้องขอสำหรับตั๋วของตนเอง)
+  - **Auth required:** ใช่ (เฉพาะผู้ร้องขอที่เป็นเจ้าของตั๋วเท่านั้น; Staff/Admin หรือ Requester อื่น -> 403 FORBIDDEN)
+  - **Headers:** `Idempotency-Key` (ทางเลือก, ขอบเขต User + Endpoint + Key อายุ 24 ชั่วโมง; คำขอซ้ำคืน 200 พร้อม Header `Idempotent-Replayed: true`; คำขอซ้ำที่เนื้อหาต่างกันคืน 422 `IDEMPOTENCY_KEY_REUSED`)
   - **Request body:**
     ```json
     {
@@ -215,11 +218,13 @@
     }
     ```
 
-  - **กฎการใช้งาน:** 
-    - อนุญาตเฉพาะตั๋วที่อยู่ในสถานะกลุ่มเปิด (ยกเว้น NEW) คือ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED
-    - ไม่ต้องส่ง `version` และการดำเนินการนี้ **ไม่ทำให้ version เพิ่มขึ้น** (จะคืนค่า version ปัจจุบันกลับไป)
-    - หากส่งค่า `true` ซ้ำ จะคง timestamp เดิมไว้
-    - แฟล็กนี้จะถูกล้างค่าโดยอัตโนมัติเมื่อมีการเปลี่ยนสถานะ
+  - **กฎการใช้งานและ Idempotency:** 
+    - อนุญาตเฉพาะตั๋วที่อยู่ในสถานะกลุ่มเปิด (ยกเว้น NEW) คือ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED หากสถานะอื่น (NEW, RESOLVED, CLOSED, CANCELLED) ตอบกลับ `409 INVALID_TICKET_STATE`
+    - ไม่ต้องส่ง `version` และการดำเนินการนี้ **ไม่ทำให้ version เพิ่มขึ้น**
+    - Idempotent by design: ส่งค่า `true` ซ้ำจะคง timestamp เดิมไว้และไม่เกิดการเขียนฐานข้อมูลซ้ำ (updatedAt ไม่เปลี่ยน); ส่งค่า `false` เมื่อเป็น null อยู่แล้วจะไม่เขียนฐานข้อมูล
+    - เมื่อส่งค่า `false` จะเคลียร์ค่า `requesterMarkedResolvedAt` เป็น null และ `problemAppearsResolved` เป็น false
+    - แฟล็กนี้จะถูกล้างค่าโดยอัตโนมัติเมื่อมีการเปลี่ยนสถานะในทั้งสองเส้นทางสถานะ
+    - No Leakage: ส่งคืนเฉพาะฟิลด์ id, ticketNumber, status, version, updatedAt, problemAppearsResolved, requesterMarkedResolvedAt, owner
   - **Success (200):**
     ```json
     { "id": 42, "ticketNumber": "TKT-0042", "status": "OPEN",
@@ -236,7 +241,7 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Request body:**
   ```json
-  { "version": 2, "ownerId": "cuid_of_staff" }
+  { "version": 2, "ownerId": "cuid_of_staff" } (version is optional for backward compatibility)
   ```
   *(ส่ง `ownerId: null` เพื่อยกเลิกการมอบหมาย — Lab 3 รองรับแล้ว)*
 - **กฎ:**
@@ -368,6 +373,7 @@ GET /api/tickets และ GET /staff/tickets ต้องรองรับ par
 - `POST /api/tickets/:id/comments`
 - `GET /api/tickets/:id/comments`
 - `POST /api/tickets/:id/notes`
+- `PATCH /staff/tickets/:id/status` *(หมายเหตุ: version is optional during compatibility window; enforced when sent; errors like 422 INVALID_TRANSITION and 404 keep the Lab 3 format, while CONFLICT uses Lab 4 envelope)*
 - `GET /api/tickets/:id/notes`
 - `GET /staff/tickets`
 - `GET /staff/tickets/:id` *(หมายเหตุ: การตอบกลับมีการเพิ่มฟิลด์ `version` และ `requesterMarkedResolvedAt` กฎการมองเห็นโน้ตภายในสำหรับ IT Staff เหมือนเดิม)*

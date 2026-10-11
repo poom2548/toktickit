@@ -49,17 +49,17 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| WF-01 | workflow | AC-20 | allowed transitions (table-driven, per role) (167 cases combined with WF-02) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-02 | workflow | AC-21 | disallowed -> 422/403, unchanged | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-03 | workflow | AC-23 | appears resolved does not change status | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-04 | workflow | AC-24 | resolution gate pass/fail | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-05 | workflow | AC-25 | stale ticket version -> 409 | 409 Conflict | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-06 | workflow | AC-17 | assign active staff | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-07 | workflow | AC-16 | inactive/non-staff assignee rejected | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-08 | workflow | AC-26 | allowed-transitions endpoint | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-09 | workflow | AC-27 | append-only status history, stable order | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| WF-10 | workflow | AC-28 | Requester cannot see Internal Notes | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
-| AUTHZ-05 | authorization | AC-22 | Requester sets RESOLVED -> 403 | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-10) npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts" |
+| WF-01 | workflow | AC-20 | allowed transitions (table-driven, 35 allowed cases across 4 actors) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-02 | workflow | AC-21 | disallowed -> 422/403, unchanged (221 disallowed cases across 4 actors) | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-03 | workflow | AC-23 | appears resolved does not change status, idempotency and state validation | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-04 | workflow | AC-24 | resolution gate pass/fail | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-05 | workflow | AC-25 | stale ticket version -> 409, positive version validation and compatibility window | 409 Conflict | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-06 | workflow | AC-17 | assign active staff | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-07 | workflow | AC-16 | inactive/non-staff assignee rejected | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-08 | workflow | AC-26 | allowed-transitions endpoint (32 combinations: 8 statuses x 4 actors) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-09 | workflow | AC-27 | append-only status history, stable order | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-10 | workflow | AC-28 | Requester cannot see Internal Notes and payload allowlist check | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| AUTHZ-05 | authorization | AC-22 | Requester sets RESOLVED -> 403, ownership pre-check and staff routes protection | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 
 ### server/tests/lab-04/requester-dashboard.api.test.ts
 

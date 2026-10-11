@@ -12,8 +12,8 @@ export const changeStatusValidator = (req: Request, res: Response, next: NextFun
 
   if (req.body.version === undefined) {
     errors.version = 'version is required';
-  } else if (!Number.isInteger(req.body.version)) {
-    errors.version = 'version must be an integer';
+  } else if (!Number.isInteger(req.body.version) || req.body.version <= 0) {
+    errors.version = 'version must be a positive integer';
   }
 
   if (Object.keys(errors).length > 0) {
@@ -46,10 +46,5 @@ export const resolvedIndicationValidator = (req: Request, res: Response, next: N
     });
     return;
   }
-  next();
-};
-
-export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {
-  // Not used anymore as validation is done inline, keeping for import compatibility if needed, or remove it.
   next();
 };

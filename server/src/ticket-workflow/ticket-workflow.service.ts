@@ -1,8 +1,33 @@
 import { getPrisma } from '../prisma.js';
-import { TicketStatus, User } from '@prisma/client';
+import { TicketStatus } from '@prisma/client';
 import { findTransition, isLockedStatus } from '../utils/statusTransitions.js';
 import { ServiceError } from '../actions-taken/actions-taken.service.js';
 import crypto from 'crypto';
+
+export function serializeTicketSummary(ticket: any) {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    status: ticket.status,
+    version: ticket.version,
+    updatedAt: ticket.updatedAt,
+    requesterMarkedResolvedAt: ticket.requesterMarkedResolvedAt ?? null,
+    owner: ticket.owner ? { id: ticket.owner.id, name: ticket.owner.name } : null
+  };
+}
+
+export function serializeResolvedIndication(ticket: any) {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    status: ticket.status,
+    version: ticket.version,
+    updatedAt: ticket.updatedAt,
+    problemAppearsResolved: ticket.problemAppearsResolved ?? false,
+    requesterMarkedResolvedAt: ticket.requesterMarkedResolvedAt ?? null,
+    owner: ticket.owner ? { id: ticket.owner.id, name: ticket.owner.name } : null
+  };
+}
 
 const generateStatusRequestHash = (ticketId: number, status: string, version?: number) => {
   const data = JSON.stringify({ ticketId, status, version: version ?? null });
@@ -51,12 +76,21 @@ export const changeTicketStatus = async (
     throw new ServiceError(404, "NOT_FOUND", "Ticket not found");
   }
 
+  // Authorize requester ownership first if requester
+  if (user.role === 'REQUESTER' && ticket.requesterId !== user.id) {
+    throw new ServiceError(403, "FORBIDDEN", "Requester can only access their own tickets");
+  }
+
   if (version !== undefined && ticket.version !== version) {
     throw new ServiceError(409, "CONFLICT", "The ticket was modified by another user.", { currentVersion: ticket.version });
   }
 
   if (isLockedStatus(ticket.status)) {
     throw new ServiceError(422, "INVALID_TRANSITION", `Ticket is locked in ${ticket.status}`);
+  }
+
+  if (ticket.status === newStatus) {
+    throw new ServiceError(422, "INVALID_TRANSITION", `Cannot transition from ${ticket.status} to the same status`);
   }
 
   const rule = findTransition(ticket.status, newStatus);
@@ -96,7 +130,11 @@ export const changeTicketStatus = async (
         data: {
           status: newStatus,
           version: { increment: 1 },
-          requesterMarkedResolvedAt: null
+          requesterMarkedResolvedAt: null,
+          problemAppearsResolved: false
+        },
+        include: {
+          owner: { select: { id: true, name: true } }
         }
       });
 
@@ -110,6 +148,8 @@ export const changeTicketStatus = async (
         }
       });
 
+      const serialized = serializeTicketSummary(updated);
+
       if (idempotencyKey) {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
@@ -121,13 +161,13 @@ export const changeTicketStatus = async (
             key: idempotencyKey,
             requestHash,
             responseStatus: 200,
-            responseBody: updated as any,
+            responseBody: serialized as any,
             expiresAt
           }
         });
       }
 
-      return { updatedTicket: updated };
+      return { updatedTicket: serialized };
     });
 
     return { ticket: updatedTicket, replayed: false };

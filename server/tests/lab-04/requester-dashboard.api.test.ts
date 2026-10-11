@@ -16,7 +16,7 @@ import { TicketStatus, Priority } from '@prisma/client';
 describe('Requester Dashboard', () => {
   beforeAll(async () => {
     await beforeAllPattern();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await afterAllPattern();

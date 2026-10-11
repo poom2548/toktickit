@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { PrismaClient, User, Ticket, Role, TicketStatus, Priority } from '@prisma/client';
 import request from 'supertest';
 import { app } from '../../src/app';
@@ -303,6 +305,50 @@ export const resetTestData = async () => {
   }
 };
 
+const lockDir = path.join(process.cwd(), 'node_modules', '.lab04-db-lock');
+
+export const acquireTestLock = async (timeoutMs = 120000) => {
+  const start = Date.now();
+  while (true) {
+    try {
+      fs.mkdirSync(lockDir);
+      return;
+    } catch (err: any) {
+      if (err.code === 'EEXIST') {
+        try {
+          const stat = fs.statSync(lockDir);
+          if (Date.now() - stat.mtimeMs > 180000) {
+            fs.rmdirSync(lockDir);
+            continue;
+          }
+        } catch {}
+        if (Date.now() - start > timeoutMs) {
+          throw new Error(`Timeout waiting for test lock after ${timeoutMs}ms`);
+        }
+        await new Promise((r) => setTimeout(r, 100));
+      } else {
+        throw err;
+      }
+    }
+  }
+};
+
+export const releaseTestLock = () => {
+  try {
+    fs.rmdirSync(lockDir);
+  } catch {}
+};
+
+process.on('exit', () => {
+  releaseTestLock();
+});
+
 // Use this pattern in test suites
-export const beforeAllPattern = async () => { assertTestDatabase(); };
-export const afterAllPattern = async () => { await prisma.$disconnect(); };
+export const beforeAllPattern = async () => {
+  assertTestDatabase();
+  await acquireTestLock();
+};
+export const afterAllPattern = async () => {
+  releaseTestLock();
+  await prisma.$disconnect();
+};

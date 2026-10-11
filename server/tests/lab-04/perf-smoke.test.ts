@@ -15,7 +15,7 @@ import { TicketStatus, Priority } from '@prisma/client';
 describe('Performance Smoke', () => {
   beforeAll(async () => {
     await beforeAllPattern();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await resetTestData();

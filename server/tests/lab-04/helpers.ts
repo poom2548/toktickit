@@ -22,8 +22,8 @@ export const getProcessRunId = () => processRunId;
 
 const createdRecords = {
   users: [] as string[],
-  tickets: [] as string[],
-  attachments: [] as string[],
+  tickets: [] as (string | number)[],
+  attachments: [] as (string | number)[],
   notes: [] as string[],
   comments: [] as string[],
   actions: [] as string[],
@@ -124,6 +124,59 @@ export const createTicketsForDashboard = async () => {
   await createTicket({ status: TicketStatus.CLOSED, ownerId: staff.id, createdAt: oldDate });
   
   return { staff };
+};
+
+export const createTicketsBulk = async (count: number, baseOverrides: Partial<Ticket> = {}) => {
+  assertTestDatabase();
+  let categoryId = baseOverrides.categoryId;
+  if (!categoryId) {
+    let cat = await prisma.category.findFirst();
+    if (!cat) cat = await prisma.category.create({ data: { name: `Cat ${getUniqueCount()}` } });
+    categoryId = cat.id;
+  }
+
+  let relatedSystemId = baseOverrides.relatedSystemId;
+  if (!relatedSystemId) {
+    let sys = await prisma.relatedSystem.findFirst();
+    if (!sys) sys = await prisma.relatedSystem.create({ data: { name: `Sys ${getUniqueCount()}` } });
+    relatedSystemId = sys.id;
+  }
+
+  let requesterId = baseOverrides.requesterId;
+  if (!requesterId) {
+    const req = await createRequester();
+    requesterId = req.id;
+  }
+
+  const prefix = `TKT-B${getProcessRunId()}`;
+  const data = [];
+  for (let i = 0; i < count; i++) {
+    data.push({
+      ticketNumber: `${prefix}-${counter++}`,
+      summary: baseOverrides.summary || `Bulk Ticket ${i}`,
+      description: baseOverrides.description || `Bulk Description ${i}`,
+      status: baseOverrides.status || TicketStatus.OPEN,
+      requestedPriority: baseOverrides.requestedPriority || Priority.MEDIUM,
+      itPriority: baseOverrides.itPriority || Priority.MEDIUM,
+      requesterId,
+      ownerId: baseOverrides.ownerId,
+      categoryId,
+      relatedSystemId,
+      problemAppearsResolved: baseOverrides.problemAppearsResolved ?? false,
+      createdAt: baseOverrides.createdAt,
+      updatedAt: baseOverrides.updatedAt,
+    });
+  }
+
+  await prisma.ticket.createMany({ data });
+  const created = await prisma.ticket.findMany({
+    where: { ticketNumber: { startsWith: prefix } },
+    select: { id: true, ticketNumber: true, status: true, itPriority: true, requesterId: true, ownerId: true },
+  });
+  for (const t of created) {
+    createdRecords.tickets.push(t.id);
+  }
+  return { requesterId, tickets: created };
 };
 
 // ========================

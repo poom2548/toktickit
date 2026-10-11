@@ -339,7 +339,9 @@ describe('Actions Taken API', () => {
       { method: 'post', url: '/api/tickets/999/status' },
       { method: 'get', url: '/api/tickets/999/allowed-transitions' },
       { method: 'post', url: '/api/tickets/999/requester-resolved-indication' },
-      { method: 'patch', url: '/staff/tickets/999/owner' }
+      { method: 'patch', url: '/staff/tickets/999/owner' },
+      { method: 'get', url: '/api/dashboard/requester' },
+      { method: 'get', url: '/api/dashboard/staff' }
     ];
     for (const ep of endpoints) {
       const res = await (request(app) as any)[ep.method](ep.url);

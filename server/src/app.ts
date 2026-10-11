@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
 import adminRouter from "./routes/admin.js";
+import { dashboardRouter } from "./dashboard/dashboard.routes.js";
 
 export const app = express();
 
@@ -74,6 +75,13 @@ app.use("/api/requesters", requesterRouter);
 // POST /api/tickets
 // ---------------------------------------------------------------------------
 app.use("/api/tickets", ticketRouter);
+
+// ---------------------------------------------------------------------------
+// Dashboard routes (auth-guarded inside dashboardRouter)
+// GET /api/dashboard/requester
+// GET /api/dashboard/staff
+// ---------------------------------------------------------------------------
+app.use("/api/dashboard", dashboardRouter);
 
 // ---------------------------------------------------------------------------
 // Attachment routes (auth-guarded inside attachmentRouter)

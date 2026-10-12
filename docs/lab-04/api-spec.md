@@ -256,6 +256,7 @@
 - **Errors:** 422 `VALIDATION_FAILED`, 422 `INVALID_ASSIGNEE`, 409 `TICKET_LOCKED`, 409 `CONFLICT`, 403 `FORBIDDEN`, 404 `NOT_FOUND`, 401
 
 ## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
+ส่วนหัว `Cache-Control: no-store` จะถูกส่งออกไปในทุกการตอบกลับของทั้งสองปลายทางแดชบอร์ด รวมถึงการตอบกลับข้อผิดพลาดและ 405 Method Not Allowed
 
 ### `GET /api/dashboard/requester`
 - **Auth required:** ใช่ (ผู้ร้องขอ)

@@ -18,9 +18,17 @@ import {
 } from './helpers.js';
 import { TicketStatus, Priority, Role } from '@prisma/client';
 
+let origTicketFindMany: any;
+let origTicketCount: any;
+let origTicketGroupBy: any;
+
 describe('Staff Dashboard', () => {
   beforeAll(async () => {
     await beforeAllPattern();
+    const db = getPrisma();
+    origTicketFindMany = db.ticket.findMany;
+    origTicketCount = db.ticket.count;
+    origTicketGroupBy = db.ticket.groupBy;
   }, 60000);
 
   afterAll(async () => {
@@ -32,7 +40,10 @@ describe('Staff Dashboard', () => {
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
+    const db = getPrisma();
+    if (origTicketFindMany) db.ticket.findMany = origTicketFindMany;
+    if (origTicketCount) db.ticket.count = origTicketCount;
+    if (origTicketGroupBy) db.ticket.groupBy = origTicketGroupBy;
     await resetTestData();
   });
 
@@ -409,13 +420,11 @@ describe('Staff Dashboard', () => {
 
     // Sub-case A: ticket.findMany fails (called by both Requester and Staff)
     const origFindMany = db.ticket.findMany;
-    const findManySpy = vi
-      .spyOn(db.ticket, 'findMany')
-      .mockRejectedValue(
-        new Error(
-          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
-        )
+    db.ticket.findMany = (async () => {
+      throw new Error(
+        'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
       );
+    }) as any;
     try {
       const errStaffRes = await staffAgent.get('/api/dashboard/staff');
       assert500Response(errStaffRes);
@@ -423,19 +432,16 @@ describe('Staff Dashboard', () => {
       const errReqRes = await reqUserAgent.get('/api/dashboard/requester');
       assert500Response(errReqRes);
     } finally {
-      findManySpy.mockRestore();
       db.ticket.findMany = origFindMany;
     }
 
     // Sub-case B: ticket.count fails (called by both Requester and Staff)
     const origCount = db.ticket.count;
-    const countSpy = vi
-      .spyOn(db.ticket, 'count')
-      .mockRejectedValue(
-        new Error(
-          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
-        )
+    db.ticket.count = (async () => {
+      throw new Error(
+        'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
       );
+    }) as any;
     try {
       const errStaffRes = await staffAgent.get('/api/dashboard/staff');
       assert500Response(errStaffRes);
@@ -443,24 +449,20 @@ describe('Staff Dashboard', () => {
       const errReqRes = await reqUserAgent.get('/api/dashboard/requester');
       assert500Response(errReqRes);
     } finally {
-      countSpy.mockRestore();
       db.ticket.count = origCount;
     }
 
     // Sub-case C: ticket.groupBy fails (called by Staff endpoint)
     const origGroupBy = db.ticket.groupBy;
-    const groupBySpy = vi
-      .spyOn(db.ticket, 'groupBy')
-      .mockRejectedValue(
-        new Error(
-          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
-        )
+    db.ticket.groupBy = (async () => {
+      throw new Error(
+        'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
       );
+    }) as any;
     try {
       const errStaffRes = await staffAgent.get('/api/dashboard/staff');
       assert500Response(errStaffRes);
     } finally {
-      groupBySpy.mockRestore();
       db.ticket.groupBy = origGroupBy;
     }
 

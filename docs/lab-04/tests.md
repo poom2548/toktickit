@@ -77,11 +77,11 @@
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
 | SD-01 | API/integration | AC-29 | each metric = DB query | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified 5-bucket priorityCounts including UNSET and workflow lifecycle) |
 | SD-02 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified zero counts including UNSET) |
-| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified auth matrix and forced-500 safe error envelopes) |
+| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", ทดสอบ forced-500 จำลองข้อผิดพลาดที่ชั้นฐานข้อมูล Prisma สำหรับ findMany/count/groupBy พร้อมตรวจสอบซองข้อผิดพลาดปลอดภัย ไม่รั่วไหลข้อมูล และทดสอบ Cache-Control: no-store บน 500) |
 | SD-04 | API/integration | AC-33 | Admin extras | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
 | SD-05 | API/integration | AC-35 | concise | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified item priority is itPriority or null when unset) |
 | SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", ตรวจสอบเมทริกซ์สิทธิ์ครบทุกบทบาท และตรวจสอบการส่ง Cache-Control: no-store ในทุก response 200, 401, 403, 405) |
 
 ### server/tests/lab-04/migration.test.ts
 

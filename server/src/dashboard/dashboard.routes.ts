@@ -10,6 +10,11 @@ import {
 
 export const dashboardRouter = Router();
 
+dashboardRouter.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+
 dashboardRouter
   .route('/requester')
   .get(wrapRequireAuth, customRequireRole('REQUESTER'), getRequesterDashboard)

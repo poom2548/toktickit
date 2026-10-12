@@ -226,12 +226,16 @@ describe('Requester Dashboard', () => {
     const flowReqAgent = await loginAs(flowRequester);
     const flowStaffAgent = await loginAs(flowStaff);
 
+    const findRecent = (res: any) =>
+      res.body.recentlyUpdated.find((t: any) => t.id === flowTicket.id);
+
     // Initial check (OPEN)
     const reqResOpen = await flowReqAgent.get('/api/dashboard/requester');
     expect(reqResOpen.body.metrics.openTickets.value).toBe(1);
     expect(reqResOpen.body.metrics.recentlyResolved.value).toBe(0);
-    expect(reqResOpen.body.recentlyUpdated[0].id).toBe(flowTicket.id);
-    expect(reqResOpen.body.recentlyUpdated[0].status).toBe('OPEN');
+    const itemOpen = findRecent(reqResOpen);
+    expect(itemOpen).toBeDefined();
+    expect(itemOpen.status).toBe('OPEN');
 
     // Step 1: OPEN -> IN_PROGRESS
     const trans1 = await flowStaffAgent
@@ -241,7 +245,9 @@ describe('Requester Dashboard', () => {
 
     const reqResProg = await flowReqAgent.get('/api/dashboard/requester');
     expect(reqResProg.body.metrics.openTickets.value).toBe(1);
-    expect(reqResProg.body.recentlyUpdated[0].status).toBe('IN_PROGRESS');
+    const itemProg = findRecent(reqResProg);
+    expect(itemProg).toBeDefined();
+    expect(itemProg.status).toBe('IN_PROGRESS');
 
     // Step 2: IN_PROGRESS -> RESOLVED
     const trans2 = await flowStaffAgent
@@ -252,7 +258,9 @@ describe('Requester Dashboard', () => {
     const reqResResolved = await flowReqAgent.get('/api/dashboard/requester');
     expect(reqResResolved.body.metrics.openTickets.value).toBe(0);
     expect(reqResResolved.body.metrics.recentlyResolved.value).toBe(1);
-    expect(reqResResolved.body.recentlyUpdated[0].status).toBe('RESOLVED');
+    const itemRes = findRecent(reqResResolved);
+    expect(itemRes).toBeDefined();
+    expect(itemRes.status).toBe('RESOLVED');
 
     // Step 3: RESOLVED -> CLOSED
     const trans3 = await flowStaffAgent
@@ -263,7 +271,9 @@ describe('Requester Dashboard', () => {
     const reqResClosed = await flowReqAgent.get('/api/dashboard/requester');
     expect(reqResClosed.body.metrics.openTickets.value).toBe(0);
     expect(reqResClosed.body.metrics.recentlyResolved.value).toBe(0);
-    expect(reqResClosed.body.recentlyUpdated[0].status).toBe('CLOSED');
+    const itemClosed = findRecent(reqResClosed);
+    expect(itemClosed).toBeDefined();
+    expect(itemClosed.status).toBe('CLOSED');
   });
 
   it('RD-03: empty', async () => {

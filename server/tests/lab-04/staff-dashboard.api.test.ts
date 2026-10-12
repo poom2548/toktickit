@@ -15,7 +15,6 @@ import {
   afterAllPattern,
   prisma,
   getPrisma,
-  dashboardService,
 } from './helpers.js';
 import { TicketStatus, Priority, Role } from '@prisma/client';
 
@@ -33,6 +32,7 @@ describe('Staff Dashboard', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await resetTestData();
   });
 
@@ -388,49 +388,90 @@ describe('Staff Dashboard', () => {
     const adminRes = await adminAgent.get('/api/dashboard/staff');
     expect(adminRes.status).toBe(200);
 
-    // 5. Forced internal server error on both dashboard endpoints
-    const staffSpy = vi
-      .spyOn(dashboardService, 'getStaffDashboardData')
+    // 5. Forced internal server error on both dashboard endpoints rebuilt at database layer
+    const db = getPrisma();
+    const reqUser = await createRequester();
+    const reqUserAgent = await loginAs(reqUser);
+
+    const assert500Response = (res: any) => {
+      expect(res.status).toBe(500);
+      expect(res.headers['cache-control']).toBe('no-store');
+      expect(res.body).toHaveProperty('error');
+      expect(res.body.error.code).toBe('INTERNAL_ERROR');
+      const bodyStr = JSON.stringify(res.body);
+      expect(bodyStr).not.toContain('simulated database failure');
+      expect(bodyStr).not.toContain('SECRET-TEXT');
+      expect(bodyStr).not.toContain('/path/to/secret');
+      expect(bodyStr).not.toContain('SELECT');
+      expect(bodyStr.toLowerCase()).not.toContain('prisma');
+      expect(bodyStr).not.toContain('stack');
+    };
+
+    // Sub-case A: ticket.findMany fails (called by both Requester and Staff)
+    const origFindMany = db.ticket.findMany;
+    const findManySpy = vi
+      .spyOn(db.ticket, 'findMany')
       .mockRejectedValue(
         new Error(
-          'Simulated database explosion /path/to/secret SELECT * FROM Ticket prisma'
-        )
-      );
-    const reqSpy = vi
-      .spyOn(dashboardService, 'getRequesterDashboardData')
-      .mockRejectedValue(
-        new Error(
-          'Simulated database explosion /path/to/secret SELECT * FROM Ticket prisma'
+          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
         )
       );
     try {
       const errStaffRes = await staffAgent.get('/api/dashboard/staff');
-      expect(errStaffRes.status).toBe(500);
-      expect(errStaffRes.body).toHaveProperty('error');
-      expect(errStaffRes.body.error.code).toBe('INTERNAL_ERROR');
-      const staffBodyStr = JSON.stringify(errStaffRes.body);
-      expect(staffBodyStr).not.toContain('Simulated database explosion');
-      expect(staffBodyStr).not.toContain('/path/to/secret');
-      expect(staffBodyStr).not.toContain('SELECT');
-      expect(staffBodyStr.toLowerCase()).not.toContain('prisma');
-      expect(staffBodyStr).not.toContain('stack');
+      assert500Response(errStaffRes);
 
-      const reqUser = await createRequester();
-      const reqUserAgent = await loginAs(reqUser);
       const errReqRes = await reqUserAgent.get('/api/dashboard/requester');
-      expect(errReqRes.status).toBe(500);
-      expect(errReqRes.body).toHaveProperty('error');
-      expect(errReqRes.body.error.code).toBe('INTERNAL_ERROR');
-      const reqBodyStr = JSON.stringify(errReqRes.body);
-      expect(reqBodyStr).not.toContain('Simulated database explosion');
-      expect(reqBodyStr).not.toContain('/path/to/secret');
-      expect(reqBodyStr).not.toContain('SELECT');
-      expect(reqBodyStr.toLowerCase()).not.toContain('prisma');
-      expect(reqBodyStr).not.toContain('stack');
+      assert500Response(errReqRes);
     } finally {
-      staffSpy.mockRestore();
-      reqSpy.mockRestore();
+      findManySpy.mockRestore();
+      db.ticket.findMany = origFindMany;
     }
+
+    // Sub-case B: ticket.count fails (called by both Requester and Staff)
+    const origCount = db.ticket.count;
+    const countSpy = vi
+      .spyOn(db.ticket, 'count')
+      .mockRejectedValue(
+        new Error(
+          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
+        )
+      );
+    try {
+      const errStaffRes = await staffAgent.get('/api/dashboard/staff');
+      assert500Response(errStaffRes);
+
+      const errReqRes = await reqUserAgent.get('/api/dashboard/requester');
+      assert500Response(errReqRes);
+    } finally {
+      countSpy.mockRestore();
+      db.ticket.count = origCount;
+    }
+
+    // Sub-case C: ticket.groupBy fails (called by Staff endpoint)
+    const origGroupBy = db.ticket.groupBy;
+    const groupBySpy = vi
+      .spyOn(db.ticket, 'groupBy')
+      .mockRejectedValue(
+        new Error(
+          'simulated database failure SECRET-TEXT /path/to/secret SELECT * FROM Ticket prisma'
+        )
+      );
+    try {
+      const errStaffRes = await staffAgent.get('/api/dashboard/staff');
+      assert500Response(errStaffRes);
+    } finally {
+      groupBySpy.mockRestore();
+      db.ticket.groupBy = origGroupBy;
+    }
+
+    // Confirm that normal requests return 200 OK after restoring all mocks (no leak)
+    const normalStaffRes = await staffAgent.get('/api/dashboard/staff');
+    expect(normalStaffRes.status).toBe(200);
+    expect(normalStaffRes.headers['cache-control']).toBe('no-store');
+
+    const normalReqRes = await reqUserAgent.get('/api/dashboard/requester');
+    expect(normalReqRes.status).toBe(200);
+    expect(normalReqRes.headers['cache-control']).toBe('no-store');
   });
 
   it('SD-04: Admin extras', async () => {
@@ -578,49 +619,63 @@ describe('Staff Dashboard', () => {
     // 1. Requester -> requester 200, staff 403
     const reqOnReq = await requesterAgent.get('/api/dashboard/requester');
     expect(reqOnReq.status).toBe(200);
+    expect(reqOnReq.headers['cache-control']).toBe('no-store');
     const reqOnStaff = await requesterAgent.get('/api/dashboard/staff');
     expect(reqOnStaff.status).toBe(403);
     expect(reqOnStaff.body.error.code).toBe('FORBIDDEN');
+    expect(reqOnStaff.headers['cache-control']).toBe('no-store');
 
     // 2. IT Staff -> requester 403, staff 200
     const staffOnReq = await staffAgent.get('/api/dashboard/requester');
     expect(staffOnReq.status).toBe(403);
     expect(staffOnReq.body.error.code).toBe('FORBIDDEN');
+    expect(staffOnReq.headers['cache-control']).toBe('no-store');
     const staffOnStaff = await staffAgent.get('/api/dashboard/staff');
     expect(staffOnStaff.status).toBe(200);
+    expect(staffOnStaff.headers['cache-control']).toBe('no-store');
 
     // 3. Administrator -> requester 403, staff 200
     const adminOnReq = await adminAgent.get('/api/dashboard/requester');
     expect(adminOnReq.status).toBe(403);
     expect(adminOnReq.body.error.code).toBe('FORBIDDEN');
+    expect(adminOnReq.headers['cache-control']).toBe('no-store');
     const adminOnStaff = await adminAgent.get('/api/dashboard/staff');
     expect(adminOnStaff.status).toBe(200);
+    expect(adminOnStaff.headers['cache-control']).toBe('no-store');
 
     // 4. Anonymous -> 401 on both
     const anonOnReq = await anonAgent.get('/api/dashboard/requester');
     expect(anonOnReq.status).toBe(401);
     expect(anonOnReq.body.error.code).toBe('UNAUTHENTICATED');
+    expect(anonOnReq.headers['cache-control']).toBe('no-store');
     const anonOnStaff = await anonAgent.get('/api/dashboard/staff');
     expect(anonOnStaff.status).toBe(401);
     expect(anonOnStaff.body.error.code).toBe('UNAUTHENTICATED');
+    expect(anonOnStaff.headers['cache-control']).toBe('no-store');
 
-    // 5. Non-GET methods -> 404 or 405, nothing modified
+    // 5. Non-GET methods -> 405 (or 404), with Cache-Control: no-store
     const postReq = await requesterAgent.post('/api/dashboard/requester').send({});
     expect([404, 405]).toContain(postReq.status);
+    expect(postReq.headers['cache-control']).toBe('no-store');
 
     const patchReq = await requesterAgent.patch('/api/dashboard/requester').send({});
     expect([404, 405]).toContain(patchReq.status);
+    expect(patchReq.headers['cache-control']).toBe('no-store');
 
     const deleteReq = await requesterAgent.delete('/api/dashboard/requester');
     expect([404, 405]).toContain(deleteReq.status);
+    expect(deleteReq.headers['cache-control']).toBe('no-store');
 
     const postStaff = await staffAgent.post('/api/dashboard/staff').send({});
     expect([404, 405]).toContain(postStaff.status);
+    expect(postStaff.headers['cache-control']).toBe('no-store');
 
     const patchStaff = await staffAgent.patch('/api/dashboard/staff').send({});
     expect([404, 405]).toContain(patchStaff.status);
+    expect(patchStaff.headers['cache-control']).toBe('no-store');
 
     const deleteStaff = await staffAgent.delete('/api/dashboard/staff');
     expect([404, 405]).toContain(deleteStaff.status);
+    expect(deleteStaff.headers['cache-control']).toBe('no-store');
   });
 });

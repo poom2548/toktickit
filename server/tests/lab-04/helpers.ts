@@ -5,9 +5,7 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import { hashPassword } from '../../src/utils/password';
 import { getPrisma } from '../../src/prisma.js';
-import * as dashboardService from '../../src/dashboard/dashboard.service.js';
-
-export { getPrisma, dashboardService };
+export { getPrisma };
 export const prisma = new PrismaClient();
 export const TEST_PASSWORD = 'password123';
 let counter = 0;

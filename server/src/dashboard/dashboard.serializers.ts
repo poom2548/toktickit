@@ -16,11 +16,11 @@ export interface SerializedRecentTicket {
   ticketNumber: string;
   title: string;
   status: string;
-  priority: string;
+  priority: string | null;
   updatedAt: string;
 }
 
-export function serializeRecentlyUpdatedTicket(
+export function serializeRequesterRecentTicket(
   ticket: RecentTicketRecord
 ): SerializedRecentTicket {
   return {
@@ -28,9 +28,28 @@ export function serializeRecentlyUpdatedTicket(
     ticketNumber: ticket.ticketNumber,
     title: ticket.summary,
     status: ticket.status,
-    priority: ticket.itPriority ?? ticket.requestedPriority,
+    priority: ticket.requestedPriority,
     updatedAt: ticket.updatedAt.toISOString(),
   };
+}
+
+export function serializeStaffRecentTicket(
+  ticket: RecentTicketRecord
+): SerializedRecentTicket {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    title: ticket.summary,
+    status: ticket.status,
+    priority: ticket.itPriority,
+    updatedAt: ticket.updatedAt.toISOString(),
+  };
+}
+
+export function serializeRecentlyUpdatedTicket(
+  ticket: RecentTicketRecord
+): SerializedRecentTicket {
+  return serializeStaffRecentTicket(ticket);
 }
 
 export interface RequesterDashboardData {
@@ -59,7 +78,7 @@ export function serializeRequesterDashboard(data: RequesterDashboardData) {
         drillDown: DRILL_DOWNS.requester.recentlyResolved,
       },
     },
-    recentlyUpdated: data.recentlyUpdated.map(serializeRecentlyUpdatedTicket),
+    recentlyUpdated: data.recentlyUpdated.map(serializeRequesterRecentTicket),
   };
 }
 
@@ -128,7 +147,7 @@ export function serializeStaffDashboard(data: StaffDashboardData) {
         drillDownBase: DRILL_DOWNS.staff.priorityCountsBase,
       },
     },
-    recentlyUpdated: data.recentlyUpdated.map(serializeRecentlyUpdatedTicket),
+    recentlyUpdated: data.recentlyUpdated.map(serializeStaffRecentTicket),
   };
 
   if (data.userCounts) {

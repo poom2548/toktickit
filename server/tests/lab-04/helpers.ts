@@ -93,7 +93,7 @@ export const createTicket = async (overrides: Partial<Ticket> = {}) => {
       description: overrides.description || 'Test Description',
       status: overrides.status || TicketStatus.OPEN,
       requestedPriority: overrides.requestedPriority || Priority.MEDIUM,
-      itPriority: overrides.itPriority || Priority.MEDIUM,
+      itPriority: 'itPriority' in overrides ? overrides.itPriority : Priority.MEDIUM,
       requesterId,
       ownerId: overrides.ownerId,
       categoryId,

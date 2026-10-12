@@ -85,6 +85,7 @@ export async function getStaffDashboardData(
     myOwned,
     statusGroupCounts,
     priorityGroupCounts,
+    unsetPriorityCount,
     recentlyUpdated,
     userCounts,
   ] = await Promise.all([
@@ -114,6 +115,12 @@ export async function getStaffDashboardData(
         itPriority: { not: null },
       },
       _count: { id: true },
+    }),
+    prisma.ticket.count({
+      where: {
+        status: { in: [...OPEN_TICKET_STATUSES] },
+        itPriority: null,
+      },
     }),
     prisma.ticket.findMany({
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
@@ -149,6 +156,7 @@ export async function getStaffDashboardData(
     MEDIUM: 0,
     HIGH: 0,
     CRITICAL: 0,
+    UNSET: unsetPriorityCount,
   };
   for (const item of priorityGroupCounts) {
     if (item.itPriority && item.itPriority in priorityCounts) {

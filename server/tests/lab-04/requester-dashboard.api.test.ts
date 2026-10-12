@@ -237,7 +237,7 @@ describe('Requester Dashboard', () => {
     expect(itemOpen).toBeDefined();
     expect(itemOpen.status).toBe('OPEN');
 
-    // Step 1: OPEN -> IN_PROGRESS
+    // Transition 1: OPEN -> IN_PROGRESS
     const trans1 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'IN_PROGRESS', version: 1 });
@@ -249,7 +249,7 @@ describe('Requester Dashboard', () => {
     expect(itemProg).toBeDefined();
     expect(itemProg.status).toBe('IN_PROGRESS');
 
-    // Step 2: IN_PROGRESS -> RESOLVED
+    // Transition 2: IN_PROGRESS -> RESOLVED
     const trans2 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'RESOLVED', version: 2 });
@@ -262,7 +262,7 @@ describe('Requester Dashboard', () => {
     expect(itemRes).toBeDefined();
     expect(itemRes.status).toBe('RESOLVED');
 
-    // Step 3: RESOLVED -> CLOSED
+    // Transition 3: RESOLVED -> CLOSED
     const trans3 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'CLOSED', version: 3 });
@@ -354,8 +354,8 @@ describe('Requester Dashboard', () => {
     // Payload size stays small (< 3000 bytes)
     expect(Buffer.byteLength(rawPayload, 'utf8')).toBeLessThan(3000);
 
-    // Verify priority serialization under Option B: requester sees requestedPriority (never leaks IT priority or null)
-    const ticketRequesterOptB = await createTicket({
+    // Verify priority serialization: requester sees requestedPriority (never leaks IT priority or null)
+    const ticketRequesterWithCritIT = await createTicket({
       requesterId: requester.id,
       itPriority: Priority.CRITICAL,
       requestedPriority: Priority.LOW,
@@ -368,12 +368,12 @@ describe('Requester Dashboard', () => {
       summary: 'Requester Priority Null IT Ticket',
     });
 
-    const resOptB = await agent.get('/api/dashboard/requester');
-    expect(resOptB.status).toBe(200);
-    const itemCrit = resOptB.body.recentlyUpdated.find(
-      (t: any) => t.id === ticketRequesterOptB.id
+    const resPriorityCheck = await agent.get('/api/dashboard/requester');
+    expect(resPriorityCheck.status).toBe(200);
+    const itemCrit = resPriorityCheck.body.recentlyUpdated.find(
+      (t: any) => t.id === ticketRequesterWithCritIT.id
     );
-    const itemNullIT = resOptB.body.recentlyUpdated.find(
+    const itemNullIT = resPriorityCheck.body.recentlyUpdated.find(
       (t: any) => t.id === ticketRequesterNullIT.id
     );
     expect(itemCrit).toBeDefined();

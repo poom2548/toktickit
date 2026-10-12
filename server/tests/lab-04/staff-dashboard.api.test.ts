@@ -203,7 +203,7 @@ describe('Staff Dashboard', () => {
     expect(totalOpenFromStatusCounts).toBeGreaterThanOrEqual(minTotalOpen - 2);
     expect(totalOpenFromStatusCounts).toBeLessThanOrEqual(maxTotalOpen + 2);
 
-    // Verify priorityCounts (Option B: LOW, MEDIUM, HIGH, CRITICAL, and UNSET)
+    // Verify priorityCounts (LOW, MEDIUM, HIGH, CRITICAL, and UNSET)
     expect(res.body.metrics.priorityCounts.label).toBe('By IT Priority');
     expect(res.body.metrics.priorityCounts.drillDownBase).toBe('/staff/tickets?priority=');
     expect(Object.keys(res.body.metrics.priorityCounts.values).sort()).toEqual([
@@ -275,7 +275,7 @@ describe('Staff Dashboard', () => {
     expect(itemOpen).toBeDefined();
     expect(itemOpen.status).toBe('OPEN');
 
-    // Step 1: OPEN -> IN_PROGRESS
+    // Transition 1: OPEN -> IN_PROGRESS
     const trans1 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'IN_PROGRESS', version: 1 });
@@ -286,7 +286,7 @@ describe('Staff Dashboard', () => {
     expect(itemProg).toBeDefined();
     expect(itemProg.status).toBe('IN_PROGRESS');
 
-    // Step 2: IN_PROGRESS -> RESOLVED (resolution gate: owner + action taken with non-empty result)
+    // Transition 2: IN_PROGRESS -> RESOLVED (resolution gate: owner + action taken with non-empty result)
     const trans2 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'RESOLVED', version: 2 });
@@ -298,7 +298,7 @@ describe('Staff Dashboard', () => {
     expect(itemRes.status).toBe('RESOLVED');
     expect(staffResRes.body.metrics.statusCounts.values).not.toHaveProperty('RESOLVED');
 
-    // Step 3: RESOLVED -> CLOSED
+    // Transition 3: RESOLVED -> CLOSED
     const trans3 = await flowStaffAgent
       .post(`/api/tickets/${flowTicket.id}/status`)
       .send({ status: 'CLOSED', version: 3 });
@@ -564,7 +564,7 @@ describe('Staff Dashboard', () => {
     // Payload size stays bounded
     expect(Buffer.byteLength(raw, 'utf8')).toBeLessThan(3500);
 
-    // Verify priority serialization under Option B: IT priority or null when unset (no fallback to requestedPriority)
+    // Verify priority serialization: IT priority or null when unset (no fallback to requestedPriority)
     const ticketUnsetPriority = await createTicket({
       itPriority: null as any,
       requestedPriority: Priority.HIGH,
@@ -576,12 +576,12 @@ describe('Staff Dashboard', () => {
       summary: 'Set IT Priority Ticket',
     });
 
-    const staffResOptB = await staffAgent.get('/api/dashboard/staff');
-    expect(staffResOptB.status).toBe(200);
-    const itemUnset = staffResOptB.body.recentlyUpdated.find(
+    const staffResPriorityCheck = await staffAgent.get('/api/dashboard/staff');
+    expect(staffResPriorityCheck.status).toBe(200);
+    const itemUnset = staffResPriorityCheck.body.recentlyUpdated.find(
       (t: any) => t.id === ticketUnsetPriority.id
     );
-    const itemSet = staffResOptB.body.recentlyUpdated.find(
+    const itemSet = staffResPriorityCheck.body.recentlyUpdated.find(
       (t: any) => t.id === ticketSetPriority.id
     );
     expect(itemUnset).toBeDefined();

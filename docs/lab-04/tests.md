@@ -65,23 +65,23 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| RD-01 | API/integration | AC-02 | only own data (two Requesters) | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
-| RD-02 | API/integration | AC-30 | each metric = DB query | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
-| RD-03 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
-| RD-04 | API/integration | AC-35 | payload concise | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
-| RD-05 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-01 | API/integration | AC-02 | only own data (two Requesters) | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-02 | API/integration | AC-30 | each metric = DB query | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts", verified DB counts and ticket workflow lifecycle interaction) |
+| RD-03 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
+| RD-04 | API/integration | AC-35 | payload concise | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts", verified requester sees requestedPriority without leakage) |
+| RD-05 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/requester-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/requester-dashboard.api.test.ts") |
 
 ### server/tests/lab-04/staff-dashboard.api.test.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| SD-01 | API/integration | AC-29 | each metric = DB query | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| SD-02 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| SD-04 | API/integration | AC-33 | Admin extras | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| SD-05 | API/integration | AC-35 | concise | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
-| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-01 | API/integration | AC-29 | each metric = DB query | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified 5-bucket priorityCounts including UNSET and workflow lifecycle) |
+| SD-02 | API/integration | AC-31 | empty | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified zero counts including UNSET) |
+| SD-03 | authorization | AC-32 | role/401 | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified auth matrix and forced-500 safe error envelopes) |
+| SD-04 | API/integration | AC-33 | Admin extras | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| SD-05 | API/integration | AC-35 | concise | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", verified item priority is itPriority or null when unset) |
+| SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
+| AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
 
 ### server/tests/lab-04/migration.test.ts
 
@@ -97,7 +97,7 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| PERF-01 | performance-smoke | AC-52 | dashboards + Ticket Detail latency/query count | Pass (p95 < 500ms) | server/tests/lab-04/perf-smoke.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/perf-smoke.test.ts", p95 < 500ms over 20 sequential requests after 3 warm-ups on 210 tickets dataset) |
+| PERF-01 | performance-smoke | AC-52 | dashboards + Ticket Detail latency/query count | Pass (p95 < 500ms) | server/tests/lab-04/perf-smoke.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/perf-smoke.test.ts", p95 < 500ms, scaling proof p95(210) < 3*p95(20)+50ms, and payload invariance within 10% across N=20 and N=210) |
 
 ### client/src/tests/lab-04 tests/StaffDashboard.test.tsx
 

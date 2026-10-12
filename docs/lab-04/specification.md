@@ -94,7 +94,7 @@
 | IT Staff/Admin | `unassigned` | Unassigned | นับตั๋วไม่มี owner และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?statusGroup=open&assignee=unassigned` |
 | IT Staff/Admin | `myOwned` | My Owned | นับตั๋วที่ owner คือผู้ใช้ปัจจุบัน และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?statusGroup=open&assignee=me` |
 | IT Staff/Admin | `statusCounts` | By Status | นับแยก NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED (เติม 0) | ทั้งหมด | - | `/staff/tickets?status=...` |
-| IT Staff/Admin | `priorityCounts` | By IT Priority | นับแยก LOW, MEDIUM, HIGH, CRITICAL (รวม 0 สำหรับ priority ของ open statuses) | ทั้งหมด | - | `/staff/tickets?priority=...` |
+| IT Staff/Admin | `priorityCounts` | By IT Priority | นับแยก LOW, MEDIUM, HIGH, CRITICAL, UNSET (นับตั๋วสถานะเปิดที่ itPriority เป็น null รวมใน UNSET; เติม 0 ให้ครบ 5 ค่า) | ทั้งหมด | - | `/staff/tickets?priority=...` (สำหรับ UNSET ใช้ `/staff/tickets?priority=UNSET`) |
 | IT Staff/Admin | `recentlyUpdated` | อัปเดตล่าสุด | ลิสต์ 5 อันดับตั๋วเรียงตาม updatedAt desc | ทั้งหมด | - | - |
 | Admin (เท่านั้น) | `userCounts` | User Accounts | นับ active/inactive users (ไม่แสดงข้อมูลนี้สำหรับ IT Staff) | - | - | - |
 
@@ -248,6 +248,7 @@ UI จะต้องเป็นไปตามระบบการออก�
 16. **Owner assignment:** Legacy routes accept a missing version until the final hardening issue, when the Lab 3 client and tests are updated and version becomes required. ownerId สามารถส่งค่า null เพื่อยกเลิกการมอบหมายได้ (อิงตามที่ Lab 3 มีอยู่แล้ว); ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) จะปฏิเสธการเปลี่ยนเจ้าของด้วย 409 TICKET_LOCKED; การเปลี่ยนเจ้าของสำเร็จจะเพิ่มค่า version ของตั๋วเสมอ
 13. **สิทธิ์การแก้ Action:** เจ้าหน้าที่ IT Staff/Admin ทุกคนมีสิทธิ์ในการแก้ไข Action ใดๆ ก็ได้ในตั๋ว ตราบที่ตั๋วไม่ใช่ CLOSED/CANCELLED
 14. **Legacy Backfill และ Idempotency:** ใช้ ticket.updatedAt เป็นค่าประมาณสำหรับ changedAt ใน TicketStatusHistory backfill; การล้าง IdempotencyKey ที่หมดอายุใช้วิธี lazy cleanup ไม่มี scheduler
-17. **Dashboard Field Mapping & Headers:** ฟิลด์ `title` ใน `recentlyUpdated` ถูกแมปจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `itPriority ?? requestedPriority`; ทั้งสองปลายทางส่ง header `Cache-Control: no-store` เนื่องจากข้อมูลเป็นแบบเฉพาะบุคคล
+17. **Dashboard Field Mapping & Headers:** ฟิลด์ `title` ใน `recentlyUpdated` ถูกแมปจากฟิลด์ `summary` ของโมเดล Ticket โดยสำหรับ Staff Dashboard ใช้ `priority` เป็น `itPriority` (หากยังไม่ระบุจะเป็น null โดยไม่ fallback ไปหา `requestedPriority`) และสำหรับ Requester Dashboard ใช้ `requestedPriority` (ซึ่งเป็นระดับความสำคัญที่ Requester มองเห็นได้จาก Lab 3 และไม่เปิดเผย `itPriority`); ทั้งสองปลายทางส่ง header `Cache-Control: no-store` เนื่องจากข้อมูลเป็นแบบเฉพาะบุคคล
 18. **ขอบเขตตั๋วและสถิติผู้ใช้ของ Staff Dashboard:** เจ้าหน้าที่ไอทีและแอดมินเข้าถึงข้อมูลตั๋วทั้งหมดในระบบตามกฎคิวตั๋วของ Lab 3; ตัวนับ `userCounts` นับจำนวนแถวในโมเดล User ทั้งหมดแยกตามสถานะ `isActive` (active/inactive) และแสดงเฉพาะบทบาท Administrator เท่านั้น (ละเว้นคีย์นี้สำหรับ IT Staff)
+19. **การแจกแจงความสำคัญของตั๋วใน Staff Dashboard (UNSET Priority Bucket):** ในเมทริกซ์ `priorityCounts` ของ Staff Dashboard มีคีย์ 5 ค่า ได้แก่ `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` และ `UNSET` โดย `UNSET` จะนับจำนวนตั๋วในสถานะเปิดที่ยังไม่ได้กำหนด `itPriority` (`itPriority` เป็น null) และคง `drillDownBase` เป็น `/staff/tickets?priority=` (ซึ่งจะเชื่อมโยงไปยัง `/staff/tickets?priority=UNSET` เมื่อกดดูตั๋วที่ยังไม่ระบุความสำคัญ)
 

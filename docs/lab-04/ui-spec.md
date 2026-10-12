@@ -37,7 +37,7 @@
   1. **Unassigned** → drill-down `/staff/tickets?statusGroup=open&assignee=unassigned`
   2. **My Owned** → drill-down `/staff/tickets?statusGroup=open&assignee=me`
   3. **By Status** (5 buckets: NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED) → drill-down `/staff/tickets?status={STATUS}`
-  4. **By IT Priority** (LOW, MEDIUM, HIGH, CRITICAL) → drill-down `/staff/tickets?priority={PRIORITY}`
+  4. **By IT Priority** (LOW, MEDIUM, HIGH, CRITICAL) → drill-down `/staff/tickets?priority={PRIORITY}` (รวมการแสดงผล bucket สำหรับตั๋วที่ยังไม่ได้ระบุความสำคัญ "ยังไม่ระบุ (Unset)" พร้อมป้ายกำกับข้อความชัดเจน)
   5. **User Accounts** — **มองเห็นเฉพาะ Administrator เท่านั้น**
 - **อัปเดตล่าสุด (Recent Updates):** รายการตั๋ว 5 อันดับล่าสุดตาม updatedAt desc
 - **Quick Actions:** สร้างตั๋ว (ไปยังหน้าสร้างตั๋ว), ค้นหาตั๋ว (ไปยังคิวตั๋ว), คิวของฉัน (`/staff/tickets?statusGroup=open&assignee=me`)

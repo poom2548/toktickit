@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import {
   createRequester,
+  createStaff,
   createTicket,
   createTicketsBulk,
+  createAction,
   createStatusHistory,
   loginAs,
   anonymousRequest,
@@ -205,6 +207,63 @@ describe('Requester Dashboard', () => {
     expect(res.body.recentlyUpdated).toHaveLength(expectedRecentTickets.length);
     const actualIds = res.body.recentlyUpdated.map((t: any) => t.id);
     expect(actualIds).toEqual(expectedRecentTickets.map((t: any) => t.id));
+
+    // Workflow interaction test: ticket lifecycle OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
+    const flowRequester = await createRequester();
+    const flowStaff = await createStaff();
+    const flowTicket = await createTicket({
+      requesterId: flowRequester.id,
+      ownerId: flowStaff.id,
+      status: TicketStatus.OPEN,
+      itPriority: Priority.HIGH,
+      requestedPriority: Priority.LOW,
+    });
+    await createAction(flowTicket.id, {
+      performedById: flowStaff.id,
+      result: 'Resolution prerequisite met',
+    });
+
+    const flowReqAgent = await loginAs(flowRequester);
+    const flowStaffAgent = await loginAs(flowStaff);
+
+    // Initial check (OPEN)
+    const reqResOpen = await flowReqAgent.get('/api/dashboard/requester');
+    expect(reqResOpen.body.metrics.openTickets.value).toBe(1);
+    expect(reqResOpen.body.metrics.recentlyResolved.value).toBe(0);
+    expect(reqResOpen.body.recentlyUpdated[0].id).toBe(flowTicket.id);
+    expect(reqResOpen.body.recentlyUpdated[0].status).toBe('OPEN');
+
+    // Step 1: OPEN -> IN_PROGRESS
+    const trans1 = await flowStaffAgent
+      .post(`/api/tickets/${flowTicket.id}/status`)
+      .send({ status: 'IN_PROGRESS', version: 1 });
+    expect(trans1.status).toBe(200);
+
+    const reqResProg = await flowReqAgent.get('/api/dashboard/requester');
+    expect(reqResProg.body.metrics.openTickets.value).toBe(1);
+    expect(reqResProg.body.recentlyUpdated[0].status).toBe('IN_PROGRESS');
+
+    // Step 2: IN_PROGRESS -> RESOLVED
+    const trans2 = await flowStaffAgent
+      .post(`/api/tickets/${flowTicket.id}/status`)
+      .send({ status: 'RESOLVED', version: 2 });
+    expect(trans2.status).toBe(200);
+
+    const reqResResolved = await flowReqAgent.get('/api/dashboard/requester');
+    expect(reqResResolved.body.metrics.openTickets.value).toBe(0);
+    expect(reqResResolved.body.metrics.recentlyResolved.value).toBe(1);
+    expect(reqResResolved.body.recentlyUpdated[0].status).toBe('RESOLVED');
+
+    // Step 3: RESOLVED -> CLOSED
+    const trans3 = await flowStaffAgent
+      .post(`/api/tickets/${flowTicket.id}/status`)
+      .send({ status: 'CLOSED', version: 3 });
+    expect(trans3.status).toBe(200);
+
+    const reqResClosed = await flowReqAgent.get('/api/dashboard/requester');
+    expect(reqResClosed.body.metrics.openTickets.value).toBe(0);
+    expect(reqResClosed.body.metrics.recentlyResolved.value).toBe(0);
+    expect(reqResClosed.body.recentlyUpdated[0].status).toBe('CLOSED');
   });
 
   it('RD-03: empty', async () => {
@@ -284,6 +343,33 @@ describe('Requester Dashboard', () => {
 
     // Payload size stays small (< 3000 bytes)
     expect(Buffer.byteLength(rawPayload, 'utf8')).toBeLessThan(3000);
+
+    // Verify priority serialization under Option B: requester sees requestedPriority (never leaks IT priority or null)
+    const ticketRequesterOptB = await createTicket({
+      requesterId: requester.id,
+      itPriority: Priority.CRITICAL,
+      requestedPriority: Priority.LOW,
+      summary: 'Requester Priority Visibility Ticket',
+    });
+    const ticketRequesterNullIT = await createTicket({
+      requesterId: requester.id,
+      itPriority: null as any,
+      requestedPriority: Priority.MEDIUM,
+      summary: 'Requester Priority Null IT Ticket',
+    });
+
+    const resOptB = await agent.get('/api/dashboard/requester');
+    expect(resOptB.status).toBe(200);
+    const itemCrit = resOptB.body.recentlyUpdated.find(
+      (t: any) => t.id === ticketRequesterOptB.id
+    );
+    const itemNullIT = resOptB.body.recentlyUpdated.find(
+      (t: any) => t.id === ticketRequesterNullIT.id
+    );
+    expect(itemCrit).toBeDefined();
+    expect(itemCrit.priority).toBe('LOW'); // must be requestedPriority, not CRITICAL
+    expect(itemNullIT).toBeDefined();
+    expect(itemNullIT.priority).toBe('MEDIUM');
   });
 
   it('RD-05: time-zone boundary', async () => {

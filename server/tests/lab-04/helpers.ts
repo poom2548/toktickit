@@ -4,7 +4,10 @@ import { PrismaClient, User, Ticket, Role, TicketStatus, Priority } from '@prism
 import request from 'supertest';
 import { app } from '../../src/app';
 import { hashPassword } from '../../src/utils/password';
+import { getPrisma } from '../../src/prisma.js';
+import * as dashboardService from '../../src/dashboard/dashboard.service.js';
 
+export { getPrisma, dashboardService };
 export const prisma = new PrismaClient();
 export const TEST_PASSWORD = 'password123';
 let counter = 0;
@@ -287,8 +290,15 @@ export const resetTestData = async () => {
   if ('statusHistory' in prisma && createdRecords.history.length > 0) {
     await (prisma as any).statusHistory.deleteMany({ where: { id: { in: createdRecords.history } } });
   }
-  if ('ticketStatusHistory' in prisma && createdRecords.history.length > 0) {
-    await (prisma as any).ticketStatusHistory.deleteMany({ where: { id: { in: createdRecords.history } } });
+  if ('ticketStatusHistory' in prisma && (createdRecords.history.length > 0 || createdRecords.tickets.length > 0)) {
+    await (prisma as any).ticketStatusHistory.deleteMany({
+      where: {
+        OR: [
+          ...(createdRecords.history.length > 0 ? [{ id: { in: createdRecords.history } }] : []),
+          ...(createdRecords.tickets.length > 0 ? [{ ticketId: { in: createdRecords.tickets } }] : []),
+        ],
+      },
+    });
   }
   if ('idempotencyKey' in prisma && createdRecords.idempotency.length > 0) {
     await (prisma as any).idempotencyKey.deleteMany({ where: { id: { in: createdRecords.idempotency } } });

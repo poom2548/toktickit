@@ -1,8 +1,5 @@
 import { Request, Response } from 'express';
-import {
-  getRequesterDashboardData,
-  getStaffDashboardData,
-} from './dashboard.service.js';
+import * as dashboardService from './dashboard.service.js';
 import {
   serializeRequesterDashboard,
   serializeStaffDashboard,
@@ -13,7 +10,7 @@ export async function getRequesterDashboard(req: Request, res: Response): Promis
   try {
     res.setHeader('Cache-Control', 'no-store');
     const userId = req.user!.id;
-    const data = await getRequesterDashboardData(userId);
+    const data = await dashboardService.getRequesterDashboardData(userId);
     const serialized = serializeRequesterDashboard(data);
     return res.status(200).json(serialized);
   } catch (error) {
@@ -27,7 +24,7 @@ export async function getStaffDashboard(req: Request, res: Response): Promise<an
     res.setHeader('Cache-Control', 'no-store');
     const userId = req.user!.id;
     const role = req.user!.role;
-    const data = await getStaffDashboardData(userId, role);
+    const data = await dashboardService.getStaffDashboardData(userId, role);
     const serialized = serializeStaffDashboard(data);
     return res.status(200).json(serialized);
   } catch (error) {

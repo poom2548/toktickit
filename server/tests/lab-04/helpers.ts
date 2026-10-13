@@ -1,8 +1,11 @@
+import fs from 'fs';
+import path from 'path';
 import { PrismaClient, User, Ticket, Role, TicketStatus, Priority } from '@prisma/client';
 import request from 'supertest';
 import { app } from '../../src/app';
 import { hashPassword } from '../../src/utils/password';
-
+import { getPrisma } from '../../src/prisma.js';
+export { getPrisma };
 export const prisma = new PrismaClient();
 export const TEST_PASSWORD = 'password123';
 let counter = 0;
@@ -22,8 +25,8 @@ export const getProcessRunId = () => processRunId;
 
 const createdRecords = {
   users: [] as string[],
-  tickets: [] as string[],
-  attachments: [] as string[],
+  tickets: [] as (string | number)[],
+  attachments: [] as (string | number)[],
   notes: [] as string[],
   comments: [] as string[],
   actions: [] as string[],
@@ -88,7 +91,7 @@ export const createTicket = async (overrides: Partial<Ticket> = {}) => {
       description: overrides.description || 'Test Description',
       status: overrides.status || TicketStatus.OPEN,
       requestedPriority: overrides.requestedPriority || Priority.MEDIUM,
-      itPriority: overrides.itPriority || Priority.MEDIUM,
+      itPriority: 'itPriority' in overrides ? overrides.itPriority : Priority.MEDIUM,
       requesterId,
       ownerId: overrides.ownerId,
       categoryId,
@@ -124,6 +127,59 @@ export const createTicketsForDashboard = async () => {
   await createTicket({ status: TicketStatus.CLOSED, ownerId: staff.id, createdAt: oldDate });
   
   return { staff };
+};
+
+export const createTicketsBulk = async (count: number, baseOverrides: Partial<Ticket> = {}) => {
+  assertTestDatabase();
+  let categoryId = baseOverrides.categoryId;
+  if (!categoryId) {
+    let cat = await prisma.category.findFirst();
+    if (!cat) cat = await prisma.category.create({ data: { name: `Cat ${getUniqueCount()}` } });
+    categoryId = cat.id;
+  }
+
+  let relatedSystemId = baseOverrides.relatedSystemId;
+  if (!relatedSystemId) {
+    let sys = await prisma.relatedSystem.findFirst();
+    if (!sys) sys = await prisma.relatedSystem.create({ data: { name: `Sys ${getUniqueCount()}` } });
+    relatedSystemId = sys.id;
+  }
+
+  let requesterId = baseOverrides.requesterId;
+  if (!requesterId) {
+    const req = await createRequester();
+    requesterId = req.id;
+  }
+
+  const prefix = `TKT-B${getProcessRunId()}`;
+  const data = [];
+  for (let i = 0; i < count; i++) {
+    data.push({
+      ticketNumber: `${prefix}-${counter++}`,
+      summary: baseOverrides.summary || `Bulk Ticket ${i}`,
+      description: baseOverrides.description || `Bulk Description ${i}`,
+      status: baseOverrides.status || TicketStatus.OPEN,
+      requestedPriority: baseOverrides.requestedPriority || Priority.MEDIUM,
+      itPriority: baseOverrides.itPriority || Priority.MEDIUM,
+      requesterId,
+      ownerId: baseOverrides.ownerId,
+      categoryId,
+      relatedSystemId,
+      problemAppearsResolved: baseOverrides.problemAppearsResolved ?? false,
+      createdAt: baseOverrides.createdAt,
+      updatedAt: baseOverrides.updatedAt,
+    });
+  }
+
+  await prisma.ticket.createMany({ data });
+  const created = await prisma.ticket.findMany({
+    where: { ticketNumber: { startsWith: prefix } },
+    select: { id: true, ticketNumber: true, status: true, itPriority: true, requesterId: true, ownerId: true },
+  });
+  for (const t of created) {
+    createdRecords.tickets.push(t.id);
+  }
+  return { requesterId, tickets: created };
 };
 
 // ========================
@@ -232,8 +288,15 @@ export const resetTestData = async () => {
   if ('statusHistory' in prisma && createdRecords.history.length > 0) {
     await (prisma as any).statusHistory.deleteMany({ where: { id: { in: createdRecords.history } } });
   }
-  if ('ticketStatusHistory' in prisma && createdRecords.history.length > 0) {
-    await (prisma as any).ticketStatusHistory.deleteMany({ where: { id: { in: createdRecords.history } } });
+  if ('ticketStatusHistory' in prisma && (createdRecords.history.length > 0 || createdRecords.tickets.length > 0)) {
+    await (prisma as any).ticketStatusHistory.deleteMany({
+      where: {
+        OR: [
+          ...(createdRecords.history.length > 0 ? [{ id: { in: createdRecords.history } }] : []),
+          ...(createdRecords.tickets.length > 0 ? [{ ticketId: { in: createdRecords.tickets } }] : []),
+        ],
+      },
+    });
   }
   if ('idempotencyKey' in prisma && createdRecords.idempotency.length > 0) {
     await (prisma as any).idempotencyKey.deleteMany({ where: { id: { in: createdRecords.idempotency } } });
@@ -250,6 +313,50 @@ export const resetTestData = async () => {
   }
 };
 
+const lockDir = path.join(process.cwd(), 'node_modules', '.lab04-db-lock');
+
+export const acquireTestLock = async (timeoutMs = 120000) => {
+  const start = Date.now();
+  while (true) {
+    try {
+      fs.mkdirSync(lockDir);
+      return;
+    } catch (err: any) {
+      if (err.code === 'EEXIST') {
+        try {
+          const stat = fs.statSync(lockDir);
+          if (Date.now() - stat.mtimeMs > 180000) {
+            fs.rmdirSync(lockDir);
+            continue;
+          }
+        } catch {}
+        if (Date.now() - start > timeoutMs) {
+          throw new Error(`Timeout waiting for test lock after ${timeoutMs}ms`);
+        }
+        await new Promise((r) => setTimeout(r, 100));
+      } else {
+        throw err;
+      }
+    }
+  }
+};
+
+export const releaseTestLock = () => {
+  try {
+    fs.rmdirSync(lockDir);
+  } catch {}
+};
+
+process.on('exit', () => {
+  releaseTestLock();
+});
+
 // Use this pattern in test suites
-export const beforeAllPattern = async () => { assertTestDatabase(); };
-export const afterAllPattern = async () => { await prisma.$disconnect(); };
+export const beforeAllPattern = async () => {
+  assertTestDatabase();
+  await acquireTestLock();
+};
+export const afterAllPattern = async () => {
+  releaseTestLock();
+  await prisma.$disconnect();
+};

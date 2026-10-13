@@ -256,9 +256,12 @@
 - **Errors:** 422 `VALIDATION_FAILED`, 422 `INVALID_ASSIGNEE`, 409 `TICKET_LOCKED`, 409 `CONFLICT`, 403 `FORBIDDEN`, 404 `NOT_FOUND`, 401
 
 ## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
+ส่วนหัว `Cache-Control: no-store` จะถูกส่งออกไปในทุกการตอบกลับของทั้งสองปลายทางแดชบอร์ด รวมถึงการตอบกลับข้อผิดพลาดและ 405 Method Not Allowed
 
 ### `GET /api/dashboard/requester`
 - **Auth required:** ใช่ (ผู้ร้องขอ)
+- **Headers:** `Cache-Control: no-store`
+- **Scope & Field Mapping:** ขอบเขตจำกัดเฉพาะตั๋วที่ผู้ร้องขอเป็นเจ้าของ (`requesterId` ตรงกับ session ของตนเองเท่านั้น โดยละเว้นพารามิเตอร์หรือตัวกรองภายนอก); ฟิลด์ `title` ใน `recentlyUpdated` แมปมาจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `requestedPriority` เสมอ (ซึ่งเป็นระดับความสำคัญที่ Requester สามารถมองเห็นได้จาก Lab 3 และไม่เปิดเผย `itPriority` หรือส่งค่า null ออกไป)
 - **Success (200):**
   ```json
   {
@@ -295,6 +298,8 @@
 
 ### `GET /api/dashboard/staff`
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
+- **Headers:** `Cache-Control: no-store`
+- **Scope & Field Mapping:** ขอบเขตครอบคลุมตั๋วทั้งหมดในระบบที่เจ้าหน้าที่เข้าถึงได้ (อิงตามเกณฑ์ของ GET /staff/tickets ใน Lab 3); ฟิลด์ `title` ใน `recentlyUpdated` แมปมาจากฟิลด์ `summary` ของโมเดล Ticket และ `priority` ใช้ค่า `itPriority` (ส่งค่า null หากยังไม่ได้รับการกำหนดความสำคัญโดยเจ้าหน้าที่ไอที โดยไม่มีการ fallback ไปหา `requestedPriority`)
 - **Success (200):**
   ```json
   {
@@ -316,7 +321,7 @@
       },
       "priorityCounts": {
         "label": "By IT Priority",
-        "values": { "LOW": 1, "MEDIUM": 5, "HIGH": 3, "CRITICAL": 1 },
+        "values": { "LOW": 1, "MEDIUM": 5, "HIGH": 3, "CRITICAL": 1, "UNSET": 0 },
         "drillDownBase": "/staff/tickets?priority="
       }
     },
@@ -337,7 +342,7 @@
     ]
   }
   ```
-  *(หมายเหตุ: `userCounts` จะแสดงเฉพาะเมื่อผู้ใช้มีบทบาท Administrator เท่านั้น หากเป็น IT Staff ฟิลด์นี้จะถูกละเว้น)*
+  *(หมายเหตุ: `userCounts` จะแสดงเฉพาะเมื่อผู้ใช้มีบทบาท Administrator เท่านั้น หากเป็น IT Staff ฟิลด์นี้จะถูกละเว้น; `priorityCounts` ครอบคลุม 5 คีย์ [LOW, MEDIUM, HIGH, CRITICAL, UNSET] โดย UNSET นับตั๋วสถานะเปิดที่ itPriority เป็น null และ drillDownBase /staff/tickets?priority= จะเชื่อมโยงไปยัง /staff/tickets?priority=UNSET ใน Issue #8)*
 - **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามเข้าถึง)
 
 **ตัวกรองที่ต้องเพิ่มในหน้ารายการ (สำหรับ Issue #8):**

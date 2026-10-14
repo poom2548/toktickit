@@ -119,7 +119,21 @@ describe('StaffTicketDetailPage', () => {
   })
 
   it('renders only permitted status transitions in the status dropdown', async () => {
-    (global.fetch as any).mockResolvedValue({ ok: true, status: 200, json: async () => mockTicket })
+    (global.fetch as any).mockImplementation(async (url: any) => {
+      const u = typeof url === 'string' ? url : url?.url || url?.toString() || ''
+      if (u.includes('/allowed-transitions')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            currentStatus: mockTicket.status,
+            version: 1,
+            allowedTransitions: ['WAITING_FOR_REQUESTER', 'RESOLVED', 'CANCELLED'],
+          }),
+        }
+      }
+      return { ok: true, status: 200, json: async () => mockTicket }
+    })
     render(<StaffTicketDetailPage />, { wrapper })
 
     await waitFor(() => {

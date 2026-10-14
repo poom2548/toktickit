@@ -12,6 +12,8 @@ import {
 } from "./api";
 import { StatusBadge } from "./components/shared/StatusBadge";
 import { PriorityBadge } from "./components/shared/PriorityBadge";
+import { ActionsTakenSection } from "./components/actions/ActionsTakenSection";
+import { TicketWorkflowControls } from "./components/workflow/TicketWorkflowControls";
 
 // ---------------------------------------------------------------------------
 // Zen Green colour tokens
@@ -292,6 +294,23 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
             />
           </div>
         </div>
+
+        {/* Workflow controls for Requester: advisory & cancel */}
+        <TicketWorkflowControls
+          ticket={ticket as any}
+          currentUser={{ id: '', name: '', role: 'REQUESTER' }}
+          onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+        />
+
+        {/* Actions Taken Section (Read-only for Requester) */}
+        <ActionsTakenSection
+          ticketId={ticket.id}
+          ticketStatus={ticket.status}
+          ticketVersion={(ticket as any).version ?? 1}
+          isStaff={false}
+          currentUser={{ id: '', name: '', role: 'REQUESTER' }}
+          onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+        />
 
         <hr className="my-5" />
 

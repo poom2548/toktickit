@@ -3,7 +3,8 @@ import './StaffTicketDetail.css'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { TicketInfoSection } from '../../components/staff/TicketInfoSection'
-import { OperationalSection } from '../../components/staff/OperationalSection'
+import { TicketWorkflowControls } from '../../components/workflow/TicketWorkflowControls'
+import { ActionsTakenSection } from '../../components/actions/ActionsTakenSection'
 import { PublicCommentsPane } from '../../components/shared/PublicCommentsPane'
 import { InternalNotesPane } from '../../components/staff/InternalNotesPane'
 import { AttachmentsSection } from '../../components/staff/AttachmentsSection'
@@ -16,7 +17,9 @@ export interface TicketDetail {
   requestedPriority: string
   itPriority: string | null
   status: string
+  version?: number
   problemAppearsResolved: boolean
+  requesterMarkedResolvedAt?: string | null
   createdAt: string
   updatedAt: string
   requester: { id: string; name: string; email: string; role: string }
@@ -83,7 +86,21 @@ export function StaffTicketDetailPage() {
       <button onClick={() => navigate('/staff/tickets')} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>← Back to Queue</button>
 
       <TicketInfoSection ticket={ticket} />
-      <OperationalSection ticket={ticket} onTicketUpdate={(updated) => setTicket(updated)} />
+
+      <TicketWorkflowControls
+        ticket={ticket}
+        currentUser={user}
+        onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+      />
+
+      <ActionsTakenSection
+        ticketId={ticket.id}
+        ticketStatus={ticket.status}
+        ticketVersion={ticket.version ?? 1}
+        isStaff={true}
+        currentUser={user}
+        onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+      />
       
       <PublicCommentsPane
         ticketId={ticket.id}
@@ -101,3 +118,5 @@ export function StaffTicketDetailPage() {
     </div>
   )
 }
+
+export default StaffTicketDetailPage

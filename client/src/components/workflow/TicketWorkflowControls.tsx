@@ -61,12 +61,21 @@ export function TicketWorkflowControls({
   const [savingOwner, setSavingOwner] = useState(false)
   const [ownerError, setOwnerError] = useState<NormalizedApiError | null>(null)
 
+  // Priority state
+  const [priority, setPriority] = useState(ticket.itPriority ?? '')
+  const [savingPriority, setSavingPriority] = useState(false)
+  const [priorityError, setPriorityError] = useState<string | null>(null)
+
   // Advisory state
   const [savingAdvisory, setSavingAdvisory] = useState(false)
 
   // Cancellation modal
   const [showCancelModal, setShowCancelModal] = useState(false)
   const cancelModalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setPriority(ticket.itPriority ?? '')
+  }, [ticket.itPriority])
 
   useEffect(() => {
     fetchTransitions()
@@ -180,6 +189,30 @@ export function TicketWorkflowControls({
     }
   }
 
+  async function handleSavePriority() {
+    setSavingPriority(true)
+    setPriorityError(null)
+    try {
+      const res = await fetch(`/staff/tickets/${ticket.id}/priority`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itPriority: priority || null }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        onTicketUpdate({ ...ticket, ...updated })
+      } else {
+        const err = await res.json()
+        setPriorityError(err.error || 'Failed to save priority.')
+      }
+    } catch {
+      setPriorityError('An unexpected error occurred.')
+    } finally {
+      setSavingPriority(false)
+    }
+  }
+
   async function handleRequesterAdvisory() {
     setSavingAdvisory(true)
     try {
@@ -219,7 +252,7 @@ export function TicketWorkflowControls({
       {/* Staff Advisory Banner */}
       {isStaff && (ticket.problemAppearsResolved || ticket.requesterMarkedResolvedAt) && (
         <div className="advisory-staff-banner" role="status">
-          <span>ℹ️ ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว (Requester has indicated problem appears resolved)</span>
+          <span>ℹ️ ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว</span>
         </div>
       )}
 
@@ -359,6 +392,40 @@ export function TicketWorkflowControls({
             {ownerError && (
               <span className="field-error" role="alert">
                 {ownerError.message}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* IT Priority Controls (Staff only) */}
+        {isStaff && (
+          <div className="workflow-field-group">
+            <label htmlFor="it-priority-select">IT Priority</label>
+            <div className="workflow-controls-row">
+              <select
+                id="it-priority-select"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                disabled={savingPriority}
+              >
+                <option value="">— Not set —</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
+              </select>
+              <button
+                type="button"
+                className="btn-primary btn-sm"
+                onClick={handleSavePriority}
+                disabled={savingPriority}
+              >
+                {savingPriority ? 'Saving…' : 'Save Priority'}
+              </button>
+            </div>
+            {priorityError && (
+              <span className="field-error" role="alert">
+                {priorityError}
               </span>
             )}
           </div>

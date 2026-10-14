@@ -13,7 +13,7 @@ export interface NormalizedApiError {
 
 const SAFE_CODE_MESSAGES: Record<string, string> = {
   VALIDATION_FAILED: 'ข้อมูลที่ระบุไม่ถูกต้อง กรุณาตรวจสอบข้อมูลในฟอร์ม',
-  CONFLICT: 'ตั๋วหรือรายการถูกแก้ไขโดยผู้อื่น กรุณาโหลดซ้ำเพื่อรับข้อมูลล่าสุด',
+  CONFLICT: 'ตั๋วถูกอัปเดตโดยผู้อื่น (The ticket was modified by another user.) กรุณาโหลดซ้ำเพื่อรับข้อมูลล่าสุด',
   TICKET_LOCKED: 'ตั๋วอยู่ในสถานะปิดใช้งาน (Closed หรือ Cancelled) ไม่สามารถดำเนินการต่อได้',
   INVALID_TRANSITION: 'ไม่สามารถเปลี่ยนสถานะไปยังสถานะที่เลือกได้',
   RESOLUTION_GATE_FAILED: 'ไม่ผ่านเงื่อนไขการปิดงาน',

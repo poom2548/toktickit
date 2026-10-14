@@ -96,7 +96,7 @@
 ### หน้าจอที่ 4: การเปลี่ยนสถานะ (Ticket Status Controls) และเปลี่ยนผู้รับผิดชอบ (Owner Picker)
 
 - **Transition ไม่ Hardcode:** UI โหลดรายการสถานะที่เปลี่ยนได้จาก `GET /api/tickets/:id/allowed-transitions` ทุกครั้ง (Dropdown ถูกสร้างแบบไดนามิก)
-- **Owner Dropdown:** แสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff/Admin เท่านั้น (ผู้ไม่ active ไม่ปรากฏในรายการ) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
+- **Owner Dropdown:** แสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff/Admin เท่านั้น (ผู้ไม่ active ไม่ปรากฏในรายการ) สำหรับบทบาท Administrator ส่วนบทบาท IT Staff จะใช้ปุ่ม Claim / Unassign (เป็นข้อจำกัดที่บันทึกไว้เนื่องจากยังไม่มี staff-level endpoint สำหรับดึงรายชื่อผู้ใช้) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
 - **Advisory Flag (Requester):** ปุ่ม "ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" — อนุญาตเฉพาะสถานะ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED; มีคำอธิบายชัดเจนว่าเป็นเพียงคำแนะนำและไม่เปลี่ยนสถานะ
 - **Banner (Staff):** เมื่อ `requesterMarkedResolvedAt` มีค่า จะแสดงแบนเนอร์ "ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว" พร้อมวันที่
 - **Status badge:** อัปเดตทันทีหลังเปลี่ยนสถานะสำเร็จ ไม่ต้อง reload หน้า

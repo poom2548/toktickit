@@ -119,34 +119,34 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-05 | UI component | AC-10, AC-40 | ActionsTaken legacy tickets view | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Planned (Red) |
-| UI-06 | UI component | AC-03, AC-05, AC-45 | ActionsTaken validation and retention | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Planned (Red) |
-| UI-07 | UI component | AC-11, AC-12 | ActionsTaken update and stale versions | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Planned (Red) |
-| UI-08 | authorization | AC-09, AC-10 | ActionsTaken role view rules | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Planned (Red) |
-| UI-09 | UI component | AC-18 | ActionsTaken duplicate submission check | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Planned (Red) |
+| UI-05 | UI component | AC-10, AC-40 | ActionsTaken legacy tickets view | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/ActionsTaken.test.tsx") |
+| UI-06 | UI component | AC-03, AC-05, AC-45 | ActionsTaken validation and retention | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/ActionsTaken.test.tsx") |
+| UI-07 | UI component | AC-11, AC-12 | ActionsTaken update and stale versions | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/ActionsTaken.test.tsx") |
+| UI-08 | authorization | AC-09, AC-10 | ActionsTaken role view rules | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/ActionsTaken.test.tsx") |
+| UI-09 | UI component | AC-18 | ActionsTaken duplicate submission check | Renders correctly | client/src/tests/lab-04 tests/ActionsTaken.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/ActionsTaken.test.tsx") |
 
 ### client/src/tests/lab-04 tests/TicketWorkflow.test.tsx
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-10 | UI component | AC-26 | TicketWorkflow allowed transitions | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Planned (Red) |
-| UI-11 | UI component | AC-25, AC-26, AC-44 | TicketWorkflow stale versions and errors | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Planned (Red) |
-| UI-12 | UI component | AC-16, AC-17 | TicketWorkflow assignment and staff | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Planned (Red) |
-| UI-14 | UI component | AC-45 | TicketWorkflow form state retention | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Planned (Red) |
-| STY-01 | UI style | AC-49, AC-50 | TicketWorkflow status color and style | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Planned (Red) |
+| UI-10 | UI component | AC-26 | TicketWorkflow allowed transitions | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
+| UI-11 | UI component | AC-25, AC-26, AC-44 | TicketWorkflow stale versions and errors | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
+| UI-12 | UI component | AC-16, AC-17 | TicketWorkflow assignment and staff | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
+| UI-14 | UI component | AC-45 | TicketWorkflow form state retention | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
+| STY-01 | UI style | AC-49, AC-50 | TicketWorkflow status color and style | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
 
 ### e2e/lab-04/actions-taken-flow.spec.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| E2E-01 | E2E | AC-01, AC-03, AC-08, AC-10, AC-11 | actions taken full flow | Pass | e2e/lab-04/actions-taken-flow.spec.ts | Planned (Red) |
+| E2E-01 | E2E | AC-01, AC-03, AC-08, AC-10, AC-11 | actions taken full flow | Pass | e2e/lab-04/actions-taken-flow.spec.ts | Pass (2026-10-14, npx playwright test e2e/lab-04/actions-taken-flow.spec.ts) |
 
 ### e2e/lab-04/ticket-resolution.spec.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| E2E-02 | E2E | AC-16, AC-20, AC-22, AC-23, AC-24, AC-26 | ticket resolution flow | Pass | e2e/lab-04/ticket-resolution.spec.ts | Planned (Red) |
-| E2E-04 | E2E | AC-12, AC-25 | stale ticket conflict E2E | Pass | e2e/lab-04/ticket-resolution.spec.ts | Planned (Red) |
+| E2E-02 | E2E | AC-16, AC-20, AC-22, AC-23, AC-24, AC-26 | ticket resolution flow | Pass | e2e/lab-04/ticket-resolution.spec.ts | Pass (2026-10-14, npx playwright test e2e/lab-04/ticket-resolution.spec.ts) |
+| E2E-04 | E2E | AC-12, AC-25 | stale ticket conflict E2E | Pass | e2e/lab-04/ticket-resolution.spec.ts | Pass (2026-10-14, npx playwright test e2e/lab-04/ticket-resolution.spec.ts) |
 
 ### e2e/lab-04/dashboards.spec.ts
 
@@ -312,4 +312,11 @@ The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system 
 **หมายเหตุ (Issue #6):**
 1. API-15 ถูกขยายเพิ่มเติมให้ครอบคลุมการตรวจสอบ 401 ของ endpoints แดชบอร์ดใหม่ (GET /api/dashboard/requester และ GET /api/dashboard/staff)
 2. PERF-01 กำหนดเกณฑ์ latency ระดับ p95 < 500 ms (ผลทดสอบจริงทุก endpoint < 10 ms) โดยทดสอบ sequential 20 requests หลัง 3 warm-up requests บนชุดข้อมูลตั๋ว 210 รายการ และ payload ปลอดภัยกระชับ (< 10 KB)
+
+**หมายเหตุ (Issue #7):**
+1. พัฒนาคอมโพเนนต์ ActionsTakenSection (ตาราง semantic, card responsive ที่ 360px, ฟอร์ม inline สร้าง/แก้ไข, การรักษาข้อมูลเมื่อเกิด 422/409, ป้องกันการส่งซ้ำด้วย Idempotency-Key) และ TicketWorkflowControls (การเปลี่ยนสถานะแบบ server-driven จาก GET /api/tickets/:id/allowed-transitions ปราศจาก client hardcoded transition matrix, การมอบหมายงานเฉพาะ active IT staff/admin สำหรับผู้ดูแลระบบ และปุ่ม Claim/Unassign สำหรับเจ้าหน้าที่)
+2. ชุดทดสอบ UI-05..UI-12, UI-14, STY-01 และ E2E-01, E2E-02, E2E-04 ผ่านทั้งหมด
+3. ข้อจำกัดที่รับทราบ (Known limitation): การเลือกผู้รับผิดชอบสำหรับ IT Staff ใช้ปุ่ม Claim/Unassign ตาม Lab 3 เนื่องจากไม่มี staff endpoint สำหรับลิสต์ผู้ใช้ (GET /admin/users สงวนเฉพาะ Administrator) ซึ่งเป็นงานฝั่ง server สำหรับติดตามในภายหลัง
+4. ข้อยกเว้นการปรับแก้ mock setup เฉพาะใน `client/src/tests/lab-03/StaffTicketDetail.test.tsx` เพื่อให้คืนค่า `/api/tickets/:id/allowed-transitions` รองรับการทดสอบที่ไม่มีการ hardcode เมทริกซ์ในฝั่งไคลเอนต์
+
 

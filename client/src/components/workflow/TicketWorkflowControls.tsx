@@ -16,7 +16,7 @@ export interface TicketWorkflowControlsProps {
     id: number | string
     ticketNumber?: string
     status: string
-    version: number
+    version?: number
     summary?: string
     problemAppearsResolved?: boolean
     requesterMarkedResolvedAt?: string | null
@@ -142,7 +142,7 @@ export function TicketWorkflowControls({
         ticket.id,
         {
           status: targetStatus,
-          version: ticket.version,
+          version: ticket.version ?? 1,
         },
         idempotencyKey
       )
@@ -163,7 +163,7 @@ export function TicketWorkflowControls({
     try {
       const updated = await changeOwner(ticket.id, {
         ownerId: selectedOwnerId || null,
-        version: ticket.version,
+        version: ticket.version ?? 1,
       })
       onTicketUpdate(updated)
     } catch (err: any) {
@@ -179,7 +179,7 @@ export function TicketWorkflowControls({
     try {
       const updated = await changeOwner(ticket.id, {
         ownerId: claim ? currentUser?.id || null : null,
-        version: ticket.version,
+        version: ticket.version ?? 1,
       })
       onTicketUpdate(updated)
     } catch (err: any) {

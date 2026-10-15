@@ -524,4 +524,273 @@ describe('ActionsTaken', () => {
       expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
     })
   })
+
+  // ---------------------------------------------------------------------
+  // Strengthened coverage: length limits, accessible names, key reuse
+  // ---------------------------------------------------------------------
+  const staffProps = {
+    ticketId: 42,
+    ticketStatus: 'IN_PROGRESS',
+    ticketVersion: 2,
+    isStaff: true,
+    currentUser: { id: 'u2', name: 'Frank IT', role: 'IT_STAFF' },
+  }
+
+  function installApi(
+    actions: any[],
+    handlers: { post?: (o: any, n: number) => any; patch?: (o: any, n: number) => any } = {}
+  ) {
+    const calls = { posts: [] as any[], patches: [] as any[] }
+    fetchMock.mockImplementation(async (_url: string, opts: any) => {
+      const method = opts?.method || 'GET'
+      if (method === 'POST') {
+        calls.posts.push(opts)
+        const r = handlers.post ? handlers.post(opts, calls.posts.length) : undefined
+        if (r instanceof Error) throw r
+        return (
+          r || {
+            ok: true,
+            status: 201,
+            json: async () => ({ id: 'new', ...JSON.parse(opts.body), performedBy: { id: 'u2', name: 'Frank IT' }, version: 1 }),
+          }
+        )
+      }
+      if (method === 'PATCH') {
+        calls.patches.push(opts)
+        const r = handlers.patch ? handlers.patch(opts, calls.patches.length) : undefined
+        if (r instanceof Error) throw r
+        return r || { ok: true, status: 200, json: async () => ({ ...actions[0], ...JSON.parse(opts.body) }) }
+      }
+      return { ok: true, status: 200, json: async () => ({ actions }) }
+    })
+    return calls
+  }
+
+  const LIMIT_CASES = [
+    { field: 'description', limit: 2000, label: /คำอธิบาย|description/i },
+    { field: 'result', limit: 2000, label: /ผลลัพธ์|result/i },
+    { field: 'followUpNote', limit: 1000, label: /บันทึกการติดตามผล/i },
+    { field: 'attachmentNotes', limit: 1000, label: /บันทึกไฟล์แนบ|attachment notes/i },
+  ]
+
+  async function openCreate(Component: any) {
+    const view = render(<Component {...staffProps} />)
+    await waitFor(() => expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
+    fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'valid description' } })
+    fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: 'valid result' } })
+    fireEvent.click(screen.getByLabelText(/ต้องการติดตามผล/i))
+    fireEvent.change(screen.getByLabelText(/บันทึกการติดตามผล/i), { target: { value: 'valid note' } })
+    return view
+  }
+
+  it('UI-06: create form accepts exactly the limit and rejects one character over (2000/2000/1000/1000)', async () => {
+    const Component = await loadActionsTakenSection()
+    for (const c of LIMIT_CASES) {
+      // exactly at the limit is accepted
+      let calls = installApi([])
+      let view = await openCreate(Component)
+      fireEvent.change(screen.getByLabelText(c.label), { target: { value: 'A'.repeat(c.limit) } })
+      expect(screen.queryByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.posts.length).toBe(1))
+      view.unmount()
+
+      // one character over is rejected, message carries the real number, no request
+      calls = installApi([])
+      view = await openCreate(Component)
+      const input = screen.getByLabelText(c.label)
+      fireEvent.change(input, { target: { value: 'A'.repeat(c.limit + 1) } })
+      const msg = screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))
+      expect(msg).toBeInTheDocument()
+      expect(input.getAttribute('aria-describedby') || '').toContain(msg.id)
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      expect(calls.posts.length).toBe(0)
+      expect(screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))).toBeInTheDocument()
+      view.unmount()
+    }
+  })
+
+  it('UI-06: edit form accepts exactly the limit and rejects one character over (2000/2000/1000/1000)', async () => {
+    const Component = await loadActionsTakenSection()
+    for (const c of LIMIT_CASES) {
+      let calls = installApi(mockActions)
+      let view = render(<Component {...staffProps} />)
+      await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
+      fireEvent.click(screen.getAllByRole('button', { name: /แก้ไข/i })[0])
+      fireEvent.change(screen.getByLabelText(c.label), { target: { value: 'A'.repeat(c.limit) } })
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.patches.length).toBe(1))
+      view.unmount()
+
+      calls = installApi(mockActions)
+      view = render(<Component {...staffProps} />)
+      await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
+      fireEvent.click(screen.getAllByRole('button', { name: /แก้ไข/i })[0])
+      const input = screen.getByLabelText(c.label)
+      fireEvent.change(input, { target: { value: 'A'.repeat(c.limit + 1) } })
+      const msg = screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))
+      expect(input.getAttribute('aria-describedby') || '').toContain(msg.id)
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      expect(calls.patches.length).toBe(0)
+      view.unmount()
+    }
+  })
+
+  it('UI-07: edit buttons have distinct accessible names that start with the visible label and contain the date/time', async () => {
+    const Component = await loadActionsTakenSection()
+    installApi(mockActions)
+    render(<Component {...staffProps} />)
+    await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
+
+    const first = screen.getByRole('button', { name: /แก้ไข.*03\/10\/2026, 10:00/ })
+    const second = screen.getByRole('button', { name: /แก้ไข.*03\/10\/2026, 11:30/ })
+    expect(first).not.toBe(second)
+    expect(first.getAttribute('aria-label')!.startsWith('แก้ไข')).toBe(true)
+    expect(second.getAttribute('aria-label')!.startsWith('แก้ไข')).toBe(true)
+    expect(first.getAttribute('aria-label')).not.toBe(second.getAttribute('aria-label'))
+    expect(first).toHaveTextContent(/^แก้ไข$/)
+  })
+
+  it('UI-07: edit buttons of actions with the same time are told apart by a truncated description snippet', async () => {
+    const Component = await loadActionsTakenSection()
+    const long = 'X'.repeat(100)
+    const sameTime = [
+      { ...mockActions[0], id: 's1', actionAt: '2026-10-03T03:00:00.000Z', description: 'Alpha task' },
+      { ...mockActions[1], id: 's2', actionAt: '2026-10-03T03:00:00.000Z', description: long },
+    ]
+    installApi(sameTime)
+    render(<Component {...staffProps} />)
+    await waitFor(() => expect(screen.getByText('Alpha task')).toBeInTheDocument())
+    const buttons = screen.getAllByRole('button', { name: /แก้ไข/i })
+    const labels = buttons.map((b) => b.getAttribute('aria-label')!)
+    expect(labels[0]).not.toBe(labels[1])
+    expect(labels[0]).toMatch(/03\/10\/2026, 10:00/)
+    expect(labels[1]).toMatch(/03\/10\/2026, 10:00/)
+    expect(labels[0]).toContain('Alpha task')
+    expect(labels[1]).toContain('X'.repeat(40) + '…')
+    expect(labels[1]).not.toContain('X'.repeat(41))
+  })
+
+  describe('UI-09: idempotency key reuse', () => {
+    async function fillAndSubmit(desc = 'Retry me', res = 'Same data') {
+      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: desc } })
+      fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: res } })
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+    }
+    const keyOf = (calls: any, i: number) => calls.posts[i].headers['Idempotency-Key']
+    const serverError = { ok: false, status: 500, json: async () => ({ error: { code: 'INTERNAL_ERROR', message: 'boom' } }) }
+
+    async function openEmpty(Component: any) {
+      const view = render(<Component {...staffProps} />)
+      await waitFor(() => expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument())
+      fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
+      return view
+    }
+    async function waitReady(n: number, calls: any) {
+      await waitFor(() => expect(calls.posts.length).toBe(n))
+      await waitFor(() => expect(screen.getByRole('button', { name: /บันทึก/i })).not.toBeDisabled())
+    }
+
+    it('UI-09: a retry after a network failure reuses the same key', async () => {
+      const Component = await loadActionsTakenSection()
+      const calls = installApi([], { post: (_o, n) => (n === 1 ? new TypeError('Failed to fetch') : undefined) })
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitReady(1, calls)
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.posts.length).toBe(2))
+      expect(keyOf(calls, 0)).toBeTruthy()
+      expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
+    })
+
+    it('UI-09: a retry after HTTP 500 reuses the same key', async () => {
+      const Component = await loadActionsTakenSection()
+      const calls = installApi([], { post: (_o, n) => (n === 1 ? serverError : undefined) })
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitReady(1, calls)
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.posts.length).toBe(2))
+      expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
+    })
+
+    it('UI-09: editing a field after a failed retry generates a different key', async () => {
+      const Component = await loadActionsTakenSection()
+      const calls = installApi([], { post: (_o, n) => (n <= 2 ? serverError : undefined) })
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitReady(1, calls)
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitReady(2, calls)
+      expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
+      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'Edited description' } })
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.posts.length).toBe(3))
+      expect(keyOf(calls, 2)).toBeTruthy()
+      expect(keyOf(calls, 2)).not.toBe(keyOf(calls, 1))
+    })
+
+    it('UI-09: a new submission after a success uses a different key', async () => {
+      const Component = await loadActionsTakenSection()
+      const calls = installApi([])
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitFor(() => expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument())
+      fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
+      await fillAndSubmit('Retry me', 'Same data')
+      await waitFor(() => expect(calls.posts.length).toBe(2))
+      expect(typeof keyOf(calls, 0)).toBe('string')
+      expect(keyOf(calls, 0).length).toBeGreaterThan(0)
+      expect(keyOf(calls, 1)).not.toBe(keyOf(calls, 0))
+    })
+
+    it('UI-09: a replayed 200 response (Idempotent-Replayed) is treated as success', async () => {
+      const Component = await loadActionsTakenSection()
+      const calls = installApi([], {
+        post: (o) => ({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'Idempotent-Replayed': 'true' }),
+          json: async () => ({ id: 'old', ...JSON.parse(o.body), performedBy: { id: 'u2', name: 'Frank IT' }, version: 1 }),
+        }),
+      })
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/บันทึก action สำเร็จ/i))
+      expect(calls.posts.length).toBe(1)
+      expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
+    })
+
+    it('UI-09: IDEMPOTENCY_KEY_REUSED shows a safe message and the next attempt uses a new key', async () => {
+      const Component = await loadActionsTakenSection()
+      const reused = { ok: false, status: 422, json: async () => ({ error: { code: 'IDEMPOTENCY_KEY_REUSED', message: 'raw internal text' } }) }
+      const calls = installApi([], { post: (_o, n) => (n === 1 ? reused : undefined) })
+      await openEmpty(Component)
+      await fillAndSubmit()
+      await waitReady(1, calls)
+      expect(screen.queryByText(/raw internal text/)).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      await waitFor(() => expect(calls.posts.length).toBe(2))
+      expect(keyOf(calls, 1)).not.toBe(keyOf(calls, 0))
+    })
+
+    it('UI-09: rapid clicks while pending send exactly one request', async () => {
+      const Component = await loadActionsTakenSection()
+      let release: any
+      const calls = installApi([], {
+        post: () => new Promise((resolve) => { release = () => resolve({ ok: true, status: 201, json: async () => ({ id: 'x' }) }) }),
+      })
+      await openEmpty(Component)
+      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'Rapid' } })
+      fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: 'Click' } })
+      const btn = screen.getByRole('button', { name: /บันทึก/i })
+      fireEvent.click(btn)
+      fireEvent.click(btn)
+      fireEvent.click(btn)
+      expect(calls.posts.length).toBe(1)
+      release()
+      await waitFor(() => expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument())
+    })
+  })
 })

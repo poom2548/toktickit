@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './ActionsTakenSection.css'
 import {
   ActionTaken,
@@ -6,7 +6,8 @@ import {
   createAction,
   updateAction,
 } from '../../api/actionsTaken'
-import { NormalizedApiError, generateIdempotencyKey } from '../../api/errors'
+import { NormalizedApiError, generateIdempotencyKey, toApiError } from '../../api/errors'
+import { ActionLimitField, lengthError } from './actionLimits'
 
 export interface ActionsTakenSectionProps {
   ticketId: number | string
@@ -17,7 +18,7 @@ export interface ActionsTakenSectionProps {
   onTicketUpdate?: (updated: any) => void
 }
 
-function formatBangkokDateTime(isoString: string): string {
+export function formatBangkokDateTime(isoString: string): string {
   try {
     const d = new Date(isoString)
     return new Intl.DateTimeFormat('en-GB', {
@@ -52,13 +53,20 @@ function getBangkokNowForInput(date = new Date()): string {
   return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`
 }
 
+const SNIPPET_MAX = 40
+
+/** Accessible name of the per-row edit button: starts with the visible label, then date/time, then a short snippet. */
+function editButtonLabel(action: ActionTaken): string {
+  const plain = (action.description || '').replace(/\s+/g, ' ').trim()
+  const snippet = plain.length > SNIPPET_MAX ? plain.slice(0, SNIPPET_MAX) + '…' : plain
+  const base = `แก้ไข Action เมื่อ ${formatBangkokDateTime(action.actionAt)}`
+  return snippet ? `${base} - ${snippet}` : base
+}
+
 export function ActionsTakenSection({
   ticketId,
-  ticketStatus,
-  ticketVersion,
   isStaff,
   currentUser,
-  onTicketUpdate,
 }: ActionsTakenSectionProps) {
   const [actions, setActions] = useState<ActionTaken[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,6 +86,23 @@ export function ActionsTakenSection({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
+  // One Idempotency-Key per submission intent, remembered with the exact payload it was used for.
+  const keyRef = useRef<{ key: string; fingerprint: string } | null>(null)
+  const pendingRef = useRef(false)
+
+  function clearKey() {
+    keyRef.current = null
+  }
+
+  function keyFor(fingerprint: string): string {
+    if (keyRef.current && keyRef.current.fingerprint === fingerprint) {
+      return keyRef.current.key
+    }
+    const key = generateIdempotencyKey()
+    keyRef.current = { key, fingerprint }
+    return key
+  }
+
   useEffect(() => {
     loadActions()
   }, [ticketId])
@@ -89,62 +114,27 @@ export function ActionsTakenSection({
     try {
       const data = await listActions(ticketId)
       setActions(data)
-    } catch (err: any) {
-      setError(err)
+    } catch (err: unknown) {
+      setError(toApiError(err))
     } finally {
       setLoading(false)
     }
   }
 
-  function handleDescriptionChange(val: string) {
-    setDescription(val)
-    if (val.length > 2000) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        description: 'ความยาวเกิน 2000 ตัวอักษร (Description exceeds 2000 characters)',
-      }))
-    } else {
-      setFieldErrors((prev) => {
-        const next = { ...prev }
-        delete next.description
-        return next
-      })
-    }
-  }
-
-  function handleResultChange(val: string) {
-    setResult(val)
-    if (val.length > 2000) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        result: 'ความยาวเกิน 2000 ตัวอักษร (Result exceeds 2000 characters)',
-      }))
-    } else {
-      setFieldErrors((prev) => {
-        const next = { ...prev }
-        delete next.result
-        return next
-      })
-    }
-  }
-
-  function handleFollowUpNoteChange(val: string) {
-    setFollowUpNote(val)
-    if (val.length > 2000) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        followUpNote: 'ความยาวเกิน 2000 ตัวอักษร (Follow-up note exceeds 2000 characters)',
-      }))
-    } else {
-      setFieldErrors((prev) => {
-        const next = { ...prev }
-        delete next.followUpNote
-        return next
-      })
-    }
+  // Typing check shared by the create and edit forms (same limits as submit).
+  function changeField(field: ActionLimitField, value: string, setter: (v: string) => void) {
+    setter(value)
+    const message = lengthError(field, value)
+    setFieldErrors((prev) => {
+      const next = { ...prev }
+      if (message) next[field] = message
+      else delete next[field]
+      return next
+    })
   }
 
   function openCreateForm() {
+    clearKey()
     setEditingAction(null)
     setActionAt(getBangkokNowForInput())
     setDescription('')
@@ -158,6 +148,7 @@ export function ActionsTakenSection({
   }
 
   function startEdit(action: ActionTaken) {
+    clearKey()
     setEditingAction(action)
     try {
       const d = new Date(action.actionAt)
@@ -176,46 +167,61 @@ export function ActionsTakenSection({
   }
 
   function closeForm() {
+    clearKey()
     setIsFormOpen(false)
     setEditingAction(null)
     setFieldErrors({})
     setConflictError(null)
   }
 
+  function toggleFollowUp(checked: boolean) {
+    setFollowUpRequired(checked)
+    if (!checked) {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next.followUpNote
+        return next
+      })
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || pendingRef.current) return
 
     const errors: Record<string, string> = {}
     if (!description.trim()) {
       errors.description = 'กรุณาระบุคำอธิบาย (Description is required)'
-    } else if (description.length > 2000) {
-      errors.description = 'ความยาวเกิน 2000 ตัวอักษร (Description exceeds 2000 characters)'
+    } else {
+      const tooLong = lengthError('description', description)
+      if (tooLong) errors.description = tooLong
     }
 
     if (!result.trim()) {
       errors.result = 'กรุณาระบุผลลัพธ์ (Result is required)'
-    } else if (result.length > 2000) {
-      errors.result = 'ความยาวเกิน 2000 ตัวอักษร (Result exceeds 2000 characters)'
+    } else {
+      const tooLong = lengthError('result', result)
+      if (tooLong) errors.result = tooLong
     }
 
     if (followUpRequired) {
       if (!followUpNote.trim()) {
         errors.followUpNote = 'กรุณาระบุบันทึกการติดตามผล (Follow-up note is required)'
-      } else if (followUpNote.length > 2000) {
-        errors.followUpNote = 'ความยาวเกิน 2000 ตัวอักษร (Follow-up note exceeds 2000 characters)'
+      } else {
+        const tooLong = lengthError('followUpNote', followUpNote)
+        if (tooLong) errors.followUpNote = tooLong
       }
     }
 
-    if (attachmentNotes && attachmentNotes.length > 2000) {
-      errors.attachmentNotes = 'ความยาวเกิน 2000 ตัวอักษร'
-    }
+    const attachmentTooLong = lengthError('attachmentNotes', attachmentNotes)
+    if (attachmentTooLong) errors.attachmentNotes = attachmentTooLong
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
       return
     }
 
+    pendingRef.current = true
     setSubmitting(true)
     setFieldErrors({})
     setConflictError(null)
@@ -228,63 +234,58 @@ export function ActionsTakenSection({
       actionAtIso = new Date().toISOString()
     }
 
+    const payload = {
+      actionAt: actionAtIso,
+      description: description.trim(),
+      result: result.trim(),
+      followUpRequired,
+      followUpNote: followUpRequired ? followUpNote.trim() : null,
+      attachmentNotes: attachmentNotes.trim() || null,
+    }
+
     try {
       if (editingAction) {
-        // Edit mode
+        // PATCH carries the version; it does not use an Idempotency-Key.
         await updateAction(ticketId, editingAction.id, {
           version: editingAction.version,
-          actionAt: actionAtIso,
-          description: description.trim(),
-          result: result.trim(),
-          followUpRequired,
-          followUpNote: followUpRequired ? followUpNote.trim() : null,
-          attachmentNotes: attachmentNotes.trim() || null,
+          ...payload,
         })
       } else {
-        // Create mode
-        const idempotencyKey = generateIdempotencyKey()
-        await createAction(
-          ticketId,
-          {
-            actionAt: actionAtIso,
-            description: description.trim(),
-            result: result.trim(),
-            followUpRequired,
-            followUpNote: followUpRequired ? followUpNote.trim() : null,
-            attachmentNotes: attachmentNotes.trim() || null,
-          },
-          idempotencyKey
-        )
+        const idempotencyKey = keyFor(JSON.stringify({ ticketId: String(ticketId), ...payload }))
+        await createAction(ticketId, payload, idempotencyKey)
       }
 
-      // Success
+      // Success (including a replayed response): the intent is finished.
       closeForm()
       setStatusMessage('บันทึก Action สำเร็จ')
       await loadActions()
-    } catch (err: any) {
-      if (err.isLocked) {
+    } catch (err: unknown) {
+      const apiError = toApiError(err)
+      if (apiError.code === 'IDEMPOTENCY_KEY_REUSED') {
+        clearKey()
+      }
+      if (apiError.isLocked) {
         // Ticket is locked: close form and display blocking error
         closeForm()
-        setError(err)
-      } else if (err.isConflict) {
+        setError(apiError)
+      } else if (apiError.isConflict) {
         // 409 Conflict: show conflict banner with reload button, retain typed text
-        setConflictError(err)
-      } else if (err.isValidation || err.fields) {
-        if (err.fields) {
-          setFieldErrors(err.fields)
-        } else {
-          setFieldErrors({ general: err.message })
-        }
+        clearKey()
+        setConflictError(apiError)
+      } else if (apiError.fields) {
+        setFieldErrors(apiError.fields)
       } else {
-        setFieldErrors({ general: err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ' })
+        setFieldErrors({ general: apiError.message })
       }
     } finally {
+      pendingRef.current = false
       setSubmitting(false)
     }
   }
 
   // Reload handler for conflict resolution
   async function handleReloadConflict() {
+    clearKey()
     setConflictError(null)
     await loadActions()
   }
@@ -393,7 +394,7 @@ export function ActionsTakenSection({
                 id="action-desc-input"
                 rows={3}
                 value={description}
-                onChange={(e) => handleDescriptionChange(e.target.value)}
+                onChange={(e) => changeField('description', e.target.value, setDescription)}
                 disabled={submitting}
                 className={fieldErrors.description ? 'is-invalid' : ''}
                 aria-describedby={fieldErrors.description ? 'desc-error' : undefined}
@@ -415,7 +416,7 @@ export function ActionsTakenSection({
                 id="action-result-input"
                 rows={3}
                 value={result}
-                onChange={(e) => handleResultChange(e.target.value)}
+                onChange={(e) => changeField('result', e.target.value, setResult)}
                 disabled={submitting}
                 className={fieldErrors.result ? 'is-invalid' : ''}
                 aria-describedby={fieldErrors.result ? 'result-error' : undefined}
@@ -434,7 +435,7 @@ export function ActionsTakenSection({
                 id="action-follow-up-checkbox"
                 type="checkbox"
                 checked={followUpRequired}
-                onChange={(e) => setFollowUpRequired(e.target.checked)}
+                onChange={(e) => toggleFollowUp(e.target.checked)}
                 disabled={submitting}
               />
               <label htmlFor="action-follow-up-checkbox">ต้องการติดตามผล</label>
@@ -450,7 +451,7 @@ export function ActionsTakenSection({
                   id="action-follow-up-note"
                   rows={2}
                   value={followUpNote}
-                  onChange={(e) => handleFollowUpNoteChange(e.target.value)}
+                  onChange={(e) => changeField('followUpNote', e.target.value, setFollowUpNote)}
                   disabled={submitting}
                   className={fieldErrors.followUpNote ? 'is-invalid' : ''}
                   aria-describedby={fieldErrors.followUpNote ? 'follow-up-note-error' : undefined}
@@ -473,12 +474,13 @@ export function ActionsTakenSection({
                 id="action-attachment-notes"
                 type="text"
                 value={attachmentNotes}
-                onChange={(e) => setAttachmentNotes(e.target.value)}
+                onChange={(e) => changeField('attachmentNotes', e.target.value, setAttachmentNotes)}
                 disabled={submitting}
                 className={fieldErrors.attachmentNotes ? 'is-invalid' : ''}
+                aria-describedby={fieldErrors.attachmentNotes ? 'attachment-notes-error' : undefined}
               />
               {fieldErrors.attachmentNotes && (
-                <span className="field-error" role="alert">
+                <span id="attachment-notes-error" className="field-error" role="alert">
                   {fieldErrors.attachmentNotes}
                 </span>
               )}
@@ -571,7 +573,7 @@ export function ActionsTakenSection({
                       <button
                         type="button"
                         className="btn-secondary btn-sm"
-                        aria-label={`แก้ไข ${act.description}`}
+                        aria-label={editButtonLabel(act)}
                         onClick={() => startEdit(act)}
                       >
                         แก้ไข

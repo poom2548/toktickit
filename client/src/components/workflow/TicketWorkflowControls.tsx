@@ -9,7 +9,13 @@ import {
   loadActiveStaffAndAdmins,
   AssignableUser,
 } from '../../api/workflow'
-import { NormalizedApiError, generateIdempotencyKey } from '../../api/errors'
+import {
+  NormalizedApiError,
+  generateIdempotencyKey,
+  parseApiError,
+  safeFetch,
+  toApiError,
+} from '../../api/errors'
 
 export interface TicketWorkflowControlsProps {
   ticket: {
@@ -73,6 +79,15 @@ export function TicketWorkflowControls({
   const [showCancelModal, setShowCancelModal] = useState(false)
   const cancelModalRef = useRef<HTMLDivElement>(null)
 
+  // One Idempotency-Key per status-change intent, remembered with the exact payload it was used for.
+  const statusKeyRef = useRef<{ key: string; fingerprint: string } | null>(null)
+  const statusPendingRef = useRef(false)
+
+  function closeCancelModal() {
+    statusKeyRef.current = null
+    setShowCancelModal(false)
+  }
+
   useEffect(() => {
     setPriority(ticket.itPriority ?? '')
   }, [ticket.itPriority])
@@ -101,7 +116,7 @@ export function TicketWorkflowControls({
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && showCancelModal) {
-        setShowCancelModal(false)
+        closeCancelModal()
       }
     }
     if (showCancelModal) {
@@ -117,8 +132,8 @@ export function TicketWorkflowControls({
     try {
       const data = await getAllowedTransitions(ticket.id)
       setAllowedTransitions(data.allowedTransitions || [])
-    } catch (err: any) {
-      setTransitionsError(err)
+    } catch (err: unknown) {
+      setTransitionsError(toApiError(err))
     } finally {
       setLoadingTransitions(false)
     }
@@ -130,29 +145,37 @@ export function TicketWorkflowControls({
       return
     }
 
+    if (statusPendingRef.current) return
+
     setShowCancelModal(false)
+    statusPendingRef.current = true
     setSavingStatus(true)
     setStatusError(null)
     setStatusSuccess(null)
 
-    const idempotencyKey = generateIdempotencyKey()
+    const version = ticket.version ?? 1
+    const fingerprint = JSON.stringify({ ticketId: String(ticket.id), status: targetStatus, version })
+    if (!statusKeyRef.current || statusKeyRef.current.fingerprint !== fingerprint) {
+      statusKeyRef.current = { key: generateIdempotencyKey(), fingerprint }
+    }
+    const idempotencyKey = statusKeyRef.current.key
 
     try {
-      const updated = await changeStatus(
-        ticket.id,
-        {
-          status: targetStatus,
-          version: ticket.version ?? 1,
-        },
-        idempotencyKey
-      )
+      const updated = await changeStatus(ticket.id, { status: targetStatus, version }, idempotencyKey)
 
+      // Success (including a replayed response): the intent is finished.
+      statusKeyRef.current = null
       setStatusSuccess('อัปเดตสำเร็จ (Status updated successfully)')
       onTicketUpdate(updated)
       await fetchTransitions()
-    } catch (err: any) {
-      setStatusError(err)
+    } catch (err: unknown) {
+      const apiError = toApiError(err)
+      if (apiError.isConflict || apiError.code === 'IDEMPOTENCY_KEY_REUSED') {
+        statusKeyRef.current = null
+      }
+      setStatusError(apiError)
     } finally {
+      statusPendingRef.current = false
       setSavingStatus(false)
     }
   }
@@ -166,8 +189,8 @@ export function TicketWorkflowControls({
         version: ticket.version ?? 1,
       })
       onTicketUpdate(updated)
-    } catch (err: any) {
-      setOwnerError(err)
+    } catch (err: unknown) {
+      setOwnerError(toApiError(err))
     } finally {
       setSavingOwner(false)
     }
@@ -182,8 +205,8 @@ export function TicketWorkflowControls({
         version: ticket.version ?? 1,
       })
       onTicketUpdate(updated)
-    } catch (err: any) {
-      setOwnerError(err)
+    } catch (err: unknown) {
+      setOwnerError(toApiError(err))
     } finally {
       setSavingOwner(false)
     }
@@ -193,7 +216,7 @@ export function TicketWorkflowControls({
     setSavingPriority(true)
     setPriorityError(null)
     try {
-      const res = await fetch(`/staff/tickets/${ticket.id}/priority`, {
+      const res = await safeFetch(`/staff/tickets/${ticket.id}/priority`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -203,11 +226,16 @@ export function TicketWorkflowControls({
         const updated = await res.json()
         onTicketUpdate({ ...ticket, ...updated })
       } else {
-        const err = await res.json()
-        setPriorityError(err.error || 'Failed to save priority.')
+        let body: any = null
+        try {
+          body = await res.json()
+        } catch {
+          body = null
+        }
+        setPriorityError(parseApiError(res, body).message)
       }
-    } catch {
-      setPriorityError('An unexpected error occurred.')
+    } catch (err: unknown) {
+      setPriorityError(toApiError(err).message)
     } finally {
       setSavingPriority(false)
     }
@@ -223,8 +251,8 @@ export function TicketWorkflowControls({
         problemAppearsResolved: true,
         requesterMarkedResolvedAt: updated.requesterMarkedResolvedAt,
       })
-    } catch (err: any) {
-      setStatusError(err)
+    } catch (err: unknown) {
+      setStatusError(toApiError(err))
     } finally {
       setSavingAdvisory(false)
     }
@@ -261,17 +289,16 @@ export function TicketWorkflowControls({
         <div className="workflow-alert" role="alert">
           <div>
             <strong>ข้อผิดพลาด: </strong>
-            <span>
-              {statusError.isConflict
-                ? 'ตั๋วถูกอัปเดตโดยผู้อื่น (The ticket was modified by another user.)'
-                : statusError.reason || statusError.message}
-            </span>
+            <span>{statusError.message}</span>
           </div>
           {statusError.isConflict && (
             <button
               type="button"
               className="btn-secondary btn-sm"
-              onClick={fetchTransitions}
+              onClick={() => {
+                statusKeyRef.current = null
+                fetchTransitions()
+              }}
             >
               โหลดซ้ำ (Reload)
             </button>
@@ -495,7 +522,7 @@ export function TicketWorkflowControls({
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => setShowCancelModal(false)}
+                onClick={closeCancelModal}
                 disabled={savingStatus}
               >
                 ยกเลิก (ปิด)

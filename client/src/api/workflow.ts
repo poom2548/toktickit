@@ -1,4 +1,4 @@
-import { parseApiError } from './errors'
+import { parseApiError, safeFetch } from './errors'
 
 export interface AllowedTransitionsResponse {
   currentStatus: string
@@ -38,7 +38,7 @@ export interface AssignableUser {
 export async function getAllowedTransitions(
   ticketId: number | string
 ): Promise<AllowedTransitionsResponse> {
-  const res = await fetch(`/api/tickets/${ticketId}/allowed-transitions`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/allowed-transitions`, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -68,7 +68,7 @@ export async function changeStatus(
     headers['Idempotency-Key'] = idempotencyKey
   }
 
-  const res = await fetch(`/api/tickets/${ticketId}/status`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/status`, {
     method: 'POST',
     credentials: 'include',
     headers,
@@ -92,7 +92,7 @@ export async function changeOwner(
   ticketId: number | string,
   payload: TicketOwnerUpdatePayload
 ): Promise<any> {
-  const res = await fetch(`/staff/tickets/${ticketId}/owner`, {
+  const res = await safeFetch(`/staff/tickets/${ticketId}/owner`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -124,7 +124,7 @@ export async function setResolvedIndication(
     headers['Idempotency-Key'] = idempotencyKey
   }
 
-  const res = await fetch(`/api/tickets/${ticketId}/requester-resolved-indication`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/requester-resolved-indication`, {
     method: 'POST',
     credentials: 'include',
     headers,
@@ -145,7 +145,7 @@ export async function setResolvedIndication(
 }
 
 export async function listAdminUsers(): Promise<AssignableUser[]> {
-  const res = await fetch('/admin/users', {
+  const res = await safeFetch('/admin/users', {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })

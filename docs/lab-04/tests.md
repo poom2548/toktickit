@@ -318,5 +318,5 @@ The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system 
 2. ชุดทดสอบ UI-05..UI-12, UI-14, STY-01 และ E2E-01, E2E-02, E2E-04 ผ่านทั้งหมด
 3. ข้อจำกัดที่รับทราบ (Known limitation): การเลือกผู้รับผิดชอบสำหรับ IT Staff ใช้ปุ่ม Claim/Unassign ตาม Lab 3 เนื่องจากไม่มี staff endpoint สำหรับลิสต์ผู้ใช้ (GET /admin/users สงวนเฉพาะ Administrator) ซึ่งเป็นงานฝั่ง server สำหรับติดตามในภายหลัง
 4. ข้อยกเว้นการปรับแก้ mock setup เฉพาะใน `client/src/tests/lab-03/StaffTicketDetail.test.tsx` เพื่อให้คืนค่า `/api/tickets/:id/allowed-transitions` รองรับการทดสอบที่ไม่มีการ hardcode เมทริกซ์ในฝั่งไคลเอนต์
-
-
+5. ปรับปรุงชุดทดสอบเดิมให้เข้มขึ้น: UI-06 ตรวจ length limits (description/result 2000, followUpNote/attachmentNotes 1000) ทั้งโหมดสร้าง/แก้ไข ที่ขอบเขตและเกินหนึ่งตัวอักษร; UI-07 ตรวจ accessible name ของปุ่ม "แก้ไข" (วันที่/เวลา Asia/Bangkok และ snippet ไม่เกิน 40 ตัวอักษร); UI-09/UI-11 ตรวจ retry key reuse (ใช้ Idempotency-Key เดิมเมื่อ retry ข้อมูลเดิมหลัง network error/500, เปลี่ยนคีย์ใหม่เมื่อเปลี่ยนข้อมูลหรือหลังสำเร็จ); UI-11 ตรวจข้อความผิดพลาดปลอดภัยตาม HTTP status และไม่มี console error
+6. ข้อสังเกต server-trim: attachmentNotes ตรวจสอบความยาวก่อน trim ส่วนฟิลด์อื่น trim ก่อนตรวจ โดยไคลเอนต์ trim ทุกฟิลด์ก่อนส่ง

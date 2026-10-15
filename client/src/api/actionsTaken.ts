@@ -1,4 +1,4 @@
-import { parseApiError, NormalizedApiError } from './errors'
+import { parseApiError, safeFetch } from './errors'
 
 export interface ActionTaken {
   id: string
@@ -34,7 +34,7 @@ export interface UpdateActionPayload {
 }
 
 export async function listActions(ticketId: number | string): Promise<ActionTaken[]> {
-  const res = await fetch(`/api/tickets/${ticketId}/actions-taken`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/actions-taken`, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -65,7 +65,7 @@ export async function createAction(
     headers['Idempotency-Key'] = idempotencyKey
   }
 
-  const res = await fetch(`/api/tickets/${ticketId}/actions-taken`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/actions-taken`, {
     method: 'POST',
     credentials: 'include',
     headers,
@@ -90,7 +90,7 @@ export async function updateAction(
   actionId: string,
   payload: UpdateActionPayload
 ): Promise<ActionTaken> {
-  const res = await fetch(`/api/tickets/${ticketId}/actions-taken/${actionId}`, {
+  const res = await safeFetch(`/api/tickets/${ticketId}/actions-taken/${actionId}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

@@ -23,16 +23,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     navigate('/login')
   }
 
-  const isActive = (path: string) => location.pathname.startsWith(path)
+  const isActive = (path: string) => {
+    if (path === '/tickets') {
+      return location.pathname === '/tickets' || location.pathname === '/my-tickets'
+    }
+    return location.pathname === path || (path !== '/' && location.pathname.startsWith(path + '/'))
+  }
 
-  const navLinkStyle = (path: string): React.CSSProperties => ({
-    color: isActive(path) ? '#ffffff' : 'rgba(255,255,255,0.75)',
-    textDecoration: 'none',
-    fontWeight: 600,
-    borderBottom: isActive(path) ? '2px solid #ffffff' : '2px solid transparent',
-    paddingBottom: '2px',
-    transition: 'color 0.15s, border-color 0.15s',
-  })
+  const navLinkStyle = (path: string): React.CSSProperties => {
+    const active = isActive(path)
+    return {
+      color: active ? '#ffffff' : 'rgba(255,255,255,0.75)',
+      textDecoration: 'none',
+      fontWeight: 600,
+      borderBottom: active ? '2px solid #ffffff' : '2px solid transparent',
+      paddingBottom: '2px',
+      transition: 'color 0.15s, border-color 0.15s',
+    }
+  }
 
   return (
     <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: 'var(--zen-bg-page, #F5F7F6)' }}>
@@ -46,13 +54,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             
             <nav className="d-none d-md-flex gap-3">
               {user?.role === 'REQUESTER' && (
-                <Link to="/tickets" style={navLinkStyle('/tickets')}>My Tickets</Link>
+                <>
+                  <Link to="/dashboard" style={navLinkStyle('/dashboard')} aria-current={isActive('/dashboard') ? 'page' : undefined}>
+                    📊 แดชบอร์ด
+                  </Link>
+                  <Link to="/tickets" style={navLinkStyle('/tickets')} aria-current={isActive('/tickets') ? 'page' : undefined}>
+                    My Tickets
+                  </Link>
+                </>
               )}
               {(user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR') && (
-                <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')}>🎫 Ticket Queue</Link>
+                <>
+                  <Link to="/staff/dashboard" style={navLinkStyle('/staff/dashboard')} aria-current={isActive('/staff/dashboard') ? 'page' : undefined}>
+                    📊 แดชบอร์ด
+                  </Link>
+                  <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')} aria-current={isActive('/staff/tickets') ? 'page' : undefined}>
+                    🎫 Ticket Queue
+                  </Link>
+                </>
               )}
               {user?.role === 'ADMINISTRATOR' && (
-                <Link to="/admin/users" style={navLinkStyle('/admin/users')}>👥 User Management</Link>
+                <Link to="/admin/users" style={navLinkStyle('/admin/users')} aria-current={isActive('/admin/users') ? 'page' : undefined}>
+                  👥 User Management
+                </Link>
               )}
             </nav>
           </div>
@@ -94,13 +118,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="container-fluid px-4 py-2 d-md-none" style={{ borderTop: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'var(--zen-color-primary-dark, #075231)' }}>
           <nav className="d-flex gap-3">
             {user?.role === 'REQUESTER' && (
-              <Link to="/tickets" style={navLinkStyle('/tickets')}>My Tickets</Link>
+              <>
+                <Link to="/dashboard" style={navLinkStyle('/dashboard')} aria-current={isActive('/dashboard') ? 'page' : undefined}>
+                  แดชบอร์ด
+                </Link>
+                <Link to="/tickets" style={navLinkStyle('/tickets')} aria-current={isActive('/tickets') ? 'page' : undefined}>
+                  My Tickets
+                </Link>
+              </>
             )}
             {(user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR') && (
-              <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')}>Queue</Link>
+              <>
+                <Link to="/staff/dashboard" style={navLinkStyle('/staff/dashboard')} aria-current={isActive('/staff/dashboard') ? 'page' : undefined}>
+                  แดชบอร์ด
+                </Link>
+                <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')} aria-current={isActive('/staff/tickets') ? 'page' : undefined}>
+                  Queue
+                </Link>
+              </>
             )}
             {user?.role === 'ADMINISTRATOR' && (
-              <Link to="/admin/users" style={navLinkStyle('/admin/users')}>Users</Link>
+              <Link to="/admin/users" style={navLinkStyle('/admin/users')} aria-current={isActive('/admin/users') ? 'page' : undefined}>
+                Users
+              </Link>
             )}
           </nav>
         </div>

@@ -128,7 +128,7 @@ describe('StaffDashboard', () => {
       }),
     });
 
-    render(
+    const { unmount } = render(
       <MemoryRouter initialEntries={['/staff/dashboard']}>
         <StaffDashboard />
       </MemoryRouter>
@@ -186,6 +186,8 @@ describe('StaffDashboard', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
+    unmount();
+
     // 8. Test Administrator sees userCounts
     mockCurrentUser = {
       id: 'u3',
@@ -208,7 +210,7 @@ describe('StaffDashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/User Accounts/i)).toBeInTheDocument();
-      expect(screen.getByText(/10/)).toBeInTheDocument(); // active
+      expect(screen.getByText(/^10$/)).toBeInTheDocument(); // active
     });
   });
 

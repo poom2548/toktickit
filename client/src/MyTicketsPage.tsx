@@ -328,11 +328,12 @@ function PaginationControls({ pagination, onPage }: PaginationControlsProps) {
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 interface Props {
-  
-  categories: Category[];
-  onNewTicket: () => void;
-  onViewTicket: (id: number) => void;
+  categories?: Category[];
+  onNewTicket?: () => void;
+  onViewTicket?: (id: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -340,27 +341,61 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 /**
- * MyTicketsPage — Issue 4
+ * MyTicketsPage — Issue 4 & Issue 8
  *
  * Displays the current requester's tickets with:
  * - Search + filter bar (summary/description, category, priority, status)
+ * - URL search params integration (statusGroup, resolvedWithinDays, status, priority)
+ * - Active Filter Chip with clear button
  * - Desktop (≥768px): Bootstrap <table> with text-overflow ellipsis on summary
  * - Mobile (<768px): vertical card stack — no horizontal scroll
  * - Pagination controls
  * - "No tickets found" empty state
  */
-export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }: Props) {
+export default function MyTicketsPage({ categories: initialCategories, onNewTicket, onViewTicket }: Props) {
+  // ── Categories fallback if rendered standalone ─────────────────────────────
+  const [localCategories, setLocalCategories] = useState<Category[]>(initialCategories || []);
+  useEffect(() => {
+    if (!initialCategories || initialCategories.length === 0) {
+      fetch('/api/categories', { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((cats) => setLocalCategories(cats))
+        .catch(() => {});
+    }
+  }, [initialCategories]);
+
+  const categories = initialCategories && initialCategories.length > 0 ? initialCategories : localCategories;
+
+  // ── Initial URL search params (drill-down support) ─────────────────────────
+  const getInitialParams = () => {
+    if (typeof window !== 'undefined' && window.location) {
+      const sp = new URLSearchParams(window.location.search);
+      return {
+        statusGroup: sp.get('statusGroup') || '',
+        resolvedWithinDays: sp.get('resolvedWithinDays') || '',
+        status: sp.get('status') || '',
+        priority: sp.get('priority') || '',
+        search: sp.get('search') || '',
+      };
+    }
+    return { statusGroup: '', resolvedWithinDays: '', status: '', priority: '', search: '' };
+  };
+
+  const initialParams = getInitialParams();
+
   // ── Filter state ──────────────────────────────────────────────────────────
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialParams.search);
   const [categoryId, setCategoryId] = useState("");
-  const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("");
+  const [priority, setPriority] = useState(initialParams.priority);
+  const [status, setStatus] = useState(initialParams.status);
 
   // ── Applied filter state (only changes on Search submit or Reset) ─────────
-  const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState(initialParams.search);
   const [appliedCategoryId, setAppliedCategoryId] = useState("");
-  const [appliedPriority, setAppliedPriority] = useState("");
-  const [appliedStatus, setAppliedStatus] = useState("");
+  const [appliedPriority, setAppliedPriority] = useState(initialParams.priority);
+  const [appliedStatus, setAppliedStatus] = useState(initialParams.status);
+  const [appliedStatusGroup, setAppliedStatusGroup] = useState(initialParams.statusGroup);
+  const [appliedResolvedWithinDays, setAppliedResolvedWithinDays] = useState(initialParams.resolvedWithinDays);
 
   // ── Pagination ────────────────────────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
@@ -381,6 +416,8 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
       categoryId: appliedCategoryId ? Number(appliedCategoryId) : undefined,
       priority: appliedPriority || undefined,
       status: appliedStatus || undefined,
+      statusGroup: appliedStatusGroup || undefined,
+      resolvedWithinDays: appliedResolvedWithinDays ? Number(appliedResolvedWithinDays) : undefined,
       page: currentPage,
       limit: 10,
     })
@@ -394,7 +431,7 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
       .finally(() => {
         setLoading(false);
       });
-  }, [appliedSearch, appliedCategoryId, appliedPriority, appliedStatus, currentPage]);
+  }, [appliedSearch, appliedCategoryId, appliedPriority, appliedStatus, appliedStatusGroup, appliedResolvedWithinDays, currentPage]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   function handleSearch() {
@@ -415,10 +452,24 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
     setAppliedCategoryId("");
     setAppliedPriority("");
     setAppliedStatus("");
+    setAppliedStatusGroup("");
+    setAppliedResolvedWithinDays("");
+    if (typeof window !== 'undefined' && window.history && window.location.search) {
+      window.history.pushState({}, '', window.location.pathname);
+    }
   }
 
+  const hasDrillDown = Boolean(appliedStatusGroup || appliedResolvedWithinDays);
   const hasActiveFilters =
-    appliedSearch || appliedCategoryId || appliedPriority || appliedStatus;
+    appliedSearch || appliedCategoryId || appliedPriority || appliedStatus || hasDrillDown;
+
+  const handleView = (id: number) => {
+    if (onViewTicket) {
+      onViewTicket(id);
+    } else if (typeof window !== 'undefined') {
+      window.location.href = `/tickets?id=${id}`;
+    }
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -428,16 +479,50 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
         <h2 className="h4 mb-0" style={{ color: "var(--zen-color-primary-dark)" }}>
           🎟️ My Tickets
         </h2>
-        <button
-          type="button"
-          className="btn btn-sm fw-semibold text-white"
-          style={{ background: "var(--zen-color-primary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
-          onClick={onNewTicket}
-          aria-label="Create a new ticket"
-        >
-          ➕ New Ticket
-        </button>
+        {onNewTicket && (
+          <button
+            type="button"
+            className="btn btn-sm fw-semibold text-white"
+            style={{ background: "var(--zen-color-primary)", border: "none", borderRadius: "var(--zen-radius-md)" }}
+            onClick={onNewTicket}
+            aria-label="Create a new ticket"
+          >
+            ➕ New Ticket
+          </button>
+        )}
       </div>
+
+      {/* ── Active Filter Chips (from drill-down) ── */}
+      {hasDrillDown && (
+        <div
+          className="d-flex flex-wrap align-items-center gap-2 mb-3 p-2 px-3 rounded"
+          style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', border: '1px solid #c3e6cb' }}
+        >
+          <span className="small fw-bold" style={{ color: 'var(--zen-color-primary-dark, #004d2b)' }}>
+            🔍 ตัวกรองที่ใช้งานอยู่ (Active Filter):
+          </span>
+          {appliedStatusGroup && (
+            <span className="badge bg-success">กลุ่มสถานะ: {appliedStatusGroup}</span>
+          )}
+          {appliedStatus && (
+            <span className="badge bg-secondary">สถานะ: {appliedStatus}</span>
+          )}
+          {appliedResolvedWithinDays && (
+            <span className="badge bg-info text-dark">แก้ปัญหาใน: {appliedResolvedWithinDays} วัน</span>
+          )}
+          {appliedPriority && (
+            <span className="badge bg-warning text-dark">ความสำคัญ: {appliedPriority}</span>
+          )}
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-danger ms-auto"
+            style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem' }}
+            onClick={handleReset}
+          >
+            ล้างตัวกรอง (Clear filters)
+          </button>
+        </div>
+      )}
 
       {/* ── Filter bar ── */}
       <FilterBar
@@ -527,7 +612,7 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
                   </thead>
                   <tbody>
                     {tickets.map((ticket) => (
-                      <TicketTableRow key={ticket.id} ticket={ticket} onClick={onViewTicket} />
+                      <TicketTableRow key={ticket.id} ticket={ticket} onClick={handleView} />
                     ))}
                   </tbody>
                 </table>
@@ -539,7 +624,7 @@ export default function MyTicketsPage({ categories, onNewTicket, onViewTicket }:
           {tickets.length > 0 && (
             <div className="d-md-none" data-testid="card-view">
               {tickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} onClick={onViewTicket} />
+                <TicketCard key={ticket.id} ticket={ticket} onClick={handleView} />
               ))}
             </div>
           )}

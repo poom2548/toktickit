@@ -19,15 +19,15 @@ export const RECENTLY_UPDATED_CAP = 5;
 
 export const DRILL_DOWNS = {
   requester: {
-    openTickets: '/tickets?statusGroup=open',
-    waitingForMe: '/tickets?status=WAITING_FOR_REQUESTER',
-    recentlyResolved: '/tickets?status=RESOLVED',
+    openTickets: '/my-tickets?statusGroup=open',
+    waitingForMe: '/my-tickets?status=WAITING_FOR_REQUESTER',
+    recentlyResolved: '/my-tickets?status=RESOLVED&resolvedWithinDays=7',
   },
   staff: {
     unassigned: '/staff/tickets?statusGroup=open&assignee=unassigned',
     myOwned: '/staff/tickets?statusGroup=open&assignee=me',
     statusCountsBase: '/staff/tickets?status=',
-    priorityCountsBase: '/staff/tickets?priority=',
+    priorityCountsBase: '/staff/tickets?statusGroup=open&priority=',
   },
 } as const;
 

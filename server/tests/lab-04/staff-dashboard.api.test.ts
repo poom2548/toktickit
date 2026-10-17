@@ -205,7 +205,7 @@ describe('Staff Dashboard', () => {
 
     // Verify priorityCounts (LOW, MEDIUM, HIGH, CRITICAL, and UNSET)
     expect(res.body.metrics.priorityCounts.label).toBe('By IT Priority');
-    expect(res.body.metrics.priorityCounts.drillDownBase).toBe('/staff/tickets?priority=');
+    expect(res.body.metrics.priorityCounts.drillDownBase).toBe('/staff/tickets?statusGroup=open&priority=');
     expect(Object.keys(res.body.metrics.priorityCounts.values).sort()).toEqual([
       'CRITICAL',
       'HIGH',

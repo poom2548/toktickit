@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getPrisma } from '../prisma.js'
+import { OPEN_TICKET_STATUSES } from '../dashboard/dashboard.constants.js'
 
 const VALID_STATUSES = [
   'NEW', 'OPEN', 'IN_PROGRESS', 'WAITING_FOR_REQUESTER',
@@ -9,6 +8,7 @@ const VALID_STATUSES = [
 ] as const
 
 const VALID_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const
+const VALID_STAFF_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'UNSET'] as const
 
 const VALID_SORT_FIELDS = [
   'createdAt', 'updatedAt', 'ticketNumber', 'status',
@@ -25,6 +25,8 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
   const {
     search,
     status,
+    statusGroup,
+    assignee,
     priority,
     requestedPriority,
     ownerId,
@@ -43,10 +45,24 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
     })
   }
 
-  // Validate priority filter (if provided)
-  if (priority && !VALID_PRIORITIES.includes(priority as any)) {
+  // Validate statusGroup filter (if provided)
+  if (statusGroup !== undefined && statusGroup !== 'open') {
     return res.status(400).json({
-      error: `Invalid priority value: "${priority}". Valid values are: ${VALID_PRIORITIES.join(', ')}.`,
+      error: `Invalid statusGroup value: "${statusGroup}". Valid value is: "open".`,
+    })
+  }
+
+  // Validate assignee filter (if provided)
+  if (assignee !== undefined && assignee !== 'unassigned' && assignee !== 'me') {
+    return res.status(400).json({
+      error: `Invalid assignee value: "${assignee}". Valid values are: "unassigned", "me".`,
+    })
+  }
+
+  // Validate priority filter (if provided)
+  if (priority && !VALID_STAFF_PRIORITIES.includes(priority as any)) {
+    return res.status(400).json({
+      error: `Invalid priority value: "${priority}". Valid values are: ${VALID_STAFF_PRIORITIES.join(', ')}.`,
     })
   }
 
@@ -85,34 +101,53 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
 
   // ─── Build Prisma Where Clause ─────────────────────────────────────────────
 
-  const where: any = {}
+  const andConditions: any[] = []
 
   // search: case-insensitive match on summary OR ticketNumber
   if (search && search.trim().length > 0) {
-    where.OR = [
-      { summary: { contains: search.trim(), mode: 'insensitive' } },
-      { ticketNumber: { contains: search.trim(), mode: 'insensitive' } },
-    ]
+    andConditions.push({
+      OR: [
+        { summary: { contains: search.trim(), mode: 'insensitive' } },
+        { ticketNumber: { contains: search.trim(), mode: 'insensitive' } },
+      ],
+    })
   }
 
   // status filter
   if (status) {
-    where.status = status
+    andConditions.push({ status })
+  }
+
+  // statusGroup filter
+  if (statusGroup === 'open') {
+    andConditions.push({ status: { in: [...OPEN_TICKET_STATUSES] } })
   }
 
   // priority filter (searches itPriority)
   if (priority) {
-    where.itPriority = priority
+    if (priority === 'UNSET') {
+      andConditions.push({ itPriority: null })
+    } else {
+      andConditions.push({ itPriority: priority })
+    }
   }
 
   if (requestedPriority) {
-    where.requestedPriority = requestedPriority
+    andConditions.push({ requestedPriority })
   }
 
-  // owner filter
-  if (ownerId) {
-    where.ownerId = ownerId
+  // assignee filter
+  if (assignee) {
+    if (assignee === 'unassigned') {
+      andConditions.push({ ownerId: null })
+    } else if (assignee === 'me') {
+      andConditions.push({ ownerId: req.user?.id })
+    }
+  } else if (ownerId) {
+    andConditions.push({ ownerId })
   }
+
+  const where: any = andConditions.length > 0 ? { AND: andConditions } : {}
 
   // ─── Build OrderBy ─────────────────────────────────────────────────────────
 
@@ -123,6 +158,7 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
   const skip = (parsedPage - 1) * parsedPageSize
 
   try {
+    const prisma = getPrisma()
     const [total, tickets] = await Promise.all([
       prisma.ticket.count({ where }),
       prisma.ticket.findMany({

@@ -9,6 +9,7 @@ import {
   RequesterDashboardData,
   StaffDashboardData,
 } from './dashboard.serializers.js';
+import { buildRecentlyResolvedWhere } from '../utils/ticketFilters.js';
 
 export async function getRequesterDashboardData(
   userId: string
@@ -33,13 +34,7 @@ export async function getRequesterDashboardData(
       prisma.ticket.count({
         where: {
           requesterId: userId,
-          status: TicketStatus.RESOLVED,
-          statusHistory: {
-            some: {
-              toStatus: TicketStatus.RESOLVED,
-              changedAt: { gte: cutoffDate },
-            },
-          },
+          ...buildRecentlyResolvedWhere(cutoffDate),
         },
       }),
       prisma.ticket.findMany({

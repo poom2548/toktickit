@@ -269,17 +269,17 @@
       "openTickets": {
         "label": "My Open Tickets",
         "value": 3,
-        "drillDown": "/tickets?statusGroup=open"
+        "drillDown": "/my-tickets?statusGroup=open"
       },
       "waitingForMe": {
         "label": "Waiting for Me",
         "value": 1,
-        "drillDown": "/tickets?status=WAITING_FOR_REQUESTER"
+        "drillDown": "/my-tickets?status=WAITING_FOR_REQUESTER"
       },
       "recentlyResolved": {
         "label": "แก้ปัญหาแล้วล่าสุด (Recently Resolved)",
         "value": 2,
-        "drillDown": "/tickets?status=RESOLVED"
+        "drillDown": "/my-tickets?status=RESOLVED&resolvedWithinDays=7"
       }
     },
     "recentlyUpdated": [
@@ -322,7 +322,7 @@
       "priorityCounts": {
         "label": "By IT Priority",
         "values": { "LOW": 1, "MEDIUM": 5, "HIGH": 3, "CRITICAL": 1, "UNSET": 0 },
-        "drillDownBase": "/staff/tickets?priority="
+        "drillDownBase": "/staff/tickets?statusGroup=open&priority="
       }
     },
     "userCounts": {
@@ -342,14 +342,45 @@
     ]
   }
   ```
-  *(หมายเหตุ: `userCounts` จะแสดงเฉพาะเมื่อผู้ใช้มีบทบาท Administrator เท่านั้น หากเป็น IT Staff ฟิลด์นี้จะถูกละเว้น; `priorityCounts` ครอบคลุม 5 คีย์ [LOW, MEDIUM, HIGH, CRITICAL, UNSET] โดย UNSET นับตั๋วสถานะเปิดที่ itPriority เป็น null และ drillDownBase /staff/tickets?priority= จะเชื่อมโยงไปยัง /staff/tickets?priority=UNSET ใน Issue #8)*
+  *(หมายเหตุ: `userCounts` จะแสดงเฉพาะเมื่อผู้ใช้มีบทบาท Administrator เท่านั้น หากเป็น IT Staff ฟิลด์นี้จะถูกละเว้น; `priorityCounts` ครอบคลุม 5 คีย์ [LOW, MEDIUM, HIGH, CRITICAL, UNSET] โดย UNSET นับตั๋วสถานะเปิดที่ itPriority เป็น null และ drillDownBase รวม `statusGroup=open` เป็น `/staff/tickets?statusGroup=open&priority=` ซึ่งจะเชื่อมโยงไปยัง `/staff/tickets?statusGroup=open&priority=UNSET` เมื่อเจาะลึกดูตั๋วที่ยังไม่ได้ระบุความสำคัญ)*
 - **Errors:** 401 (ยังไม่ได้เข้าสู่ระบบ), 403 (ผู้ร้องขอพยายามเข้าถึง)
 
-**ตัวกรองที่ต้องเพิ่มในหน้ารายการ (สำหรับ Issue #8):**
-GET /api/tickets และ GET /staff/tickets ต้องรองรับ parameter เพิ่มเติมดังนี้:
-- **ยังไม่มีในระบบ (ต้องเพิ่ม):** `statusGroup` (กลุ่มสถานะ เช่น `open`), `assignee` (`me` หรือ `unassigned`)
-- **มีอยู่แล้วใน GET /staff/tickets:** `status`, `priority`, `search`, `requestedPriority`
-- **มีอยู่แล้วใน GET /api/tickets:** `status`, `priority`, `search`, `categoryId`
+> **ข้อกำหนดการเจาะลึก (Drill-Down Routes):** ค่า `drillDown` และ `drillDownBase` ทั้งหมดที่ส่งกลับมาจาก Dashboard API เป็น **Client Routes (เส้นทาง URL ของฝั่งไคลเอนต์)** สำหรับการนำทางไปยังหน้ารายการตั๋วที่ถูกกรองตามตัวชี้วัด โดยไคลเอนต์จะใช้ค่าสตริงเหล่านี้ตรงๆ (Verbatim) โดยไม่มีการประกอบเส้นทางขึ้นเองใหม่
+
+### พารามิเตอร์การค้นหาและกรองข้อมูลในหน้ารายการ (List Query Parameters)
+
+#### 1. `GET /api/tickets` (รายการตั๋วของผู้ร้องขอ — Scoped to Authenticated Requester)
+
+| พารามิเตอร์ (Parameter) | ค่าที่ยอมรับ (Accepted Values) | ความหมาย (Meaning) | พฤติกรรมเมื่อค่าไม่ถูกต้อง (Invalid Value Behavior) |
+|---|---|---|---|
+| `status` | Legacy: `New`, `In Progress`, `Resolved`, `Closed`; Enum: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED` (Case-insensitive) | กรองตามสถานะตั๋ว | ละเว้นตัวกรอง (Ignored, คืนตั๋วตามปกติ) |
+| `statusGroup` | `open` | กรองตั๋วสถานะเปิดทั้งหมด (`NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `REOPENED`) | ละเว้นตัวกรอง (Ignored) |
+| `resolvedWithinDays` | ตัวเลขจำนวนเต็ม `1` ถึง `365` | กรองตั๋วที่สถานะปัจจุบันเป็น `RESOLVED` และมีประวัติสถานะถูกเปลี่ยนเป็น `RESOLVED` ภายใน N วัน (คำนวณจุดตัดเวลา `now - N * 24h`) | ละเว้นตัวกรอง (Ignored) |
+| `priority` | `Low`, `Medium`, `High` | กรองตามความสำคัญที่ผู้ร้องขอระบุ (`requestedPriority`) | ละเว้นตัวกรอง (Ignored) |
+| `categoryId` | ตัวเลข ID หมวดหมู่ | กรองตามหมวดหมู่ตั๋ว | ละเว้นตัวกรอง (Ignored) |
+| `search` | ข้อความค้นหา | ค้นหาแบบ case-insensitive ใน summary หรือ description | คืนรายการว่างหากไม่พบ |
+| `page` | ตัวเลข >= 1 (ค่าเริ่มต้น: 1) | หน้าที่ต้องการดู | ปรับเป็น 1 |
+| `limit` | ตัวเลข 1..50 (ค่าเริ่มต้น: 10) | จำนวนรายการต่อหน้า | ปรับให้อยู่ในขอบเขต 1..50 |
+
+*หมายเหตุ: พารามิเตอร์ทั้งหมดรวมกันด้วย AND พารามิเตอร์ที่ไม่ใช่ของปลายทางนี้ (เช่น `assignee`) จะถูกเพิกเฉยและไม่ทำให้ขอบเขตข้อมูลกว้างขึ้น*
+
+#### 2. `GET /staff/tickets` (คิวตั๋วของเจ้าหน้าที่ — All Accessible Tickets)
+
+| พารามิเตอร์ (Parameter) | ค่าที่ยอมรับ (Accepted Values) | ความหมาย (Meaning) | พฤติกรรมเมื่อค่าไม่ถูกต้อง (Invalid Value Behavior) |
+|---|---|---|---|
+| `status` | `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED` | กรองตามสถานะตั๋ว | ตอบกลับ `400 Bad Request` |
+| `statusGroup` | `open` | กรองตั๋วสถานะเปิดทั้งหมด (`NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `REOPENED`) | ตอบกลับ `400 Bad Request` |
+| `assignee` | `unassigned`, `me` | `unassigned`: ตั๋วที่ไม่มีเจ้าของ (`ownerId` เป็น null); `me`: ตั๋วที่เจ้าของตรงกับผู้ใช้ปัจจุบันจากเซสชัน | ตอบกลับ `400 Bad Request` |
+| `priority` | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`, `UNSET` | กรองตามความสำคัญไอที (`itPriority`); `UNSET` หมายถึง `itPriority` เป็น null | ตอบกลับ `400 Bad Request` |
+| `requestedPriority` | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` | กรองตามความสำคัญที่ผู้ร้องขอระบุ | ตอบกลับ `400 Bad Request` |
+| `ownerId` | CUID ของผู้ใช้เจ้าหน้าที่ | กรองตาม ownerId ของตั๋ว | คืนรายการว่างหากไม่พบ |
+| `search` | ข้อความค้นหา | ค้นหาใน summary หรือ ticketNumber | คืนรายการว่างหากไม่พบ |
+| `sort` | `createdAt`, `updatedAt`, `ticketNumber`, `status`, `requestedPriority`, `itPriority` | ฟิลด์ที่ใช้เรียงลำดับ | ตอบกลับ `400 Bad Request` |
+| `direction` | `asc`, `desc` | ทิศทางการเรียงลำดับ | ตอบกลับ `400 Bad Request` |
+| `page` | ตัวเลข >= 1 (ค่าเริ่มต้น: 1) | หน้าที่ต้องการดู | ตอบกลับ `400 Bad Request` |
+| `pageSize` | ตัวเลข 1..100 (ค่าเริ่มต้น: 20) | จำนวนรายการต่อหน้า | ตอบกลับ `400 Bad Request` |
+
+*หมายเหตุ: พารามิเตอร์ทั้งหมดรวมกันด้วย AND*
 
 
 ## 5. ปลายทางของระบบ (System Endpoints)

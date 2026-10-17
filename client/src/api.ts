@@ -160,6 +160,8 @@ export interface GetTicketsParams {
   categoryId?: number;
   priority?: string;
   status?: string;
+  statusGroup?: string;
+  resolvedWithinDays?: number;
   page?: number;
   limit?: number;
 }
@@ -184,6 +186,12 @@ export async function getTickets(params: GetTicketsParams = {}): Promise<TicketL
   }
   if (params.status) {
     qs.set("status", params.status);
+  }
+  if (params.statusGroup) {
+    qs.set("statusGroup", params.statusGroup);
+  }
+  if (params.resolvedWithinDays !== undefined) {
+    qs.set("resolvedWithinDays", String(params.resolvedWithinDays));
   }
   if (params.page !== undefined) {
     qs.set("page", String(params.page));

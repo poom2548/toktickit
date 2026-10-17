@@ -83,6 +83,17 @@
 | SD-06 | API/integration | AC-36 | time-zone boundary | 200 OK | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts") |
 | AUTHZ-06 | authorization | AC-32 | dashboard role matrix | 403 Forbidden | server/tests/lab-04/staff-dashboard.api.test.ts | Pass (2026-10-12, npm run test --prefix server -- "tests/lab-04/staff-dashboard.api.test.ts", ตรวจสอบเมทริกซ์สิทธิ์ครบทุกบทบาท และตรวจสอบการส่ง Cache-Control: no-store ในทุก response 200, 401, 403, 405) |
 
+### server/tests/lab-04/list-filters.api.test.ts
+
+| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
+|---------|------|------------------|---------------|-----------------|---------------------|--------------|
+| API-18 | API/integration | AC-55 | Requester list filters: status enum case-insensitive and legacy status mapping | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-19 | API/integration | AC-55 | Requester list filters: statusGroup=open returns all 5 open statuses | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-20 | API/integration | AC-55 | Requester list filters: resolvedWithinDays filter with history cutoff and invalid/foreign param handling | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-21 | API/integration | AC-56 | Staff list filters: statusGroup=open, assignee=unassigned and assignee=me | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-22 | API/integration | AC-56 | Staff list filters: priority including UNSET (itPriority is null) and invalid filter values return 400 | 200 OK / 400 Bad Request | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-23 | API/integration | AC-57 | Drill-down consistency: list total count matches dashboard metric count for all drill-down links | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+
 ### server/tests/lab-04/migration.test.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
@@ -103,17 +114,17 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-01 | UI component | AC-29, AC-34 | StaffDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
-| UI-02 | UI component | AC-31, AC-37 | StaffDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
-| UI-13 | UI component | AC-38 | Staff navigation | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
+| UI-01 | UI component | AC-29, AC-34 | StaffDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
+| UI-02 | UI component | AC-31, AC-37 | StaffDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
+| UI-13 | UI component | AC-38 | Staff navigation | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
 
 ### client/src/tests/lab-04 tests/RequesterDashboard.test.tsx
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-03 | UI component | AC-30, AC-34 | RequesterDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
-| UI-04 | UI component | AC-31, AC-37 | RequesterDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
-| UI-13 | UI component | AC-38 | Requester navigation | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
+| UI-03 | UI component | AC-30, AC-34 | RequesterDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
+| UI-04 | UI component | AC-31, AC-37 | RequesterDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
+| UI-13 | UI component | AC-38 | Requester navigation | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
 
 ### client/src/tests/lab-04 tests/ActionsTaken.test.tsx
 
@@ -152,7 +163,7 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| E2E-03 | E2E | AC-02, AC-29, AC-30, AC-34, AC-38 | dashboards data check | Pass | e2e/lab-04/dashboards.spec.ts | Planned (Red) |
+| E2E-03 | E2E | AC-02, AC-29, AC-30, AC-34, AC-38 | dashboards data check | Pass | e2e/lab-04/dashboards.spec.ts | Pass (2026-10-17, npx playwright test e2e/lab-04/dashboards.spec.ts) |
 
 ### e2e/lab-04/regression.spec.ts
 
@@ -241,12 +252,15 @@
 | AC-52 | PERF-01 |
 | AC-53 | API-15 |
 | AC-54 | API-17 |
+| AC-55 | API-18, API-19, API-20 |
+| AC-56 | API-21, API-22 |
+| AC-57 | API-23, E2E-03 |
 
 ## 5. Coverage by required test type
 
 | Type | Count |
 |------|-------|
-| API/integration | 27 |
+| API/integration | 33 |
 | authorization | 8 |
 | workflow | 10 |
 | migration/regression | 9 |
@@ -320,3 +334,7 @@ The snapshot-restore test (MIG-04b) requires pg_dump and pg_restore. The system 
 4. ข้อยกเว้นการปรับแก้ mock setup เฉพาะใน `client/src/tests/lab-03/StaffTicketDetail.test.tsx` เพื่อให้คืนค่า `/api/tickets/:id/allowed-transitions` รองรับการทดสอบที่ไม่มีการ hardcode เมทริกซ์ในฝั่งไคลเอนต์
 5. ปรับปรุงชุดทดสอบเดิมให้เข้มขึ้น: UI-06 ตรวจ length limits (description/result 2000, followUpNote/attachmentNotes 1000) ทั้งโหมดสร้าง/แก้ไข ที่ขอบเขตและเกินหนึ่งตัวอักษร; UI-07 ตรวจ accessible name ของปุ่ม "แก้ไข" (วันที่/เวลา Asia/Bangkok และ snippet ไม่เกิน 40 ตัวอักษร); UI-09/UI-11 ตรวจ retry key reuse (ใช้ Idempotency-Key เดิมเมื่อ retry ข้อมูลเดิมหลัง network error/500, เปลี่ยนคีย์ใหม่เมื่อเปลี่ยนข้อมูลหรือหลังสำเร็จ); UI-11 ตรวจข้อความผิดพลาดปลอดภัยตาม HTTP status และไม่มี console error
 6. ข้อสังเกต server-trim: attachmentNotes ตรวจสอบความยาวก่อน trim ส่วนฟิลด์อื่น trim ก่อนตรวจ โดยไคลเอนต์ trim ทุกฟิลด์ก่อนส่ง
+
+**หมายเหตุ (Issue #8):**
+1. เพิ่มชุดทดสอบ `server/tests/lab-04/list-filters.api.test.ts` (API-18..API-23) เพื่อทดสอบตัวกรองหน้ารายการตั๋วฝั่งเซิร์ฟเวอร์ (statusGroup=open, resolvedWithinDays, assignee=unassigned|me, priority รวม UNSET) และความสอดคล้องของจำนวนรายการเมื่อเจาะลึก (Drill-down consistency)
+2. ปรับปรุงการตรวจสอบค่า `drillDown` และ `drillDownBase` ใน RD-02 และ SD-01 ให้สอดคล้องกับเส้นทางฝั่งไคลเอนต์และตัวกรองจริง (`/my-tickets` สำหรับ Requester และการรวม `statusGroup=open` ใน priorityCounts ของ Staff)

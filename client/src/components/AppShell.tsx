@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navLinkStyle = (path: string): React.CSSProperties => {
     const active = isActive(path)
     return {
-      color: active ? '#ffffff' : 'rgba(255,255,255,0.75)',
+      color: active ? '#ffffff' : '#eaf6ef',
       textDecoration: 'none',
       fontWeight: 600,
       borderBottom: active ? '2px solid #ffffff' : '2px solid transparent',

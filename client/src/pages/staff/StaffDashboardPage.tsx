@@ -55,7 +55,7 @@ export function StaffDashboardPage() {
   };
 
   // 1. 403 Forbidden State
-  if (error && error.status === 403) {
+  if ((error && error.status === 403) || (user && user.role === 'REQUESTER')) {
     return (
       <div className="container py-5" style={{ maxWidth: 720 }}>
         <div
@@ -163,7 +163,8 @@ export function StaffDashboardPage() {
     recentlyUpdated.length === 0;
 
   const isAdmin = user?.role === 'ADMINISTRATOR';
-  const showUserCounts = isAdmin && metrics?.userCounts;
+  const userCounts = data?.userCounts || (metrics as any)?.userCounts;
+  const showUserCounts = isAdmin && !!userCounts;
 
   return (
     <div className="container py-4" style={{ maxWidth: 1140 }}>
@@ -276,7 +277,7 @@ export function StaffDashboardPage() {
           </div>
 
           {/* Card 3: User Accounts (Admin Only) */}
-          {showUserCounts && metrics.userCounts && (
+          {showUserCounts && userCounts && (
             <div className="col-12 col-sm-6 col-lg-4">
               <div
                 className="card shadow-sm border-0 p-3 h-100"
@@ -294,12 +295,12 @@ export function StaffDashboardPage() {
                 </div>
                 <div className="d-flex align-items-center gap-3 mt-1">
                   <div>
-                    <div className="h3 mb-0 fw-bold text-success">{metrics.userCounts.active}</div>
+                    <div className="h3 mb-0 fw-bold text-success">{userCounts.active}</div>
                     <div className="text-muted small">ใช้งานอยู่ (Active)</div>
                   </div>
                   <div className="vr my-1"></div>
                   <div>
-                    <div className="h3 mb-0 fw-bold text-secondary">{metrics.userCounts.inactive}</div>
+                    <div className="h3 mb-0 fw-bold" style={{ color: '#475569' }}>{userCounts.inactive}</div>
                     <div className="text-muted small">ปิดใช้งาน (Inactive)</div>
                   </div>
                 </div>
@@ -406,13 +407,13 @@ export function StaffDashboardPage() {
               <h2 className="h5 mb-0 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
                 อัปเดตล่าสุด (Recent Updates)
               </h2>
-              <span className="badge bg-light text-secondary">5 รายการล่าสุด</span>
+              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>5 รายการล่าสุด</span>
             </div>
 
             {recentlyUpdated.length === 0 ? (
               <p className="text-muted small my-3">ไม่มีรายการล่าสุด</p>
             ) : (
-              <div className="table-responsive">
+              <div className="table-responsive" tabIndex={0} aria-label="รายการตั๋วที่ได้รับการอัปเดตล่าสุดสำหรับเจ้าหน้าที่">
                 <table className="table table-hover align-middle mb-0">
                   <caption className="visually-hidden">รายการตั๋วที่ได้รับการอัปเดตล่าสุดสำหรับเจ้าหน้าที่</caption>
                   <thead>

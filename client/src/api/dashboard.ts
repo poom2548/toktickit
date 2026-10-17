@@ -60,6 +60,11 @@ export interface StaffDashboardMetrics {
 
 export interface StaffDashboardResponse {
   metrics: StaffDashboardMetrics;
+  userCounts?: {
+    label: string;
+    active: number;
+    inactive: number;
+  };
   recentlyUpdated: RecentlyUpdatedTicket[];
 }
 

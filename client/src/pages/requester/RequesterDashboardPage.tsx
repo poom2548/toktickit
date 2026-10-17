@@ -52,7 +52,7 @@ export function RequesterDashboardPage() {
   };
 
   // 1. 403 Forbidden State
-  if (error && error.status === 403) {
+  if ((error && error.status === 403) || (user && user.role !== 'REQUESTER')) {
     return (
       <div className="container py-5" style={{ maxWidth: 720 }}>
         <div
@@ -317,13 +317,13 @@ export function RequesterDashboardPage() {
               <h2 className="h5 mb-0 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
                 อัปเดตล่าสุด (Recent Updates)
               </h2>
-              <span className="badge bg-light text-secondary">5 รายการล่าสุด</span>
+              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>5 รายการล่าสุด</span>
             </div>
 
             {recentlyUpdated.length === 0 ? (
               <p className="text-muted small my-3">ไม่มีรายการล่าสุด</p>
             ) : (
-              <div className="table-responsive">
+              <div className="table-responsive" tabIndex={0} aria-label="รายการตั๋วที่ได้รับการอัปเดตล่าสุด">
                 <table className="table table-hover align-middle mb-0">
                   <caption className="visually-hidden">รายการตั๋วที่ได้รับการอัปเดตล่าสุด</caption>
                   <thead>

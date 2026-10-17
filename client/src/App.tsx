@@ -35,7 +35,7 @@ export default function App() {
           <Route path="/change-password" element={<ChangePasswordPage />} />
           
           <Route path="/dashboard" element={
-            <ProtectedRoute allowedRoles={['REQUESTER']}>
+            <ProtectedRoute>
               <AppShell>
                 <RequesterDashboardPage />
               </AppShell>
@@ -59,7 +59,7 @@ export default function App() {
           } />
 
           <Route path="/staff/dashboard" element={
-            <ProtectedRoute allowedRoles={['IT_STAFF', 'ADMINISTRATOR']}>
+            <ProtectedRoute>
               <AppShell>
                 <StaffDashboardPage />
               </AppShell>

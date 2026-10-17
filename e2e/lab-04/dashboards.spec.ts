@@ -35,7 +35,7 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await expect(resolvedCard).toHaveAttribute('href', '/my-tickets?status=RESOLVED&resolvedWithinDays=7');
 
     // 5. Quick Actions
-    const myTicketsAction = page.getByRole('link', { name: /ดูตั๋วทั้งหมดของฉัน|my tickets/i });
+    const myTicketsAction = page.locator('main').getByRole('link', { name: /ดูตั๋วทั้งหมดของฉัน/i });
     await expect(myTicketsAction).toBeVisible();
     await expect(myTicketsAction).toHaveAttribute('href', '/my-tickets');
 
@@ -141,10 +141,10 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
 
     // 2. User accounts card should be visible
     await expect(page.getByText(/user accounts/i)).toBeVisible();
-    await expect(page.getByText(/active|ใช้งานอยู่/i)).toBeVisible();
+    await expect(page.getByText(/ใช้งานอยู่ \(active\)/i)).toBeVisible();
   });
 
-  test('E2E-03d: Cross-role forbidden access shows 403 page with back link', async ({ page }) => {
+  test('E2E-03d: IT Staff accessing Requester Dashboard shows 403 page with back link to Staff Dashboard', async ({ page }) => {
     // 1. IT_STAFF attempts to access Requester Dashboard (/dashboard)
     await loginAs(page, 'IT_STAFF');
     await page.goto('/dashboard');
@@ -157,9 +157,10 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await backToStaff.click();
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/staff\/dashboard/);
+  });
 
-    // 2. REQUESTER attempts to access Staff Dashboard (/staff/dashboard)
-    await logout(page);
+  test('E2E-03e: Requester accessing Staff Dashboard shows 403 page with back link to Requester Dashboard', async ({ page }) => {
+    // 1. REQUESTER attempts to access Staff Dashboard (/staff/dashboard)
     await loginAs(page, 'REQUESTER');
     await page.goto('/staff/dashboard');
     await page.waitForLoadState('networkidle');

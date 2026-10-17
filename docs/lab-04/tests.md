@@ -87,12 +87,12 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| API-18 | API/integration | AC-55 | Requester list filters: status enum case-insensitive and legacy status mapping | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
-| API-19 | API/integration | AC-55 | Requester list filters: statusGroup=open returns all 5 open statuses | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
-| API-20 | API/integration | AC-55 | Requester list filters: resolvedWithinDays filter with history cutoff and invalid/foreign param handling | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
-| API-21 | API/integration | AC-56 | Staff list filters: statusGroup=open, assignee=unassigned and assignee=me | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
-| API-22 | API/integration | AC-56 | Staff list filters: priority including UNSET (itPriority is null) and invalid filter values return 400 | 200 OK / 400 Bad Request | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
-| API-23 | API/integration | AC-57 | Drill-down consistency: list total count matches dashboard metric count for all drill-down links | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Planned (Red) |
+| API-18 | API/integration | AC-55 | Requester list filters: status enum case-insensitive and legacy status mapping | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-19 | API/integration | AC-55 | Requester list filters: statusGroup=open returns all 5 open statuses | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-20 | API/integration | AC-55 | Requester list filters: resolvedWithinDays filter with history cutoff and invalid/foreign param handling | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-21 | API/integration | AC-56 | Staff list filters: statusGroup=open, assignee=unassigned and assignee=me | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-22 | API/integration | AC-56 | Staff list filters: priority including UNSET (itPriority is null) and invalid filter values return 400 | 200 OK / 400 Bad Request | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
+| API-23 | API/integration | AC-57 | Drill-down consistency: list total count matches dashboard metric count for all drill-down links | 200 OK | server/tests/lab-04/list-filters.api.test.ts | Pass (2026-10-17, npm run test --prefix server -- "tests/lab-04/list-filters.api.test.ts") |
 
 ### server/tests/lab-04/migration.test.ts
 
@@ -114,17 +114,17 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-01 | UI component | AC-29, AC-34 | StaffDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
-| UI-02 | UI component | AC-31, AC-37 | StaffDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
-| UI-13 | UI component | AC-38 | Staff navigation | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Planned (Red) |
+| UI-01 | UI component | AC-29, AC-34 | StaffDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
+| UI-02 | UI component | AC-31, AC-37 | StaffDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
+| UI-13 | UI component | AC-38 | Staff navigation | Renders correctly | client/src/tests/lab-04 tests/StaffDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/StaffDashboard.test.tsx") |
 
 ### client/src/tests/lab-04 tests/RequesterDashboard.test.tsx
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| UI-03 | UI component | AC-30, AC-34 | RequesterDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
-| UI-04 | UI component | AC-31, AC-37 | RequesterDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
-| UI-13 | UI component | AC-38 | Requester navigation | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Planned (Red) |
+| UI-03 | UI component | AC-30, AC-34 | RequesterDashboard render and click | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
+| UI-04 | UI component | AC-31, AC-37 | RequesterDashboard empty states and errors | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
+| UI-13 | UI component | AC-38 | Requester navigation | Renders correctly | client/src/tests/lab-04 tests/RequesterDashboard.test.tsx | Pass (2026-10-17, npm run test --prefix client -- "src/tests/lab-04 tests/RequesterDashboard.test.tsx") |
 
 ### client/src/tests/lab-04 tests/ActionsTaken.test.tsx
 
@@ -163,7 +163,7 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| E2E-03 | E2E | AC-02, AC-29, AC-30, AC-34, AC-38 | dashboards data check | Pass | e2e/lab-04/dashboards.spec.ts | Planned (Red) |
+| E2E-03 | E2E | AC-02, AC-29, AC-30, AC-34, AC-38 | dashboards data check | Pass | e2e/lab-04/dashboards.spec.ts | Pass (2026-10-17, npx playwright test e2e/lab-04/dashboards.spec.ts) |
 
 ### e2e/lab-04/regression.spec.ts
 

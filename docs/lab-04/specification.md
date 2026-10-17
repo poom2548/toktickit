@@ -42,6 +42,7 @@
 - **FR-14 (Idempotency):** ระบบป้องกันการส่งข้อมูลซ้ำ (เช่น การดับเบิลคลิกหรือการลองใหม่ของเครือข่าย) โดยใช้การปิดใช้งานบน UI และการจัดการ Idempotency บนแบ็กเอนด์
 - **FR-15 (Feedback & Hardening):** UI แสดงข้อเสนอแนะที่สอดคล้องกันสำหรับสถานะกำลังโหลด, การตรวจสอบความถูกต้อง, สำเร็จ, ว่างเปล่า, ถูกปฏิเสธ, ขัดแย้ง, ไม่พบ, และความล้มเหลวที่ปลอดภัย โดยไม่เปิดเผยข้อผิดพลาดภายใน ลบตัวยึดตำแหน่ง (Placeholder) หรือ UI ที่ใช้งานไม่ได้ออก
 - **FR-16 (Documentation):** ไฟล์ README จะต้องอัปเดตให้เป็นปัจจุบัน พร้อมคำแนะนำการตั้งค่า, Seed, Migration, การทดสอบ และ Demo
+- **FR-17 (List Filters and Drill-Down):** หน้ารายการตั๋ว (My Tickets และ Staff Ticket Queue) รองรับตัวกรองที่เจาะลึกมาจากแดชบอร์ด โดยแดชบอร์ดเชื่อมโยงไปยังรายการที่ถูกกรองอย่างถูกต้องและแสดงผลลัพธ์ตรงกับค่าตัวชี้วัด
 
 ## 5. กฎทางธุรกิจ (Business Rules - BR)
 - **BR-01:** การดำเนินการ (Action Taken) ต้องเป็นของตั๋วเพียงหนึ่งใบเท่านั้น
@@ -63,6 +64,7 @@
 - **BR-17:** ขอบเขตวันที่ของแดชบอร์ดใช้เขตเวลา `Asia/Bangkok` คำว่า "ล่าสุด (Recent)" หมายถึง 7 วันที่ผ่านมา
 - **BR-18:** ตั๋วเก่าที่มีศูนย์การดำเนินการ (Zero Actions Taken) จะยังคงใช้งานได้, แสดงหน้าจอว่างเปล่าใน UI, และแดชบอร์ดสามารถประมวลผลได้ตามปกติ
 - **BR-19:** การคลิกซ้ำหรือการลองใหม่ของเครือข่ายต้องไม่สร้างการดำเนินการซ้ำหรือเปลี่ยนสถานะซ้ำ (จัดการผ่านสถานะปิดการใช้งานบนไคลเอนต์และคีย์ Idempotency ของเซิร์ฟเวอร์)
+- **BR-20:** สถานะเปิด (Open statuses) ถูกกำหนดไว้ที่จุดเดียวในเซิร์ฟเวอร์ ตัวกรองทั้งหมดในหน้ารายการรวมกันด้วย AND และจำนวนรวมของรายการที่ถูกกรองต้องเท่ากับตัวเลขบนการ์ดตัวชี้วัดเสมอ
 
 ### เมทริกซ์การอนุญาต (Authorization Matrix)
 ทุกการเขียนข้อมูลถูกบังคับใช้ที่ backend การซ่อนปุ่มใน UI ไม่ถือเป็นการควบคุมสิทธิ์
@@ -87,21 +89,21 @@
 
 | บทบาท | Key | Label | การคำนวณ/Query | ขอบเขตตั๋ว | Time Zone | การเจาะลึก (Drill-down) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Requester | `openTickets` | My Open Tickets | นับตั๋วในสถานะ open statuses | ตั๋วตนเอง | - | `/tickets?statusGroup=open` |
-| Requester | `waitingForMe` | Waiting for Me | นับตั๋วในสถานะ WAITING_FOR_REQUESTER | ตั๋วตนเอง | - | `/tickets?status=WAITING_FOR_REQUESTER` |
-| Requester | `recentlyResolved` | แก้ปัญหาแล้วล่าสุด (Recently Resolved) | นับตั๋วที่สถานะปัจจุบันเป็น RESOLVED และเปลี่ยนสถานะภายใน 7 วัน | ตั๋วตนเอง | Asia/Bangkok (7x24h ย้อนหลัง) | `/tickets?status=RESOLVED` |
+| Requester | `openTickets` | My Open Tickets | นับตั๋วในสถานะ open statuses | ตั๋วตนเอง | - | `/my-tickets?statusGroup=open` |
+| Requester | `waitingForMe` | Waiting for Me | นับตั๋วในสถานะ WAITING_FOR_REQUESTER | ตั๋วตนเอง | - | `/my-tickets?status=WAITING_FOR_REQUESTER` |
+| Requester | `recentlyResolved` | แก้ปัญหาแล้วล่าสุด (Recently Resolved) | นับตั๋วที่สถานะปัจจุบันเป็น RESOLVED และเปลี่ยนสถานะภายใน 7 วัน | ตั๋วตนเอง | Asia/Bangkok (7x24h ย้อนหลัง) | `/my-tickets?status=RESOLVED&resolvedWithinDays=7` |
 | Requester | `recentlyUpdated` | อัปเดตล่าสุด | ลิสต์ 5 อันดับตั๋วเรียงตาม updatedAt desc | ตั๋วตนเอง | - | - |
 | IT Staff/Admin | `unassigned` | Unassigned | นับตั๋วไม่มี owner และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?statusGroup=open&assignee=unassigned` |
 | IT Staff/Admin | `myOwned` | My Owned | นับตั๋วที่ owner คือผู้ใช้ปัจจุบัน และสถานะ open statuses | ทั้งหมด | - | `/staff/tickets?statusGroup=open&assignee=me` |
 | IT Staff/Admin | `statusCounts` | By Status | นับแยก NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED (เติม 0) | ทั้งหมด | - | `/staff/tickets?status=...` |
-| IT Staff/Admin | `priorityCounts` | By IT Priority | นับแยก LOW, MEDIUM, HIGH, CRITICAL, UNSET (นับตั๋วสถานะเปิดที่ itPriority เป็น null รวมใน UNSET; เติม 0 ให้ครบ 5 ค่า) | ทั้งหมด | - | `/staff/tickets?priority=...` (สำหรับ UNSET ใช้ `/staff/tickets?priority=UNSET`) |
+| IT Staff/Admin | `priorityCounts` | By IT Priority | นับแยก LOW, MEDIUM, HIGH, CRITICAL, UNSET (นับตั๋วสถานะเปิดที่ itPriority เป็น null รวมใน UNSET; เติม 0 ให้ครบ 5 ค่า) | ทั้งหมด | - | `/staff/tickets?statusGroup=open&priority=...` (สำหรับ UNSET ใช้ `/staff/tickets?statusGroup=open&priority=UNSET`) |
 | IT Staff/Admin | `recentlyUpdated` | อัปเดตล่าสุด | ลิสต์ 5 อันดับตั๋วเรียงตาม updatedAt desc | ทั้งหมด | - | - |
 | Admin (เท่านั้น) | `userCounts` | User Accounts | นับ active/inactive users (ไม่แสดงข้อมูลนี้สำหรับ IT Staff) | - | - | - |
 
-**ตัวกรองที่ต้องเพิ่มในหน้ารายการ (สำหรับ Issue #8):**
-- **ยังไม่มีในระบบ (ต้องเพิ่ม):** `statusGroup`, `assignee`
-- **มีอยู่แล้วใน GET /staff/tickets:** `status`, `priority`, `search`, `requestedPriority`
-- **มีอยู่แล้วใน GET /api/tickets:** `status`, `priority`, `search`, `categoryId`
+**ตัวกรองในหน้ารายการ (นำไปใช้งานใน Issue #8):**
+- **GET /api/tickets (สำหรับ Requester):** รองรับ `status` (ทั้งค่าดั้งเดิม "New", "In Progress", "Resolved", "Closed" และค่า Enum 8 สถานะแบบไม่แยกตัวพิมพ์ใหญ่-เล็ก), `statusGroup=open` (NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED), `resolvedWithinDays` (1..365 นับตั๋ว RESOLVED ที่มีประวัติสถานะ RESOLVED ภายใน N วัน), `priority` (Low, Medium, High), `search`, `categoryId`
+- **GET /staff/tickets (สำหรับ IT Staff/Admin):** รองรับ `status` (8 สถานะ), `statusGroup=open`, `assignee` (`unassigned` สำหรับตั๋วไม่มีเจ้าของ, `me` สำหรับตั๋วของเจ้าหน้าที่ที่ล็อกอินอยู่), `priority` (LOW, MEDIUM, HIGH, CRITICAL และ `UNSET` สำหรับตั๋วที่ itPriority เป็น null), `search`, `requestedPriority`, `ownerId`, `sort`, `direction`, `page`, `pageSize`
+- ตัวกรองทั้งหมดเชื่อมโยงด้วยตรรกะ AND และค่าที่ไม่ถูกต้องสำหรับ Requester จะถูกละเว้น ส่วน Staff จะคืนค่า 400 Bad Request ตามรูปแบบเดิม
 
 ## 6. สรุปข้อกำหนด UI (UI Specification Summary)
 UI จะต้องเป็นไปตามระบบการออกแบบ Zen Green
@@ -215,6 +217,9 @@ UI จะต้องเป็นไปตามระบบการออก�
 | AC-52 | กำหนดให้มีข้อมูล Seed ดังนั้นปลายทางของ Dashboard จะต้องตอบสนองภายในเวลาที่กำหนดและไม่มี N+1 queries (PERF-01) |
 | AC-53 | กำหนดให้มีการส่งคำขอที่ไม่ผ่านการยืนยันตัวตนไปยังปลายทางใหม่ๆ ดังนั้นจะได้รับรหัสกลับเป็น 401 (API-15) |
 | AC-54 | กำหนดให้ใช้ปลายทาง /api/health ดังนั้นระบบจะส่งสถานะกลับโดยไม่มีรายละเอียดที่อ่อนไหว (API-17) |
+| AC-55 | กำหนดให้ผู้ร้องขอเรียกดูรายการตั๋วพร้อมตัวกรอง status, statusGroup หรือ resolvedWithinDays ดังนั้นระบบจะกรองตั๋วของตนเองตามเงื่อนไขเหล่านั้นอย่างถูกต้อง (API-18, API-19, API-20) |
+| AC-56 | กำหนดให้เจ้าหน้าที่ไอทีเรียกดูคิวตั๋วพร้อมตัวกรอง statusGroup, assignee หรือ priority ดังนั้นระบบจะกรองคิวตั๋วตามเงื่อนไขเหล่านั้นและรองรับค่า UNSET บนความสำคัญไอที (API-21, API-22) |
+| AC-57 | กำหนดให้มีการกดลิงก์เจาะลึก (Drill-down) จากการ์ดใดๆ บนแดชบอร์ด ดังนั้นหน้ารายการตั๋วปลายทางจะแสดงจำนวนรายการรวมเท่ากับตัวเลขบนการ์ดเสมอ (API-23, E2E-03) |
 
 ## 10. นิยามความสำเร็จของผลิตภัณฑ์ (Definition of Done - DoD)
 - [ ] FR/BR/AC ทั้งหมดถูกนำไปใช้งานและสามารถตรวจสอบย้อนกลับไปยังการทดสอบใน `tests.md` ได้
@@ -251,4 +256,12 @@ UI จะต้องเป็นไปตามระบบการออก�
 17. **Dashboard Field Mapping & Headers:** ฟิลด์ `title` ใน `recentlyUpdated` ถูกแมปจากฟิลด์ `summary` ของโมเดล Ticket โดยสำหรับ Staff Dashboard ใช้ `priority` เป็น `itPriority` (หากยังไม่ระบุจะเป็น null โดยไม่ fallback ไปหา `requestedPriority`) และสำหรับ Requester Dashboard ใช้ `requestedPriority` (ซึ่งเป็นระดับความสำคัญที่ Requester มองเห็นได้จาก Lab 3 และไม่เปิดเผย `itPriority`); ทั้งสองปลายทางส่ง header `Cache-Control: no-store` เนื่องจากข้อมูลเป็นแบบเฉพาะบุคคล
 18. **ขอบเขตตั๋วและสถิติผู้ใช้ของ Staff Dashboard:** เจ้าหน้าที่ไอทีและแอดมินเข้าถึงข้อมูลตั๋วทั้งหมดในระบบตามกฎคิวตั๋วของ Lab 3; ตัวนับ `userCounts` นับจำนวนแถวในโมเดล User ทั้งหมดแยกตามสถานะ `isActive` (active/inactive) และแสดงเฉพาะบทบาท Administrator เท่านั้น (ละเว้นคีย์นี้สำหรับ IT Staff)
 19. **การแจกแจงความสำคัญของตั๋วใน Staff Dashboard (UNSET Priority Bucket):** ในเมทริกซ์ `priorityCounts` ของ Staff Dashboard มีคีย์ 5 ค่า ได้แก่ `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` และ `UNSET` โดย `UNSET` จะนับจำนวนตั๋วในสถานะเปิดที่ยังไม่ได้กำหนด `itPriority` (`itPriority` เป็น null) และคง `drillDownBase` เป็น `/staff/tickets?priority=` (ซึ่งจะเชื่อมโยงไปยัง `/staff/tickets?priority=UNSET` เมื่อกดดูตั๋วที่ยังไม่ระบุความสำคัญ)
+20. **Client Route Names (เส้นทางในฝั่งไคลเอนต์):** Requester Dashboard ใช้เส้นทาง `/dashboard`, Requester My Tickets ใช้เส้นทาง `/my-tickets` (เป็นหน้าเฉพาะแยกออกมาเพื่อการเจาะลึกที่เสถียร โดยเส้นทาง `/tickets` ยังคงทำหน้าที่เป็นหน้าเริ่มต้นของผู้ร้องขอ), Staff และ Administrator Dashboard ใช้เส้นทาง `/staff/dashboard`, และ Staff Ticket Queue ใช้เส้นทางเดิม `/staff/tickets` ส่วนหน้าแรกหลังเข้าสู่ระบบ (Post-login landing pages) ยังคงเหมือนเดิม
+21. **การรวม `statusGroup=open` ใน Priority Drill-Down:** เมทริกซ์ `priorityCounts` บน Staff Dashboard นับเฉพาะตั๋วในสถานะเปิด (Open statuses) เท่านั้น ดังนั้น `drillDownBase` จึงต้องรวม `statusGroup=open` เป็น `/staff/tickets?statusGroup=open&priority=` เพื่อให้จำนวนรวมในหน้ารายการคิวตั๋วตรงกับการ์ดอย่างถูกต้อง
+22. **ตัวกรอง `resolvedWithinDays` บน Requester List:** เป็นตัวเลขจำนวนเต็ม 1..365 มีความหมายว่าตั๋วต้องมีสถานะปัจจุบันเป็น `RESOLVED` และมีแถวใน `TicketStatusHistory` ที่ `toStatus = RESOLVED` พร้อม `changedAt >= now - N * 24 ชั่วโมง` ซึ่งตรงกับกฎ `recentlyResolved` ของแดชบอร์ด โดยคำนวณจุดตัดเวลา (Cutoff) หนึ่งครั้งต่อ Request
+23. **การจัดการค่าสถานะ (Status Value Handling):** สำหรับ Requester List (`GET /api/tickets`) ระบบยังคงยอมรับค่าสถานะเดิมของ Lab 3 ("New", "In Progress", "Resolved", "Closed") และเพิ่มเติมให้รองรับทั้ง 8 ค่าของ Enum (`NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`) แบบ Case-insensitive ผ่านฟังก์ชัน Normalization เดียวกัน
+24. **ความหมายการเชื่อมโยงตัวกรอง (AND Semantics):** ตัวกรองทั้งหมดในหน้ารายการทำงานร่วมกันด้วยตรรกะ AND รวมถึงกรณีที่ระบุทั้ง `status` และ `statusGroup` พร้อมกัน
+25. **พฤติกรรมเมื่อได้รับค่าตัวกรองไม่ถูกต้อง (Invalid Filter Behavior):** ปลายทาง Staff คืนค่า 400 Bad Request ตามรูปแบบข้อผิดพลาดเดิมของ Lab 3 ส่วน Requester List จะละเว้นค่าที่ไม่ถูกต้องและคืนค่าตามปกติ นอกจากนี้ พารามิเตอร์ที่ไม่ใช่ของปลายทางนั้นๆ (เช่น ส่ง `assignee` ไปยัง Requester List) จะถูกเพิกเฉยและไม่ทำให้ผลลัพธ์กว้างขึ้น
+26. **ขอบเขตการแก้ไขใน Issue #8:** Issue #8 ครอบคลุมการเพิ่มตัวกรองในหน้ารายการฝั่งเซิร์ฟเวอร์และเส้นทาง `/my-tickets` ของฝั่งไคลเอนต์ เนื่องจากระบบเจาะลึก (Drill-down) ของแดชบอร์ดจำเป็นต้องพึ่งพาตัวกรองเหล่านี้เพื่อให้ตัวเลขบนการ์ดตรงกับรายการตั๋ว
+
 

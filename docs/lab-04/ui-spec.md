@@ -30,6 +30,21 @@
 
 ## 2. โครงสร้างหน้าจอ (Screen Inventory)
 
+### รายการเส้นทางในระบบ (Client Routes Inventory)
+
+| เส้นทาง (Route) | คำอธิบายหน้าจอ (Description) | สิทธิ์การเข้าถึง (Allowed Roles) | พฤติกรรมเมื่อไม่มีสิทธิ์ (Forbidden Behavior) |
+|---|---|---|---|
+| `/login` | หน้าเข้าสู่ระบบ (Login) | ทุกผู้ใช้ (Unauthenticated) | นำทางไปยังหน้าแรกตามบทบาทหากเข้าสู่ระบบแล้ว |
+| `/change-password` | หน้าเปลี่ยนรหัสผ่านครั้งแรก | ผู้ใช้ที่ต้องเปลี่ยนรหัสผ่าน | — |
+| `/dashboard` | หน้าแดชบอร์ดของผู้ร้องขอ (Requester Dashboard) | REQUESTER | แสดงหน้า 403 พร้อมลิงก์ไปยัง `/staff/dashboard` หากเป็น Staff/Admin |
+| `/my-tickets` | หน้ารายการตั๋วของผู้ร้องขอ (My Tickets List - หน้าเฉพาะสำหรับการเจาะลึก) | REQUESTER | แสดงหน้า 403 |
+| `/tickets` | หน้าหลักและรายการตั๋วของผู้ร้องขอ (Requester Tickets Home) | REQUESTER | แสดงหน้า 403 |
+| `/staff/dashboard` | หน้าแดชบอร์ดของเจ้าหน้าที่ไอทีและผู้ดูแลระบบ (IT Staff & Admin Dashboard) | IT_STAFF, ADMINISTRATOR | แสดงหน้า 403 พร้อมลิงก์ไปยัง `/dashboard` หากเป็น Requester |
+| `/staff/tickets` | หน้าคิวตั๋วของเจ้าหน้าที่ (Staff Ticket Queue) | IT_STAFF, ADMINISTRATOR | แสดงหน้า 403 |
+| `/staff/tickets/:id` | หน้ารายละเอียดตั๋วของเจ้าหน้าที่ (Staff Ticket Detail) | IT_STAFF, ADMINISTRATOR | แสดงหน้า 403 |
+| `/admin/users` | หน้าจัดการผู้ใช้ (Admin User Management) | ADMINISTRATOR | แสดงหน้า 403 |
+| `/forbidden` | หน้าแสดงข้อผิดพลาดไม่มีสิทธิ์เข้าถึง (403 Forbidden) | ทุกผู้ใช้ที่เข้าสู่ระบบแล้ว | — |
+
 ### หน้าจอที่ 1: IT Staff / Admin Dashboard
 หน้าแดชบอร์ดสำหรับเจ้าหน้าที่ IT และผู้ดูแลระบบ ประกอบด้วย:
 - **ส่วนต้อนรับ:** หัวข้อ "ยินดีต้อนรับกลับ, `<ชื่อ>`" และปุ่ม "รีเฟรช" (`aria-label="รีเฟรชข้อมูลแดชบอร์ด"`, โฟกัสได้ด้วยคีย์บอร์ด, แสดง spinner ขณะโหลด)
@@ -37,7 +52,7 @@
   1. **Unassigned** → drill-down `/staff/tickets?statusGroup=open&assignee=unassigned`
   2. **My Owned** → drill-down `/staff/tickets?statusGroup=open&assignee=me`
   3. **By Status** (5 buckets: NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED) → drill-down `/staff/tickets?status={STATUS}`
-  4. **By IT Priority** (LOW, MEDIUM, HIGH, CRITICAL) → drill-down `/staff/tickets?priority={PRIORITY}` (รวมการแสดงผล bucket สำหรับตั๋วที่ยังไม่ได้ระบุความสำคัญ "ยังไม่ระบุ (Unset)" พร้อมป้ายกำกับข้อความชัดเจน)
+  4. **By IT Priority** (LOW, MEDIUM, HIGH, CRITICAL, UNSET) → drill-down `/staff/tickets?statusGroup=open&priority={PRIORITY}` (รวมการแสดงผล bucket สำหรับตั๋วที่ยังไม่ได้ระบุความสำคัญ "ยังไม่ระบุ (Unset)" พร้อมป้ายกำกับข้อความชัดเจน เชื่อมไปยัง `/staff/tickets?statusGroup=open&priority=UNSET`)
   5. **User Accounts** — **มองเห็นเฉพาะ Administrator เท่านั้น**
 - **อัปเดตล่าสุด (Recent Updates):** รายการตั๋ว 5 อันดับล่าสุดตาม updatedAt desc
 - **Quick Actions:** สร้างตั๋ว (ไปยังหน้าสร้างตั๋ว), ค้นหาตั๋ว (ไปยังคิวตั๋ว), คิวของฉัน (`/staff/tickets?statusGroup=open&assignee=me`)
@@ -55,11 +70,11 @@
 หน้าแดชบอร์ดสำหรับผู้ร้องขอ (Requester) ประกอบด้วย:
 - **ส่วนต้อนรับ:** หัวข้อ "ยินดีต้อนรับกลับ, `<ชื่อ>`" และปุ่ม "รีเฟรช" (เหมือนหน้าจอที่ 1)
 - **การ์ดตัวชี้วัด (Metric Cards):** แต่ละการ์ดมีลิงก์ "ดูทั้งหมด" (View all)
-  1. **My Open Tickets** → drill-down `/tickets?statusGroup=open`
-  2. **Waiting for Me** → drill-down `/tickets?status=WAITING_FOR_REQUESTER`
-  3. **แก้ปัญหาแล้วล่าสุด (Recently Resolved)** → drill-down `/tickets?status=RESOLVED`
+  1. **My Open Tickets** → drill-down `/my-tickets?statusGroup=open`
+  2. **Waiting for Me** → drill-down `/my-tickets?status=WAITING_FOR_REQUESTER`
+  3. **แก้ปัญหาแล้วล่าสุด (Recently Resolved)** → drill-down `/my-tickets?status=RESOLVED&resolvedWithinDays=7`
 - **อัปเดตล่าสุด (Recent Updates):** รายการตั๋วตนเอง 5 อันดับล่าสุด
-- **Quick Actions:** สร้างตั๋ว, ดูตั๋วทั้งหมดของฉัน (`/tickets`)
+- **Quick Actions:** สร้างตั๋ว, ดูตั๋วทั้งหมดของฉัน (`/my-tickets`)
 
 **Layout ตอบสนอง:**
 - **1280px (Desktop):** การ์ด 3 ใบในแถวเดียว (3 columns); ด้านล่างมีรายการ Recent Updates และ Quick Actions เรียงกัน
@@ -107,10 +122,13 @@
 
 ### หน้าจอที่ 5: การนำทาง (Navigation)
 
-- **ไอเทม "แดชบอร์ด":** ชี้ไปยังแดชบอร์ดตามบทบาท — Requester ไป `/tickets`; IT Staff/Admin ไป `/staff/tickets`
-- **Active item:** ต้องมี `aria-current="page"` เสมอ
+- **ไอเทม "แดชบอร์ด" (Role-based Dashboard Navigation):** ชี้ไปยังแดชบอร์ดตามบทบาท — Requester ไป `/dashboard`; IT Staff/Admin ไป `/staff/dashboard`
+- **Active item:** ต้องมี `aria-current="page"` เสมอ และมีตัวบ่งชี้หน้าที่เลือกอยู่โดยไม่พึ่งพาสีเพียงอย่างเดียว (Non-color cue เช่น ขีดเส้นใต้, border ด้านข้าง หรือไอคอน)
 - **360px (Mobile):** ปุ่มเปิด/ปิดเมนู (Hamburger) พร้อม `aria-expanded` และ `aria-controls`; กด Esc ปิดเมนูและโฟกัสกลับที่ปุ่ม toggle; เมนูพับเก็บได้ (Collapsible)
 - **768px/1280px:** แถบนำทางแบบปกติ (Horizontal nav bar)
+
+### ส่วนประกอบเพิ่มเติม: ตัวกรองและชิปตัวกรองที่ทำงานอยู่ (Active Filter Chips)
+- เมื่อเปิดหน้ารายการตั๋ว (`/my-tickets` หรือ `/staff/tickets`) ด้วยพารามิเตอร์การค้นหาจากการเจาะลึก (Drill-down) หน้าจอจะแสดงชิปตัวกรองที่ทำงานอยู่ (Active filter chip) พร้อมปุ่มล้างตัวกรอง (Clear button) ที่สามารถกดเพื่อล้างพารามิเตอร์และคืนค่ากลับสู่รายการปกติได้
 
 ---
 

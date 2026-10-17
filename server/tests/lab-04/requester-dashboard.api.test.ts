@@ -191,17 +191,17 @@ describe('Requester Dashboard', () => {
     // Verify openTickets
     expect(res.body.metrics.openTickets.value).toBe(expectedOpenTickets);
     expect(res.body.metrics.openTickets.label).toBe('My Open Tickets');
-    expect(res.body.metrics.openTickets.drillDown).toBe('/tickets?statusGroup=open');
+    expect(res.body.metrics.openTickets.drillDown).toBe('/my-tickets?statusGroup=open');
 
     // Verify waitingForMe
     expect(res.body.metrics.waitingForMe.value).toBe(expectedWaitingForMe);
     expect(res.body.metrics.waitingForMe.label).toBe('Waiting for Me');
-    expect(res.body.metrics.waitingForMe.drillDown).toBe('/tickets?status=WAITING_FOR_REQUESTER');
+    expect(res.body.metrics.waitingForMe.drillDown).toBe('/my-tickets?status=WAITING_FOR_REQUESTER');
 
     // Verify recentlyResolved
     expect(res.body.metrics.recentlyResolved.value).toBe(expectedRecentlyResolved);
     expect(res.body.metrics.recentlyResolved.label).toBe('แก้ปัญหาแล้วล่าสุด (Recently Resolved)');
-    expect(res.body.metrics.recentlyResolved.drillDown).toBe('/tickets?status=RESOLVED');
+    expect(res.body.metrics.recentlyResolved.drillDown).toBe('/my-tickets?status=RESOLVED&resolvedWithinDays=7');
 
     // Verify recentlyUpdated order and cap of 5
     expect(res.body.recentlyUpdated).toHaveLength(expectedRecentTickets.length);

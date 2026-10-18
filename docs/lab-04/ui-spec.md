@@ -111,7 +111,7 @@
 ### หน้าจอที่ 4: การเปลี่ยนสถานะ (Ticket Status Controls) และเปลี่ยนผู้รับผิดชอบ (Owner Picker)
 
 - **Transition ไม่ Hardcode:** UI โหลดรายการสถานะที่เปลี่ยนได้จาก `GET /api/tickets/:id/allowed-transitions` ทุกครั้ง (Dropdown ถูกสร้างแบบไดนามิก)
-- **Owner Dropdown:** แสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff/Admin เท่านั้น (ผู้ไม่ active ไม่ปรากฏในรายการ) สำหรับบทบาท Administrator ส่วนบทบาท IT Staff จะใช้ปุ่ม Claim / Unassign (เป็นข้อจำกัดที่บันทึกไว้เนื่องจากยังไม่มี staff-level endpoint สำหรับดึงรายชื่อผู้ใช้) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
+- **Owner Dropdown:** ดึงรายชื่อผู้ใช้จาก `GET /staff/assignable-users` เพื่อแสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff หรือ Administrator เท่านั้น (ผู้ไม่ active จะไม่ปรากฏในรายการ) สำหรับทั้งสองบทบาท (IT Staff และ Administrator) ทำให้เจ้าหน้าที่ไอทีสามารถมอบหมายให้ตนเองหรือเพื่อนร่วมงานได้โดยตรงผ่าน Dropdown เช่นเดียวกับ Administrator (ปิดข้อจำกัดเดิม) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
 - **Advisory Flag (Requester):** ปุ่ม "ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" — อนุญาตเฉพาะสถานะ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED; มีคำอธิบายชัดเจนว่าเป็นเพียงคำแนะนำและไม่เปลี่ยนสถานะ
 - **Banner (Staff):** เมื่อ `requesterMarkedResolvedAt` มีค่า จะแสดงแบนเนอร์ "ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว" พร้อมวันที่
 - **Status badge:** อัปเดตทันทีหลังเปลี่ยนสถานะสำเร็จ ไม่ต้อง reload หน้า
@@ -124,8 +124,8 @@
 
 - **ไอเทม "แดชบอร์ด" (Role-based Dashboard Navigation):** ชี้ไปยังแดชบอร์ดตามบทบาท — Requester ไป `/dashboard`; IT Staff/Admin ไป `/staff/dashboard`
 - **Active item:** ต้องมี `aria-current="page"` เสมอ และมีตัวบ่งชี้หน้าที่เลือกอยู่โดยไม่พึ่งพาสีเพียงอย่างเดียว (Non-color cue เช่น ขีดเส้นใต้, border ด้านข้าง หรือไอคอน)
-- **360px (Mobile):** ปุ่มเปิด/ปิดเมนู (Hamburger) พร้อม `aria-expanded` และ `aria-controls`; กด Esc ปิดเมนูและโฟกัสกลับที่ปุ่ม toggle; เมนูพับเก็บได้ (Collapsible)
-- **768px/1280px:** แถบนำทางแบบปกติ (Horizontal nav bar)
+- **หน้าจอขนาดเล็ก (<= 640px Mobile):** ส่วนหัวการนำทางจะยุบตัวเป็นปุ่มเปิด/ปิดเมนูที่มีป้ายกำกับข้อความ "เมนู" พร้อมคุณสมบัติ `aria-expanded` และ `aria-controls`; เมื่อเมนูเปิดอยู่ การกดปุ่ม Escape, การคลิกภายนอก หรือการคลิกลิงก์นำทางใดๆ จะปิดเมนูอัตโนมัติ และคืนโฟกัสกลับไปที่ปุ่มสลับเมนู
+- **> 640px (768px/1280px):** แถบนำทางแบบปกติ (Horizontal nav bar)
 
 ### ส่วนประกอบเพิ่มเติม: ตัวกรองและชิปตัวกรองที่ทำงานอยู่ (Active Filter Chips)
 - เมื่อเปิดหน้ารายการตั๋ว (`/my-tickets` หรือ `/staff/tickets`) ด้วยพารามิเตอร์การค้นหาจากการเจาะลึก (Drill-down) หน้าจอจะแสดงชิปตัวกรองที่ทำงานอยู่ (Active filter chip) พร้อมปุ่มล้างตัวกรอง (Clear button) ที่สามารถกดเพื่อล้างพารามิเตอร์และคืนค่ากลับสู่รายการปกติได้
@@ -175,7 +175,7 @@
 - [ ] ข้อมูลในฟอร์มถูกเก็บไว้หาก request ล้มเหลวแบบกู้คืนได้ (Recoverable failure) (หลักฐาน: UI-14, AC-45)
 - [ ] Keyboard focus ring มองเห็นได้ทุก element (หลักฐาน: A11Y-01, A11Y-02)
 - [ ] Modal (Confirmation dialog): focus-trap, ปิดด้วย Esc, คืน focus ที่ trigger (หลักฐาน: A11Y-02)
-- [ ] เมนูนำทาง mobile (360px): Hamburger button พร้อม `aria-expanded`/`aria-controls`, Esc ปิด, คืน focus ที่ toggle (หลักฐาน: RESP-01, A11Y-01)
+- [ ] เมนูนำทาง mobile (<= 640px): ปุ่มสลับเมนู "เมนู" พร้อม `aria-expanded`/`aria-controls`, Esc ปิด, คืน focus ที่ toggle (หลักฐาน: RESP-01, A11Y-01)
 - [ ] Active nav item มี `aria-current="page"` (หลักฐาน: UI-13, A11Y-01)
 - [ ] ไม่มี clipping, ไม่มีการซ้อนทับกัน, ไม่มี horizontal scroll ที่ 360/768/1280px (หลักฐาน: RESP-01, AC-47)
 - [ ] สถานะและความสำคัญสื่อด้วยข้อความ + สีเสมอ ไม่ใช่สีอย่างเดียว (หลักฐาน: STY-01, A11Y-01)

@@ -322,12 +322,12 @@ export function TicketWorkflowControls({
 
       <div className="workflow-grid">
         {/* Current Status Row */}
-        <div className="workflow-field-row">
+        <dl className="workflow-field-row mb-0">
           <dt>Current Status</dt>
           <dd data-status={ticket.status}>
             <StatusBadge status={ticket.status} />
           </dd>
-        </div>
+        </dl>
 
         {/* Requester Advisory Button */}
         {canShowAdvisoryButton && (

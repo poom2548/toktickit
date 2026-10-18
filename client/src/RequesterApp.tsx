@@ -44,6 +44,14 @@ export default function RequesterApp() {
     fetchHealth();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const idParam = params.get("id");
+    if (idParam && !isNaN(Number(idParam))) {
+      setSelectedTicketId(Number(idParam));
+    }
+  }, []);
+
   async function handleCheck() {
     setState("loading");
     try {

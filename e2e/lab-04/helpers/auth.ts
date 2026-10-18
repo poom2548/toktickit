@@ -16,11 +16,12 @@ export async function loginAs(page: Page, role: keyof typeof SEED_ACCOUNTS) {
 }
 
 export async function logout(page: Page) {
-  const logoutBtn = page.getByRole('button', { name: /logout/i });
+  const logoutBtn = page.getByRole('button', { name: /log\s*out/i });
   if (await logoutBtn.isVisible()) {
     await logoutBtn.click();
     await page.waitForURL('**/login');
   }
+  await page.context().clearCookies();
 }
 
 export async function expectForbiddenPage(page: Page) {

@@ -377,34 +377,46 @@ describe('Ticket Workflow', () => {
       expect(resStale.body.error?.currentVersion).toBe(1);
     });
 
-    it('WF-05: legacy routes accept a missing version during the compatibility window', async () => {
-      // Note: The final hardening issue will flip missing version on legacy routes to expect 422 VALIDATION_FAILED.
+    it('WF-05: legacy routes require version (compatibility window closed)', async () => {
       const ticket = await createTicket({ requesterId: reqAuth.id, status: 'OPEN' });
 
-      // Legacy status route: missing version works and increments version
+      // Legacy status route: missing version -> 422 VALIDATION_FAILED
       const resStatusOmitted = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS' });
-      expect(resStatusOmitted.status).toBe(200);
-      const afterStatus = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-      expect(afterStatus?.version).toBe(2);
+      expect(resStatusOmitted.status).toBe(422);
+      expect(resStatusOmitted.body.error?.code).toBe('VALIDATION_FAILED');
+      expect(resStatusOmitted.body.error?.fields?.version).toBeDefined();
 
-      // Legacy status route: stale version -> 409
-      const resStatusStale = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'WAITING_FOR_REQUESTER', version: 1 });
+      // Legacy status route: stale version -> 409 CONFLICT
+      const resStatusStale = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'WAITING_FOR_REQUESTER', version: 0 });
       expect(resStatusStale.status).toBe(409);
       expect(resStatusStale.body.error?.code).toBe('CONFLICT');
 
-      // Legacy owner route: missing version works and increments version
-      const resOwnerOmitted = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id });
-      expect(resOwnerOmitted.status).toBe(200);
-      expect(resOwnerOmitted.body.version).toBe(3);
+      // Legacy status route: valid version succeeds and increments version
+      const resStatusValid = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'IN_PROGRESS', version: 1 });
+      expect(resStatusValid.status).toBe(200);
+      const afterStatus = await prisma.ticket.findUnique({ where: { id: ticket.id } });
+      expect(afterStatus?.version).toBe(2);
 
-      // Legacy owner route: stale version -> 409
+      // Legacy owner route: missing version -> 422 VALIDATION_FAILED
+      const resOwnerOmitted = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id });
+      expect(resOwnerOmitted.status).toBe(422);
+      expect(resOwnerOmitted.body.error?.code).toBe('VALIDATION_FAILED');
+      expect(resOwnerOmitted.body.error?.fields?.version).toBeDefined();
+
+      // Legacy owner route: stale version -> 409 CONFLICT
       const resOwnerStale = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id, version: 1 });
       expect(resOwnerStale.status).toBe(409);
       expect(resOwnerStale.body.error?.code).toBe('CONFLICT');
 
-      // Legacy owner route: invalid version -> 422
+      // Legacy owner route: invalid version (string) -> 422 VALIDATION_FAILED
       const resOwnerInvalid = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id, version: 'abc' });
       expect(resOwnerInvalid.status).toBe(422);
+      expect(resOwnerInvalid.body.error?.code).toBe('VALIDATION_FAILED');
+
+      // Legacy owner route: valid version succeeds and increments version
+      const resOwnerValid = await staffAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ ownerId: staffAuth.id, version: 2 });
+      expect(resOwnerValid.status).toBe(200);
+      expect(resOwnerValid.body.version).toBe(3);
     });
 
     it('WF-05: idempotency key replay and forced server error handling', async () => {
@@ -480,6 +492,59 @@ describe('Ticket Workflow', () => {
       
       const res2 = await adminAgent.patch(`/staff/tickets/${ticket.id}/owner`).send({ version: 1, ownerId: otherReqAuth.id });
       expect(res2.status).toBe(422);
+    });
+  });
+
+  describe('API-24', () => {
+    it('API-24: GET /staff/assignable-users active staff and admins only, ordered, no-store', async () => {
+      // Unauthenticated -> 401
+      const resUnauth = await request(app).get('/staff/assignable-users');
+      expect(resUnauth.status).toBe(401);
+
+      // Requester -> 403
+      const resReq = await reqAgent.get('/staff/assignable-users');
+      expect(resReq.status).toBe(403);
+
+      // Staff -> 200
+      const resStaff = await staffAgent.get('/staff/assignable-users');
+      expect(resStaff.status).toBe(200);
+      expect(resStaff.headers['cache-control']).toMatch(/no-store/);
+      expect(resStaff.body).toHaveProperty('users');
+      expect(Array.isArray(resStaff.body.users)).toBe(true);
+      expect(resStaff.body.users.length).toBeGreaterThan(0);
+
+      // Admin -> 200
+      const resAdmin = await adminAgent.get('/staff/assignable-users');
+      expect(resAdmin.status).toBe(200);
+      expect(resAdmin.headers['cache-control']).toMatch(/no-store/);
+
+      // Check fields and membership: only active IT_STAFF and ADMINISTRATOR
+      for (const u of resStaff.body.users) {
+        expect(u).toHaveProperty('id');
+        expect(u).toHaveProperty('name');
+        expect(u).toHaveProperty('role');
+        expect(['IT_STAFF', 'ADMINISTRATOR']).toContain(u.role);
+        expect(u).not.toHaveProperty('passwordHash');
+      }
+
+      // Inactive staff must not be present
+      const inactiveFound = resStaff.body.users.find((u: any) => u.id === inactiveStaffAuth.id);
+      expect(inactiveFound).toBeUndefined();
+
+      // Requester user must not be present
+      const reqFound = resStaff.body.users.find((u: any) => u.id === reqAuth.id);
+      expect(reqFound).toBeUndefined();
+
+      // Check sorting: name asc, then id asc
+      const users = resStaff.body.users;
+      for (let i = 0; i < users.length - 1; i++) {
+        const cmp = users[i].name.localeCompare(users[i + 1].name);
+        if (cmp === 0) {
+          expect(users[i].id.localeCompare(users[i + 1].id)).toBeLessThanOrEqual(0);
+        } else {
+          expect(cmp).toBeLessThan(0);
+        }
+      }
     });
   });
 

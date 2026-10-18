@@ -83,6 +83,12 @@
   margin: 0;
 }
 
+.workflow-field-row button {
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+}
+
 .workflow-field-group {
   display: flex;
   flex-direction: column;
@@ -167,6 +173,7 @@
     width: 100%;
   }
 
+  .workflow-field-row button,
   .workflow-controls-row select,
   .workflow-controls-row button {
     width: 100%;

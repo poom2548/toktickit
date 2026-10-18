@@ -49,6 +49,11 @@ export default function RequesterApp() {
     const idParam = params.get("id");
     if (idParam && !isNaN(Number(idParam))) {
       setSelectedTicketId(Number(idParam));
+      return;
+    }
+    const match = window.location.pathname.match(/\/tickets\/(\d+)/);
+    if (match && !isNaN(Number(match[1]))) {
+      setSelectedTicketId(Number(match[1]));
     }
   }, []);
 

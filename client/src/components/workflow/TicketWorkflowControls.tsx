@@ -335,6 +335,7 @@ export function TicketWorkflowControls({
             <button
               type="button"
               className="btn-secondary"
+              style={{ maxWidth: '100%', whiteSpace: 'normal', wordBreak: 'break-word' }}
               onClick={handleRequesterAdvisory}
               disabled={savingAdvisory}
             >

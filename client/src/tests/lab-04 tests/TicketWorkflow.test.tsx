@@ -313,7 +313,7 @@ describe('TicketWorkflow', () => {
     const Component = await loadTicketWorkflowControls()
     const handleTicketUpdate = vi.fn()
 
-    // 1. Administrator role: Owner picker lists only active IT Staff and Administrator users
+    // 1. Administrator role: Owner picker lists active IT Staff and Administrator users from /staff/assignable-users
     fetchMock.mockImplementation(async (url: string) => {
       if (url.includes('/allowed-transitions')) {
         return {
@@ -322,8 +322,17 @@ describe('TicketWorkflow', () => {
           json: async () => ({ currentStatus: 'IN_PROGRESS', version: 2, allowedTransitions: [] }),
         }
       }
-      if (url.includes('/admin/users')) {
-        return { ok: true, status: 200, json: async () => mockAdminUsers }
+      if (url.includes('/staff/assignable-users')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            users: [
+              { id: 'u2', name: 'Frank IT', role: 'IT_STAFF' },
+              { id: 'u3', name: 'Grace Admin', role: 'ADMINISTRATOR' },
+            ],
+          }),
+        }
       }
       return { ok: false, status: 404, json: async () => ({ error: 'Not found' }) }
     })
@@ -343,14 +352,12 @@ describe('TicketWorkflow', () => {
     const ownerSelect = screen.getByLabelText(/ticket owner|ผู้รับผิดชอบ/i) as HTMLSelectElement
     const ownerOptions = Array.from(ownerSelect.querySelectorAll('option')).map((o) => (o as HTMLOptionElement).text)
 
-    // MUST contain Frank IT (IT_STAFF active) and Grace Admin (ADMINISTRATOR active)
+    // MUST contain Frank IT (IT_STAFF) and Grace Admin (ADMINISTRATOR)
     expect(ownerOptions.some((t) => t.includes('Frank IT'))).toBe(true)
     expect(ownerOptions.some((t) => t.includes('Grace Admin'))).toBe(true)
 
-    // MUST NOT contain Alice Requester (REQUESTER) or Ivy Inactive / Inactive Admin (isActive: false)
+    // MUST NOT contain Alice Requester (REQUESTER)
     expect(ownerOptions.some((t) => t.includes('Alice Requester'))).toBe(false)
-    expect(ownerOptions.some((t) => t.includes('Ivy Inactive'))).toBe(false)
-    expect(ownerOptions.some((t) => t.includes('Inactive Admin'))).toBe(false)
 
     // Selecting an owner sends PATCH with current version
     fetchMock.mockImplementation(async (url: string, opts: any) => {
@@ -368,6 +375,18 @@ describe('TicketWorkflow', () => {
           }),
         }
       }
+      if (url.includes('/staff/assignable-users')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            users: [
+              { id: 'u2', name: 'Frank IT', role: 'IT_STAFF' },
+              { id: 'u3', name: 'Grace Admin', role: 'ADMINISTRATOR' },
+            ],
+          }),
+        }
+      }
       return { ok: true, status: 200, json: async () => mockAdminUsers }
     })
 
@@ -379,7 +398,7 @@ describe('TicketWorkflow', () => {
       expect(handleTicketUpdate).toHaveBeenCalledWith(expect.objectContaining({ version: 3 }))
     })
 
-    // 2. IT Staff role: Dropdown picker is NOT rendered; Claim / Unassign controls are rendered
+    // 2. IT Staff role: ALSO sees full Owner dropdown picker from /staff/assignable-users (AC-58)
     rerender(
       <Component
         ticket={{ ...mockTicket, owner: null }} // Unassigned ticket
@@ -389,10 +408,13 @@ describe('TicketWorkflow', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /claim/i })).toBeInTheDocument()
+      expect(screen.getByRole('combobox', { name: /ticket owner|ผู้รับผิดชอบ/i })).toBeInTheDocument()
     })
-    // IT Staff does not have full dropdown picker (documented limitation)
-    expect(screen.queryByRole('combobox', { name: /ticket owner/i })).not.toBeInTheDocument()
+
+    const staffOwnerSelect = screen.getByRole('combobox', { name: /ticket owner|ผู้รับผิดชอบ/i }) as HTMLSelectElement
+    const staffOptions = Array.from(staffOwnerSelect.querySelectorAll('option')).map((o) => (o as HTMLOptionElement).text)
+    expect(staffOptions.some((t) => t.includes('Frank IT'))).toBe(true)
+    expect(staffOptions.some((t) => t.includes('Grace Admin'))).toBe(true)
 
     // 3. Requester role: Never sees owner picker or Claim buttons
     rerender(

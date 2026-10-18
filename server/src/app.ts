@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { requesterRouter } from "./requesters/requester.routes.js";
@@ -89,6 +89,21 @@ app.use("/api/dashboard", dashboardRouter);
 // DELETE /api/attachments/:id
 // ---------------------------------------------------------------------------
 app.use("/api", attachmentRouter);
+
+// ---------------------------------------------------------------------------
+// Unmatched routes catch-all fallback (safe 404 envelope)
+// ---------------------------------------------------------------------------
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith("/test/")) {
+    return next();
+  }
+  res.status(404).json({
+    error: {
+      code: "NOT_FOUND",
+      message: "Route not found.",
+    },
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Global error handler — MUST be last

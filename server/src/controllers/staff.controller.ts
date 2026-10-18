@@ -201,3 +201,35 @@ export async function getStaffTickets(req: Request, res: Response): Promise<any>
     return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' })
   }
 }
+
+export async function getAssignableUsers(_req: Request, res: Response): Promise<any> {
+  try {
+    const prisma = getPrisma();
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: { in: ['IT_STAFF', 'ADMINISTRATOR'] },
+      },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+      },
+      orderBy: [
+        { name: 'asc' },
+        { id: 'asc' },
+      ],
+    });
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ users });
+  } catch (err) {
+    console.error('Get assignable users error:', err);
+    return res.status(500).json({
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred.',
+      },
+    });
+  }
+}
+

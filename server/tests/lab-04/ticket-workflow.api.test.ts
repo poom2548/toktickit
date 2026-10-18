@@ -327,7 +327,7 @@ describe('Ticket Workflow', () => {
       await prisma.actionTaken.create({ data: { ticketId: ticket.id, actionAt: new Date(), description: 'x', result: 'ok', performedById: staffAuth.id } });
       
       // Test the old route passes the gate now
-      const resPassOld = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'RESOLVED' });
+      const resPassOld = await staffAgent.patch(`/staff/tickets/${ticket.id}/status`).send({ status: 'RESOLVED', version: 1 });
       expect(resPassOld.status).toBe(200);
     });
   });

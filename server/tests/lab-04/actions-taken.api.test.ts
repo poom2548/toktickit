@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app.js';
-import { prisma, createTicket, createStaff, createRequester, createAdmin, createAction, resetTestData, assertTestDatabase, loginAs } from './helpers.js';
+import { prisma, getPrisma, createTicket, createStaff, createRequester, createAdmin, createAction, resetTestData, assertTestDatabase, loginAs } from './helpers.js';
 import { TicketStatus } from '@prisma/client';
 
 describe('Actions Taken API', () => {
@@ -352,10 +352,11 @@ describe('Actions Taken API', () => {
 
   it('API-16: error envelope, no leaks', async () => {
     const staff = await createStaff();
+    const ticket = await createTicket();
     const agent = await loginAs(staff);
 
     // 1) 422 validation error has envelope with code, message, fields, no stack
-    const res = await agent.post(`/api/tickets/invalid/actions-taken`).send({});
+    const res = await agent.post(`/api/tickets/${ticket.id}/actions-taken`).send({});
     expect(res.status).toBe(422);
     expect(res.body).toHaveProperty('error');
     expect(res.body.error).toHaveProperty('code', 'VALIDATION_FAILED');
@@ -363,7 +364,7 @@ describe('Actions Taken API', () => {
 
     // 2) Malformed JSON body -> 422 VALIDATION_FAILED "Malformed request body."
     const resMalformed = await request(app)
-      .post('/api/tickets/1/actions-taken')
+      .post(`/api/tickets/${ticket.id}/actions-taken`)
       .set('Cookie', (agent as any).cookies || '')
       .set('Content-Type', 'application/json')
       .send('{"description": "broken json');
@@ -383,17 +384,18 @@ describe('Actions Taken API', () => {
     expect(resUnauthApi.body).toEqual({ error: 'Authentication required.' });
 
     // 5) Forced 500 error returns generic envelope without leaks
-    const origFindMany = prisma.actionTaken.findMany;
-    (prisma.actionTaken as any).findMany = async () => { throw new Error('Sensitive DB connection detail leak'); };
+    const serverPrisma = getPrisma();
+    const origFindMany = serverPrisma.actionTaken.findMany;
+    (serverPrisma.actionTaken as any).findMany = async () => { throw new Error('Sensitive DB connection detail leak'); };
     try {
-      const res500 = await agent.get('/api/tickets/cltest123/actions-taken');
+      const res500 = await agent.get(`/api/tickets/${ticket.id}/actions-taken`);
       expect(res500.status).toBe(500);
       expect(res500.body.error?.code).toBe('INTERNAL_ERROR');
       expect(res500.body.error?.message).toMatch(/unexpected error/i);
       expect(res500.body.error?.message).not.toMatch(/Sensitive DB connection/);
       expect(res500.body.error).not.toHaveProperty('stack');
     } finally {
-      prisma.actionTaken.findMany = origFindMany;
+      serverPrisma.actionTaken.findMany = origFindMany;
     }
   });
 

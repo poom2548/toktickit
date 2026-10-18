@@ -403,9 +403,8 @@ export default function CreateTicketForm({ categories: categoriesProp, onDone }:
         try {
           await uploadAttachment(ticket.id, file);
         } catch {
-          // Non-fatal: log and continue uploading remaining files.
+          // Non-fatal: continue uploading remaining files.
           // The ticket has already been created successfully.
-          console.warn(`Failed to upload attachment "${file.name}"`);
         }
       }
 

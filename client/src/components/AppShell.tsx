@@ -1,3 +1,4 @@
+import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 
@@ -17,6 +18,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const toggleBtnRef = useRef<HTMLButtonElement>(null)
+  const mobileNavRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+        toggleBtnRef.current?.focus()
+      }
+    }
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        isMobileMenuOpen &&
+        mobileNavRef.current &&
+        !mobileNavRef.current.contains(e.target as Node) &&
+        toggleBtnRef.current &&
+        !toggleBtnRef.current.contains(e.target as Node)
+      ) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    if (isMobileMenuOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMobileMenuOpen])
 
   const handleLogout = async () => {
     await logout()
@@ -112,38 +146,82 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               Log out
             </button>
+            <button
+              ref={toggleBtnRef}
+              type="button"
+              className="btn btn-sm d-md-none text-white border-0 p-1"
+              aria-label="เมนู"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              style={{ fontSize: '1.25rem', lineHeight: 1 }}
+            >
+              ☰ <span className="visually-hidden">เมนู</span>
+            </button>
           </div>
         </div>
         {/* Mobile Nav */}
-        <div className="container-fluid px-4 py-2 d-md-none" style={{ borderTop: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'var(--zen-color-primary-dark, #075231)' }}>
-          <nav className="d-flex gap-3">
-            {user?.role === 'REQUESTER' && (
-              <>
-                <Link to="/dashboard" style={navLinkStyle('/dashboard')} aria-current={isActive('/dashboard') ? 'page' : undefined}>
-                  แดชบอร์ด
+        {isMobileMenuOpen && (
+          <div
+            id="mobile-nav"
+            ref={mobileNavRef}
+            className="container-fluid px-4 py-2 d-md-none"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'var(--zen-color-primary-dark, #075231)' }}
+          >
+            <nav className="d-flex flex-column gap-2">
+              {user?.role === 'REQUESTER' && (
+                <>
+                  <Link
+                    to="/dashboard"
+                    style={navLinkStyle('/dashboard')}
+                    aria-current={isActive('/dashboard') ? 'page' : undefined}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📊 แดชบอร์ด
+                  </Link>
+                  <Link
+                    to="/tickets"
+                    style={navLinkStyle('/tickets')}
+                    aria-current={isActive('/tickets') ? 'page' : undefined}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    My Tickets
+                  </Link>
+                </>
+              )}
+              {(user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR') && (
+                <>
+                  <Link
+                    to="/staff/dashboard"
+                    style={navLinkStyle('/staff/dashboard')}
+                    aria-current={isActive('/staff/dashboard') ? 'page' : undefined}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📊 แดชบอร์ด
+                  </Link>
+                  <Link
+                    to="/staff/tickets"
+                    style={navLinkStyle('/staff/tickets')}
+                    aria-current={isActive('/staff/tickets') ? 'page' : undefined}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    🎫 Queue
+                  </Link>
+                </>
+              )}
+              {user?.role === 'ADMINISTRATOR' && (
+                <Link
+                  to="/admin/users"
+                  style={navLinkStyle('/admin/users')}
+                  aria-current={isActive('/admin/users') ? 'page' : undefined}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  👥 Users
                 </Link>
-                <Link to="/tickets" style={navLinkStyle('/tickets')} aria-current={isActive('/tickets') ? 'page' : undefined}>
-                  My Tickets
-                </Link>
-              </>
-            )}
-            {(user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR') && (
-              <>
-                <Link to="/staff/dashboard" style={navLinkStyle('/staff/dashboard')} aria-current={isActive('/staff/dashboard') ? 'page' : undefined}>
-                  แดชบอร์ด
-                </Link>
-                <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')} aria-current={isActive('/staff/tickets') ? 'page' : undefined}>
-                  Queue
-                </Link>
-              </>
-            )}
-            {user?.role === 'ADMINISTRATOR' && (
-              <Link to="/admin/users" style={navLinkStyle('/admin/users')} aria-current={isActive('/admin/users') ? 'page' : undefined}>
-                Users
-              </Link>
-            )}
-          </nav>
-        </div>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
 
       <main className="flex-grow-1">

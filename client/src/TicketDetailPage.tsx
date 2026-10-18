@@ -48,7 +48,10 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   const [comments, setComments] = useState<PublicComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -138,23 +141,25 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   }
 
   async function handleDownload(attachmentId: number, filename: string) {
+    setDownloadError(null);
     try {
       await downloadAttachment(attachmentId, filename);
     } catch (err: any) {
-      alert(err.message || "Failed to download attachment");
+      setDownloadError(err.message || "Failed to download attachment");
     }
   }
 
   async function handlePostComment(e: React.FormEvent) {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || postingComment) return;
     setPostingComment(true);
+    setCommentError(null);
     try {
       const comment = await postComment(ticketId, newComment);
       setComments((prev) => [...prev, comment]);
       setNewComment("");
     } catch (err: any) {
-      alert(err.message || "Failed to post comment");
+      setCommentError(err.message || "Failed to post comment");
     } finally {
       setPostingComment(false);
     }
@@ -162,11 +167,12 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
 
   async function handleMarkResolved() {
     setResolving(true);
+    setResolveError(null);
     try {
       const res = await markResolved(ticketId);
       setTicket((prev) => prev ? { ...prev, problemAppearsResolved: res.problemAppearsResolved } : prev);
     } catch (err: any) {
-      alert(err.message || "Failed to mark resolved");
+      setResolveError(err.message || "Failed to mark resolved");
     } finally {
       setResolving(false);
     }
@@ -251,6 +257,11 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
                 </button>
               )}
             </div>
+            {resolveError && (
+              <div className="alert alert-danger py-1 px-2 mt-1 small" role="alert">
+                {resolveError}
+              </div>
+            )}
             {ticket.problemAppearsResolved && (
               <small className="text-success mt-1 d-block">User indicated problem is resolved.</small>
             )}
@@ -338,6 +349,12 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           )}
         </div>
 
+        {commentError && (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {commentError}
+          </div>
+        )}
+
         <form onSubmit={handlePostComment} className="mb-4">
           <div className="form-group mb-2">
             <textarea 
@@ -360,6 +377,13 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         <h3 className="h5 mb-4" style={{ color: "var(--zen-color-primary)" }}>
           Attachments
         </h3>
+
+        {/* Download Error */}
+        {downloadError && (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {downloadError}
+          </div>
+        )}
 
         {/* Upload Error / Success */}
         {uploadError && (

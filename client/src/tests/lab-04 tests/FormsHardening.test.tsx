@@ -70,8 +70,7 @@ describe('Forms Hardening (UI-09)', () => {
 
       render(
         <CreateTicketForm
-          requesterProp={mockRequester}
-          categoriesProp={mockCategories}
+          categories={mockCategories}
           onDone={vi.fn()}
         />
       )
@@ -109,7 +108,7 @@ describe('Forms Hardening (UI-09)', () => {
       })
 
       await waitFor(() => {
-        expect(screen.getByText(/ticket created successfully/i)).toBeInTheDocument()
+        expect(screen.getByText(/ticket created!/i)).toBeInTheDocument()
       })
     })
 
@@ -123,8 +122,7 @@ describe('Forms Hardening (UI-09)', () => {
 
       render(
         <CreateTicketForm
-          requesterProp={mockRequester}
-          categoriesProp={mockCategories}
+          categories={mockCategories}
           onDone={vi.fn()}
         />
       )
@@ -140,6 +138,7 @@ describe('Forms Hardening (UI-09)', () => {
       fireEvent.change(descInput, { target: { value: 'Detailed description that user worked hard to write' } })
       fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '2' } })
       fireEvent.change(screen.getByLabelText(/related system/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/priority/i), { target: { value: 'High' } })
 
       const submitBtn = screen.getByRole('button', { name: /create ticket|submit/i })
       fireEvent.click(submitBtn)
@@ -167,8 +166,7 @@ describe('Forms Hardening (UI-09)', () => {
 
       render(
         <CreateTicketForm
-          requesterProp={mockRequester}
-          categoriesProp={mockCategories}
+          categories={mockCategories}
           onDone={vi.fn()}
         />
       )
@@ -181,6 +179,7 @@ describe('Forms Hardening (UI-09)', () => {
       fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Cannot reach gateway' } })
       fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '1' } })
       fireEvent.change(screen.getByLabelText(/related system/i), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText(/priority/i), { target: { value: 'High' } })
 
       // Stage a file
       const file = new File(['dummy content'], 'screenshot.png', { type: 'image/png' })
@@ -193,7 +192,7 @@ describe('Forms Hardening (UI-09)', () => {
       fireEvent.click(submitBtn)
 
       await waitFor(() => {
-        expect(screen.getByText(/ticket created successfully/i)).toBeInTheDocument()
+        expect(screen.getByText(/ticket created!/i)).toBeInTheDocument()
       })
 
       // Assert console.warn was NOT called
@@ -230,9 +229,9 @@ describe('Forms Hardening (UI-09)', () => {
       fireEvent.click(postBtn)
 
       await waitFor(() => {
-        const errorAlert = screen.getByRole('alert')
+        const errorAlert = screen.getByText(/failed to post comment/i)
         expect(errorAlert).toBeInTheDocument()
-        expect(errorAlert).toHaveTextContent(/failed to post comment/i)
+        expect(errorAlert.getAttribute('role')).toBe('alert')
       })
 
       // Must NOT invoke window.alert()

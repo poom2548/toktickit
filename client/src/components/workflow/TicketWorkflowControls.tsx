@@ -105,12 +105,12 @@ export function TicketWorkflowControls({
   }, [ticket.owner])
 
   useEffect(() => {
-    if (isAdmin) {
+    if (isStaff) {
       loadAssignableUsers()
         .then((users) => setAssignableUsers(users))
         .catch(() => {})
     }
-  }, [isAdmin])
+  }, [isStaff])
 
   // Handle ESC in modal
   useEffect(() => {
@@ -361,7 +361,7 @@ export function TicketWorkflowControls({
         )}
 
         {/* Owner Controls (Staff & Admin only) */}
-        {isAdmin && (
+        {isStaff && (
           <div className="workflow-field-group">
             <label htmlFor="owner-select">Ticket Owner (ผู้รับผิดชอบ)</label>
             <div className="workflow-controls-row">
@@ -386,34 +386,6 @@ export function TicketWorkflowControls({
                 disabled={savingOwner}
               >
                 {savingOwner ? 'Saving…' : 'Save Owner'}
-              </button>
-            </div>
-            {ownerError && (
-              <span className="field-error" role="alert">
-                {ownerError.message}
-              </span>
-            )}
-          </div>
-        )}
-
-        {!isAdmin && isStaff && (
-          <div className="workflow-field-group">
-            <label htmlFor="owner-info">Ticket Owner (ผู้รับผิดชอบ)</label>
-            <div className="workflow-controls-row">
-              <span id="owner-info" className="current-owner">
-                {ticket.owner ? ticket.owner.name : <em>Unassigned</em>}
-              </span>
-              <button
-                type="button"
-                onClick={() => handleClaimOrUnassign(!ticket.owner)}
-                disabled={savingOwner}
-                className="btn-primary btn-sm"
-              >
-                {savingOwner
-                  ? 'Saving…'
-                  : ticket.owner
-                  ? 'Unassign'
-                  : 'Claim (Assign to me)'}
               </button>
             </div>
             {ownerError && (

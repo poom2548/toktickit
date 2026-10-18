@@ -144,8 +144,8 @@ export async function setResolvedIndication(
   return res.json()
 }
 
-export async function listAdminUsers(): Promise<AssignableUser[]> {
-  const res = await safeFetch('/admin/users', {
+export async function getAssignableUsers(): Promise<AssignableUser[]> {
+  const res = await safeFetch('/staff/assignable-users', {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -165,8 +165,5 @@ export async function listAdminUsers(): Promise<AssignableUser[]> {
 }
 
 export async function loadActiveStaffAndAdmins(): Promise<AssignableUser[]> {
-  const users = await listAdminUsers()
-  return users.filter(
-    (u) => u.isActive && (u.role === 'IT_STAFF' || u.role === 'ADMINISTRATOR')
-  )
+  return getAssignableUsers()
 }

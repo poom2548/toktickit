@@ -357,11 +357,16 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
       return route.continue();
     });
     if (await statusSelect.isVisible()) {
-      const updateBtn = page.getByRole('button', { name: /update status|เปลี่ยนสถานะ/i }).first();
-      if (await updateBtn.isVisible() && !(await updateBtn.isDisabled())) {
-        await updateBtn.click();
-        await page.waitForTimeout(300);
-        await capture(page, subDir, screen, 'conflict-banner', VIEWPORTS.desktop);
+      const options = await statusSelect.locator('option').allTextContents();
+      const nextOpt = options.find((o) => !o.includes('Current:') && o.trim() !== '');
+      if (nextOpt) {
+        await statusSelect.selectOption({ label: nextOpt });
+        const updateBtn = page.getByRole('button', { name: /update status|เปลี่ยนสถานะ/i }).first();
+        if (await updateBtn.isVisible()) {
+          await updateBtn.click();
+          await page.waitForTimeout(300);
+          await capture(page, subDir, screen, 'conflict-banner', VIEWPORTS.desktop);
+        }
       }
     }
     await page.unroute('**/status**');
@@ -369,7 +374,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     // 4.5 Requester Advisory Banner on IT Staff View (Ticket 3)
     await page.goto('/staff/tickets/3');
     await page.waitForLoadState('networkidle');
-    const advisoryBanner = page.locator('.advisory-banner, .alert-info, :has-text("Problem Appears Resolved")').first();
+    const advisoryBanner = page.locator('.advisory-staff-banner, .alert-info, :has-text("แก้ไขแล้ว")').first();
     if (await advisoryBanner.isVisible()) {
       await advisoryBanner.scrollIntoViewIfNeeded();
     }
@@ -387,7 +392,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
 
     // 4.7 Requester Cancel Modal & Advisory Button
     await loginAs(page, 'REQUESTER');
-    await page.goto('/tickets/2');
+    await page.goto('/tickets/9');
     await page.waitForLoadState('networkidle');
     const cancelTicketBtn = page.getByRole('button', { name: /cancel ticket|ยกเลิกตั๋ว/i }).first();
     if (await cancelTicketBtn.isVisible()) {
@@ -449,7 +454,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await setViewport(page, VIEWPORTS.mobile);
     await page.goto('/staff/dashboard');
     await page.waitForLoadState('networkidle');
-    const toggler = page.locator('.navbar-toggler, button[aria-label*="menu"], button[aria-label*="Toggle"]').first();
+    const toggler = page.locator('button[aria-label="เมนู"], button:has-text("☰")').first();
     if (await toggler.isVisible()) {
       await toggler.click();
       await page.waitForTimeout(300);

@@ -269,7 +269,7 @@ function FilterBar({
           <button
             type="button"
             className="btn btn-outline-secondary flex-fill"
-            style={{ borderRadius: "var(--zen-radius-md)" }}
+            style={{ borderRadius: "var(--zen-radius-md)", color: "#374151", borderColor: "#6b7280" }}
             onClick={onReset}
             aria-label="Reset filters"
           >
@@ -516,7 +516,7 @@ export default function MyTicketsPage({ categories: initialCategories, onNewTick
           <button
             type="button"
             className="btn btn-sm btn-outline-danger ms-auto"
-            style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem' }}
+            style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem', color: 'var(--zen-color-error, #8b0000)', borderColor: 'var(--zen-color-error, #8b0000)' }}
             onClick={handleReset}
           >
             ล้างตัวกรอง (Clear filters)

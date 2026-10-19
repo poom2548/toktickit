@@ -147,7 +147,7 @@ export function StaffTicketQueuePage() {
       <button
         type="button"
         className="btn btn-sm btn-outline-danger ms-auto"
-        style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem' }}
+        style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem', color: 'var(--zen-color-error, #8b0000)', borderColor: 'var(--zen-color-error, #8b0000)' }}
         onClick={handleClearFilters}
       >
         ล้างตัวกรอง (Clear filters)

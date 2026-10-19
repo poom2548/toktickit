@@ -220,8 +220,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         {/* Read-only form layout */}
         <div className="row g-3">
           <div className="col-md-6">
-            <label className="form-label fw-semibold">Ticket No.</label>
+            <label htmlFor="detail-ticket-number" className="form-label fw-semibold">Ticket No.</label>
             <input
+              id="detail-ticket-number"
               type="text"
               className="form-control"
               value={ticket.ticketNumber}
@@ -230,8 +231,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
             />
           </div>
           <div className="col-md-6">
-            <label className="form-label fw-semibold">Created Date</label>
+            <label htmlFor="detail-created-date" className="form-label fw-semibold">Created Date</label>
             <input
+              id="detail-created-date"
               type="text"
               className="form-control"
               value={createdStr}
@@ -267,8 +269,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
             )}
           </div>
           <div className="col-md-4">
-            <label className="form-label fw-semibold">Category</label>
+            <label htmlFor="detail-category" className="form-label fw-semibold">Category</label>
             <input
+              id="detail-category"
               type="text"
               className="form-control"
               value={ticket.category?.name || "Unknown"}
@@ -284,8 +287,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           </div>
 
           <div className="col-12">
-            <label className="form-label fw-semibold">Summary</label>
+            <label htmlFor="detail-summary" className="form-label fw-semibold">Summary</label>
             <input
+              id="detail-summary"
               type="text"
               className="form-control"
               value={ticket.summary}
@@ -295,8 +299,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           </div>
 
           <div className="col-12">
-            <label className="form-label fw-semibold">Description</label>
+            <label htmlFor="detail-description" className="form-label fw-semibold">Description</label>
             <textarea
+              id="detail-description"
               className="form-control"
               rows={4}
               value={ticket.description}
@@ -358,6 +363,8 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         <form onSubmit={handlePostComment} className="mb-4">
           <div className="form-group mb-2">
             <textarea 
+              id="detail-new-comment"
+              aria-label="Add a comment"
               className="form-control" 
               rows={3} 
               placeholder="Add a comment..."
@@ -400,6 +407,8 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         {/* Upload Form */}
         <form onSubmit={handleUpload} className="mb-4 d-flex gap-2 align-items-center flex-wrap">
           <input
+            id="detail-file-upload"
+            aria-label="Upload attachment"
             type="file"
             className="form-control w-auto flex-grow-1"
             accept=".jpg,.jpeg,.png,.webp,.pdf"

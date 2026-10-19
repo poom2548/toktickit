@@ -79,7 +79,7 @@ export default function RequesterApp() {
       {/* Header row */}
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h1 className="h3 mb-0">
-          TokTickIT <span className="text-success">IT Service Desk</span>
+          TokTickIT <span style={{ color: "var(--zen-color-primary, #006B3C)" }}>IT Service Desk</span>
         </h1>
         <div className="d-flex gap-2 align-items-center flex-wrap">
           {/* New Ticket button */}
@@ -125,7 +125,7 @@ export default function RequesterApp() {
             <button
               type="button"
               className="btn btn-outline-secondary btn-sm"
-              style={{ borderRadius: "var(--zen-radius-md)" }}
+              style={{ borderRadius: "var(--zen-radius-md)", color: "#374151", borderColor: "#6b7280" }}
               onClick={() => {
                 // If coming back from ticket detail, go back to my tickets. Otherwise dashboard.
                 if (selectedTicketId) {

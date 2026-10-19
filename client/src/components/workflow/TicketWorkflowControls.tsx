@@ -388,6 +388,16 @@ export function TicketWorkflowControls({
               >
                 {savingOwner ? 'Saving…' : 'Save Owner'}
               </button>
+              {!ticket.owner && (
+                <button
+                  type="button"
+                  className="btn-secondary btn-sm"
+                  onClick={() => handleClaimOrUnassign(true)}
+                  disabled={savingOwner}
+                >
+                  {savingOwner ? 'Saving…' : 'Claim'}
+                </button>
+              )}
             </div>
             {ownerError && (
               <span className="field-error" role="alert">

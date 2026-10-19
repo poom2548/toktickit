@@ -60,7 +60,7 @@ export function PublicCommentsPane({ ticketId, comments, onCommentsUpdate }: Pub
         {comments.map(c => (
           <li key={c.id} className="comment-item">
             <span className="comment-author">{c.author.name}</span>
-            <span className="comment-role badge">{c.author.role}</span>
+            <span className="comment-role badge bg-secondary">{c.author.role}</span>
             <span className="comment-time">{formatDate(c.createdAt)}</span>
             <p className="comment-content">{c.content}</p>
           </li>

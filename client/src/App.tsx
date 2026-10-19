@@ -58,6 +58,14 @@ export default function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/tickets/:id" element={
+            <ProtectedRoute allowedRoles={['REQUESTER']}>
+              <AppShell>
+                <RequesterApp />
+              </AppShell>
+            </ProtectedRoute>
+          } />
+
           <Route path="/staff/dashboard" element={
             <ProtectedRoute>
               <AppShell>

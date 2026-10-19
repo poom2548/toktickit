@@ -37,9 +37,9 @@
 | API-12 | API/integration | AC-15 | create on CLOSED/CANCELLED -> 409 TICKET_LOCKED | 409 Conflict | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
 | API-13 | API/integration | AC-18 | duplicate submit / same Idempotency-Key = 1 record | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
 | API-14 | API/integration | AC-19 | attachment notes plain text, escaped | 201 Created | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
-| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
-| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
-| 1 |2| Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
+| API-15 | API/integration | AC-53 | anonymous request to new endpoints -> 401 | 401 Unauthorized | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-18, npm run test --prefix server -- "tests/lab-04/actions-taken.api.test.ts") |
+| API-16 | API/integration | AC-44 | error envelope, no leaks | 422 / 500 / 404 | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-18, npm run test --prefix server -- "tests/lab-04/actions-taken.api.test.ts") |
+| API-17 | API/integration | AC-54 | health endpoint safe payload (GET /api/health) | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-18, npm run test --prefix server -- "tests/lab-04/actions-taken.api.test.ts") |
 | AUTHZ-01 | authorization | AC-09 | Requester POST Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
 | AUTHZ-02 | authorization | AC-09 | Requester PATCH Actions -> 403 | 403 Forbidden | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
 | AUTHZ-03 | authorization | AC-10 | Requester reads own Actions | 200 OK | server/tests/lab-04/actions-taken.api.test.ts | Pass (2026-10-07, npm run test server/tests/lab-04/actions-taken.api.test.ts) |
@@ -53,13 +53,14 @@
 | WF-02 | workflow | AC-21 | disallowed -> 422/403, unchanged (221 disallowed cases across 4 actors) | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-03 | workflow | AC-23 | appears resolved does not change status, idempotency and state validation | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-04 | workflow | AC-24 | resolution gate pass/fail | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
-| WF-05 | workflow | AC-25 | stale ticket version -> 409, positive version validation and compatibility window | 409 Conflict | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| WF-05 | workflow | AC-25, AC-59 | legacy routes require version -> 422 if missing/invalid, stale version -> 409 | 409 Conflict / 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-18, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-06 | workflow | AC-17 | assign active staff | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-07 | workflow | AC-16 | inactive/non-staff assignee rejected | 422 Unprocessable Entity | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-08 | workflow | AC-26 | allowed-transitions endpoint (32 combinations: 8 statuses x 4 actors) | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-09 | workflow | AC-27 | append-only status history, stable order | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | WF-10 | workflow | AC-28 | Requester cannot see Internal Notes and payload allowlist check | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 | AUTHZ-05 | authorization | AC-22 | Requester sets RESOLVED -> 403, ownership pre-check and staff routes protection | 403 Forbidden | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-11, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
+| API-24 | API/integration | AC-58 | GET /staff/assignable-users active staff and admins only, ordered, no-store | 200 OK | server/tests/lab-04/ticket-workflow.api.test.ts | Pass (2026-10-18, npm run test --prefix server -- "tests/lab-04/ticket-workflow.api.test.ts") |
 
 ### server/tests/lab-04/requester-dashboard.api.test.ts
 
@@ -146,6 +147,12 @@
 | UI-14 | UI component | AC-45 | TicketWorkflow form state retention | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
 | STY-01 | UI style | AC-49, AC-50 | TicketWorkflow status color and style | Renders correctly | client/src/tests/lab-04 tests/TicketWorkflow.test.tsx | Pass (2026-10-14, npm run test --prefix client -- "src/tests/lab-04 tests/TicketWorkflow.test.tsx") |
 
+### client/src/tests/lab-04 tests/FormsHardening.test.tsx
+
+| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
+|---------|------|------------------|---------------|-----------------|---------------------|--------------|
+| UI-09 | UI component | AC-18, AC-45 | CreateTicketForm and TicketDetailPage form hardening (disabled while pending, retention, no console warnings, inline errors) | Renders correctly | client/src/tests/lab-04 tests/FormsHardening.test.tsx | Pass (2026-10-18, npm run test --prefix client -- "src/tests/lab-04 tests/FormsHardening.test.tsx") |
+
 ### e2e/lab-04/actions-taken-flow.spec.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
@@ -169,21 +176,27 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| E2E-05 | E2E | AC-28, AC-43 | Requester cannot see Internal Notes | Pass | e2e/lab-04/regression.spec.ts | Planned (Red) |
-| REG-04 | migration/regression | AC-46, AC-50 | console errors and broken links | Pass | e2e/lab-04/regression.spec.ts | Planned (Red) |
+| E2E-05 | E2E | AC-28, AC-43 | Requester cannot see Internal Notes | Pass | e2e/lab-04/regression.spec.ts | Pass (2026-10-18, npx playwright test e2e/lab-04/regression.spec.ts) |
+| REG-04 | migration/regression | AC-46, AC-50 | console errors and broken links | Pass | e2e/lab-04/regression.spec.ts | Pass (2026-10-18, npx playwright test e2e/lab-04/regression.spec.ts) |
 
 ### e2e/lab-04/accessibility.spec.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| A11Y-01 | accessibility | AC-48, AC-49 | focus and semantics | Pass | e2e/lab-04/accessibility.spec.ts | Planned (Red) |
-| A11Y-02 | accessibility | AC-48 | keyboard navigation | Pass | e2e/lab-04/accessibility.spec.ts | Planned (Red) |
+| A11Y-01 | accessibility | AC-48, AC-49 | focus and semantics | Pass | e2e/lab-04/accessibility.spec.ts | Pass (2026-10-18, npx playwright test e2e/lab-04/accessibility.spec.ts) |
+| A11Y-02 | accessibility | AC-48 | keyboard navigation | Pass | e2e/lab-04/accessibility.spec.ts | Pass (2026-10-18, npx playwright test e2e/lab-04/accessibility.spec.ts) |
 
 ### e2e/lab-04/responsive.spec.ts
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 |---------|------|------------------|---------------|-----------------|---------------------|--------------|
-| RESP-01 | responsive | AC-47 | no horizontal scroll across viewports | Pass | e2e/lab-04/responsive.spec.ts | Planned (Red) |
+| RESP-01 | responsive | AC-47 | no horizontal scroll across viewports | Pass | e2e/lab-04/responsive.spec.ts | Pass (2026-10-18, npx playwright test e2e/lab-04/responsive.spec.ts) |
+
+### e2e/lab-04/screenshots.spec.ts
+
+| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
+|---------|------|------------------|---------------|-----------------|---------------------|--------------|
+| SCREENSHOTS | E2E | AC-50 | automated screenshot capture (non-gating, skipped unless CAPTURE_SCREENSHOTS=1) | Pass | e2e/lab-04/screenshots.spec.ts | Pass (2026-10-18, CAPTURE_SCREENSHOTS=1 npx playwright test e2e/lab-04/screenshots.spec.ts) |
 
 ### Lab 1-3 Baseline (No new file)
 
@@ -214,7 +227,7 @@
 | AC-14 | API-11 |
 | AC-15 | API-12 |
 | AC-16 | WF-07, UI-12, E2E-02 |
-| AC-17 | WF-06, UI-12 |
+| AC-17 | WF-06, UI-12, API-24 |
 | AC-18 | API-13, UI-09 |
 | AC-19 | API-14 |
 | AC-20 | WF-01, E2E-02 |
@@ -242,12 +255,12 @@
 | AC-42 | MIG-04a, MIG-04b |
 | AC-43 | REG-01, REG-02, REG-03, E2E-05 |
 | AC-44 | API-16, UI-11 |
-| AC-45 | UI-06, UI-14 |
+| AC-45 | UI-06, UI-14, UI-09 |
 | AC-46 | REG-04 |
 | AC-47 | RESP-01 |
 | AC-48 | A11Y-01, A11Y-02 |
 | AC-49 | STY-01, A11Y-01 |
-| AC-50 | STY-01, REG-04 |
+| AC-50 | STY-01, REG-04, SCREENSHOTS |
 | AC-51 | REG-05 |
 | AC-52 | PERF-01 |
 | AC-53 | API-15 |
@@ -255,19 +268,21 @@
 | AC-55 | API-18, API-19, API-20 |
 | AC-56 | API-21, API-22 |
 | AC-57 | API-23, E2E-03 |
+| AC-58 | API-24, UI-12 |
+| AC-59 | WF-05, UI-11, UI-12 |
 
 ## 5. Coverage by required test type
 
 | Type | Count |
 |------|-------|
-| API/integration | 33 |
+| API/integration | 34 |
 | authorization | 8 |
 | workflow | 10 |
 | migration/regression | 9 |
 | performance-smoke | 1 |
-| UI component | 14 |
+| UI component | 15 |
 | UI style | 1 |
-| E2E | 5 |
+| E2E | 6 |
 | accessibility | 2 |
 | responsive | 1 |
 

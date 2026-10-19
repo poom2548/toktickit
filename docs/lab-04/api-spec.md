@@ -48,6 +48,48 @@
   }
   ```
 
+### ข้อผิดพลาดส่วนกลางและการสำรองข้อมูล (Global Fallbacks & Safe Failure)
+ระบบมีกลไก Global Error Fallbacks บนเซิร์ฟเวอร์เพื่อให้มั่นใจว่าการตอบกลับข้อผิดพลาดมีความปลอดภัยและเป็นไปตามแบบแผน:
+1. **Unhandled Errors (500):** ข้อผิดพลาดใดๆ ที่ไม่ได้ถูกดักจับจะถูกส่งกลับด้วย HTTP 500 ในรูปแบบ Error Envelope:
+   ```json
+   {
+     "error": {
+       "code": "INTERNAL_ERROR",
+       "message": "An unexpected error occurred."
+     }
+   }
+   ```
+   ห้ามเปิดเผย `err.message` ดิบหรือ Stack Traces ออกไปเด็ดขาด
+2. **Malformed JSON Body (422):** เมื่อ Request Body มีรูปแบบ JSON ที่ไม่ถูกต้อง (เช่น parse error) ระบบจะส่งกลับด้วย HTTP 422:
+   ```json
+   {
+     "error": {
+       "code": "VALIDATION_FAILED",
+       "message": "Malformed request body."
+     }
+   }
+   ```
+3. **Unmatched Routes (404):** สำหรับเส้นทางที่ไม่มีอยู่จริงและผ่านการยืนยันตัวตนแล้ว หรืออยู่นอก `/api` ระบบจะส่งกลับด้วย HTTP 404 ในรูปแบบ Error Envelope:
+   ```json
+   {
+     "error": {
+       "code": "NOT_FOUND",
+       "message": "Resource not found."
+     }
+   }
+   ```
+   *(หมายเหตุสำคัญ: สำหรับคำขอที่ไม่ผ่านการยืนยันตัวตนไปยังเส้นทางที่ไม่มีอยู่ภายใต้ `/api/*` คำขอจะเข้าสู่ middleware `requireAuth` ของ attachment router เป็นลำดับแรก และส่งคืน HTTP 401 `{"error":"Authentication required."}` ตามพฤติกรรมเดิมของ Lab 3 ซึ่งได้รับการรักษาไว้)*
+
+### การเปรียบเทียบรูปแบบการตอบกลับระหว่าง Lab 3 และ Lab 4 (Response Formats Comparison)
+
+| กรณี / เส้นทาง | Lab 3 Format | Lab 4 Standard Envelope Format | หมายเหตุ |
+|---|---|---|---|
+| Unauthenticated (`401`) | `{"error": "Authentication required."}` | `{"error": {"code": "UNAUTHENTICATED", "message": "Authentication required."}}` | เส้นทาง Lab 3 เดิมและ `/api/*` รักษา format เดิม |
+| Forbidden (`403`) | `{"error": "Forbidden"}` / `{"error": "Access denied."}` | `{"error": {"code": "FORBIDDEN", "message": "..."}}` | Endpoints ใหม่ของ Lab 4 ใช้ envelope |
+| Validation / Malformed (`422`) | `{"error": "...", "fields": [...]}` | `{"error": {"code": "VALIDATION_FAILED", "message": "...", "fields": {...}}}` | Endpoints ใหม่ของ Lab 4 ใช้ envelope |
+| Conflict (`409`) | `{"error": "Conflict"}` | `{"error": {"code": "CONFLICT", "message": "...", "currentVersion": N}}` | ทั้งเส้นทางใหม่และ legacy `/owner` และ `/status` ใช้ envelope เมื่อ version ขัดแย้ง |
+| Unhandled Server Error (`500`) | `{"error": err.message}` | `{"error": {"code": "INTERNAL_ERROR", "message": "An unexpected error occurred."}}` | ปรับปรุงให้ปลอดภัย ปราศจากการรั่วไหล |
+
 ## 2. ปลายทางสำหรับการดำเนินการ (Actions Taken Endpoints)
 
 ### `GET /api/tickets/:id/actions-taken`
@@ -241,19 +283,45 @@
 - **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ)
 - **Request body:**
   ```json
-  { "version": 2, "ownerId": "cuid_of_staff" } (version is optional for backward compatibility)
+  { "version": 2, "ownerId": "cuid_of_staff" }
   ```
-  *(ส่ง `ownerId: null` เพื่อยกเลิกการมอบหมาย — Lab 3 รองรับแล้ว)*
+  *(ส่ง `ownerId: null` เพื่อยกเลิกการมอบหมาย — Lab 3 รองรับแล้ว; ฟิลด์ `version` เป็นข้อมูลบังคับ โดยหน้าต่างการเปลี่ยนผ่าน compatibility window ปิดลงแล้ว)*
 - **กฎ:**
-  1. ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) → `409 TICKET_LOCKED`
-  2. version ล้าสมัย → `409 CONFLICT`
-  3. สำเร็จ → version เพิ่มขึ้น 1
+  1. ขาดฟิลด์ `version` หรือ version ไม่ถูกต้อง (ไม่เป็นจำนวนเต็มบวก) → `422 VALIDATION_FAILED` (fields: `{"version": "..."}`)
+  2. version ล้าสมัย (ไม่ตรงกับค่าปัจจุบันของตั๋ว) → `409 CONFLICT` พร้อม `currentVersion`
+  3. ตั๋วที่ถูกล็อก (CLOSED/CANCELLED) → `409 TICKET_LOCKED`
+  4. ผู้รับมอบหมายไม่ถูกต้องหรือเป็น inactive user → `422 INVALID_ASSIGNEE`
+  5. สำเร็จ → version เพิ่มขึ้น 1 และส่งคืนรูปแบบข้อมูลตั๋วตาม Lab 3
 - **Success (200):**
   ```json
   { "id": 42, "ticketNumber": "TKT-0042", "status": "OPEN", "version": 3,
     "owner": { "id": "clxxxxxx", "name": "Jane Staff" } }
   ```
 - **Errors:** 422 `VALIDATION_FAILED`, 422 `INVALID_ASSIGNEE`, 409 `TICKET_LOCKED`, 409 `CONFLICT`, 403 `FORBIDDEN`, 404 `NOT_FOUND`, 401
+
+### `GET /staff/assignable-users`
+- **Auth required:** ใช่ (เจ้าหน้าที่ไอที, ผู้ดูแลระบบ; ผู้ร้องขอจะได้รับ 403 FORBIDDEN, ผู้ใช้ที่ไม่ผ่านการยืนยันตัวตนจะได้รับ 401 UNAUTHENTICATED)
+- **Headers:** `Cache-Control: no-store`
+- **วัตถุประสงค์:** ดึงรายชื่อผู้ใช้ที่สามารถรับมอบหมายเป็นเจ้าของตั๋วได้ เพื่อให้ Owner Picker ใน UI ของ IT Staff และ Administrator แสดงรายชื่อได้อย่างปลอดภัยโดยไม่ต้องพึ่งพา `GET /admin/users`
+- **เงื่อนไขข้อมูล:** ส่งคืนเฉพาะผู้ใช้ที่มี `isActive: true` และมีบทบาทเป็น `IT_STAFF` หรือ `ADMINISTRATOR` เท่านั้น โดยเรียงลำดับตาม `name ASC, id ASC`
+- **Success (200):**
+  ```json
+  {
+    "users": [
+      {
+        "id": "cmxxxxxx1",
+        "name": "Jane Staff",
+        "role": "IT_STAFF"
+      },
+      {
+        "id": "cmxxxxxx2",
+        "name": "John Admin",
+        "role": "ADMINISTRATOR"
+      }
+    ]
+  }
+  ```
+- **Errors:** 401 (UNAUTHENTICATED), 403 (FORBIDDEN)
 
 ## 4. ปลายทางสำหรับแดชบอร์ด (Dashboard Endpoints)
 ส่วนหัว `Cache-Control: no-store` จะถูกส่งออกไปในทุกการตอบกลับของทั้งสองปลายทางแดชบอร์ด รวมถึงการตอบกลับข้อผิดพลาดและ 405 Method Not Allowed
@@ -385,12 +453,12 @@
 
 ## 5. ปลายทางของระบบ (System Endpoints)
 ### `GET /api/health`
-- **Auth required:** ไม่
-- **Success (200):**
+- **Auth required:** ไม่ (Public endpoint ไม่ต้องยืนยันตัวตน)
+- **Success (200):** ส่งคืนเฉพาะคีย์ `status` และ `service` ที่สืบทอดมาจาก Lab 1 โดยไม่มีการเปลี่ยนแปลง ปราศจากรายละเอียดที่อ่อนไหวหรือข้อมูลฐานข้อมูล
   ```json
   {
     "status": "ok",
-    "timestamp": "2026-10-03T10:00:00Z"
+    "service": "TokTickIT API"
   }
   ```
 
@@ -409,7 +477,8 @@
 - `POST /api/tickets/:id/comments`
 - `GET /api/tickets/:id/comments`
 - `POST /api/tickets/:id/notes`
-- `PATCH /staff/tickets/:id/status` *(หมายเหตุ: version is optional during compatibility window; enforced when sent; errors like 422 INVALID_TRANSITION and 404 keep the Lab 3 format, while CONFLICT uses Lab 4 envelope)*
+- `PATCH /staff/tickets/:id/status` *(หมายเหตุ: หน้าต่างการเปลี่ยนผ่าน compatibility window ปิดลงแล้ว จำเป็นต้องส่งฟิลด์ `version` ใน Request Body เสมอ หากไม่มีส่งกลับ 422 VALIDATION_FAILED หาก version ล้าสมัยส่งกลับ 409 CONFLICT ในรูปแบบ Lab 4 envelope; หากสำเร็จส่งคืนรูปแบบข้อมูลตามเดิมของ Lab 3)*
+- `PATCH /staff/tickets/:id/owner` *(หมายเหตุ: หน้าต่างการเปลี่ยนผ่าน compatibility window ปิดลงแล้ว จำเป็นต้องส่งฟิลด์ `version` ใน Request Body เสมอ หากไม่มีส่งกลับ 422 VALIDATION_FAILED หาก version ล้าสมัยส่งกลับ 409 CONFLICT ในรูปแบบ Lab 4 envelope; หากสำเร็จส่งคืนรูปแบบข้อมูลตามเดิมของ Lab 3)*
 - `GET /api/tickets/:id/notes`
 - `GET /staff/tickets`
 - `GET /staff/tickets/:id` *(หมายเหตุ: การตอบกลับมีการเพิ่มฟิลด์ `version` และ `requesterMarkedResolvedAt` กฎการมองเห็นโน้ตภายในสำหรับ IT Staff เหมือนเดิม)*

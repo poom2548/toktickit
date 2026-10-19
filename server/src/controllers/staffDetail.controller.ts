@@ -60,9 +60,15 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const { ownerId, version } = req.body
 
-  if (version !== undefined && !Number.isInteger(version)) {
+  if (version === undefined || version === null || typeof version !== 'number' || !Number.isInteger(version)) {
     return res.status(422).json({
-      error: { code: 'VALIDATION_FAILED', message: 'version must be an integer.' }
+      error: {
+        code: 'VALIDATION_FAILED',
+        message: 'version is required and must be an integer.',
+        fields: {
+          version: 'Ticket version is required.'
+        }
+      }
     })
   }
 
@@ -99,16 +105,13 @@ export async function updateTicketOwner(req: Request, res: Response): Promise<an
       })
     }
 
-    if (version !== undefined && ticket.version !== version) {
+    if (ticket.version !== version) {
       return res.status(409).json({
         error: { code: 'CONFLICT', message: 'The ticket was modified by another user.', currentVersion: ticket.version } // Lab 4 format
       })
     }
 
-    const whereClause: any = { id: ticketId };
-    if (version !== undefined) {
-      whereClause.version = version;
-    }
+    const whereClause: any = { id: ticketId, version };
 
     const updated = await prisma.ticket.update({
       where: whereClause,
@@ -178,6 +181,18 @@ export async function updateTicketStatus(req: Request, res: Response): Promise<a
   const ticketId = parseInt(req.params.id, 10)
   if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ID' })
   const { status: newStatus, version } = req.body
+
+  if (version === undefined || version === null || typeof version !== 'number' || !Number.isInteger(version)) {
+    return res.status(422).json({
+      error: {
+        code: 'VALIDATION_FAILED',
+        message: 'version is required and must be an integer.',
+        fields: {
+          version: 'Ticket version is required.'
+        }
+      }
+    })
+  }
 
   if (!newStatus || !VALID_STATUSES.includes(newStatus)) {
     return res.status(400).json({

@@ -111,7 +111,7 @@
 ### หน้าจอที่ 4: การเปลี่ยนสถานะ (Ticket Status Controls) และเปลี่ยนผู้รับผิดชอบ (Owner Picker)
 
 - **Transition ไม่ Hardcode:** UI โหลดรายการสถานะที่เปลี่ยนได้จาก `GET /api/tickets/:id/allowed-transitions` ทุกครั้ง (Dropdown ถูกสร้างแบบไดนามิก)
-- **Owner Dropdown:** แสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff/Admin เท่านั้น (ผู้ไม่ active ไม่ปรากฏในรายการ) สำหรับบทบาท Administrator ส่วนบทบาท IT Staff จะใช้ปุ่ม Claim / Unassign (เป็นข้อจำกัดที่บันทึกไว้เนื่องจากยังไม่มี staff-level endpoint สำหรับดึงรายชื่อผู้ใช้) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
+- **Owner Dropdown:** ดึงรายชื่อผู้ใช้จาก `GET /staff/assignable-users` เพื่อแสดงเฉพาะผู้ใช้ที่ Active และมีบทบาท IT Staff หรือ Administrator เท่านั้น (ผู้ไม่ active จะไม่ปรากฏในรายการ) สำหรับทั้งสองบทบาท (IT Staff และ Administrator) ทำให้เจ้าหน้าที่ไอทีสามารถมอบหมายให้ตนเองหรือเพื่อนร่วมงานได้โดยตรงผ่าน Dropdown เช่นเดียวกับ Administrator (ปิดข้อจำกัดเดิม) หากเซิร์ฟเวอร์ยังคืน `INVALID_ASSIGNEE` ให้แสดงข้อความ inline ข้าง dropdown
 - **Advisory Flag (Requester):** ปุ่ม "ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว" — อนุญาตเฉพาะสถานะ OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED; มีคำอธิบายชัดเจนว่าเป็นเพียงคำแนะนำและไม่เปลี่ยนสถานะ
 - **Banner (Staff):** เมื่อ `requesterMarkedResolvedAt` มีค่า จะแสดงแบนเนอร์ "ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว" พร้อมวันที่
 - **Status badge:** อัปเดตทันทีหลังเปลี่ยนสถานะสำเร็จ ไม่ต้อง reload หน้า
@@ -124,8 +124,8 @@
 
 - **ไอเทม "แดชบอร์ด" (Role-based Dashboard Navigation):** ชี้ไปยังแดชบอร์ดตามบทบาท — Requester ไป `/dashboard`; IT Staff/Admin ไป `/staff/dashboard`
 - **Active item:** ต้องมี `aria-current="page"` เสมอ และมีตัวบ่งชี้หน้าที่เลือกอยู่โดยไม่พึ่งพาสีเพียงอย่างเดียว (Non-color cue เช่น ขีดเส้นใต้, border ด้านข้าง หรือไอคอน)
-- **360px (Mobile):** ปุ่มเปิด/ปิดเมนู (Hamburger) พร้อม `aria-expanded` และ `aria-controls`; กด Esc ปิดเมนูและโฟกัสกลับที่ปุ่ม toggle; เมนูพับเก็บได้ (Collapsible)
-- **768px/1280px:** แถบนำทางแบบปกติ (Horizontal nav bar)
+- **หน้าจอขนาดเล็ก (<= 640px Mobile):** ส่วนหัวการนำทางจะยุบตัวเป็นปุ่มเปิด/ปิดเมนูที่มีป้ายกำกับข้อความ "เมนู" พร้อมคุณสมบัติ `aria-expanded` และ `aria-controls`; เมื่อเมนูเปิดอยู่ การกดปุ่ม Escape, การคลิกภายนอก หรือการคลิกลิงก์นำทางใดๆ จะปิดเมนูอัตโนมัติ และคืนโฟกัสกลับไปที่ปุ่มสลับเมนู
+- **> 640px (768px/1280px):** แถบนำทางแบบปกติ (Horizontal nav bar)
 
 ### ส่วนประกอบเพิ่มเติม: ตัวกรองและชิปตัวกรองที่ทำงานอยู่ (Active Filter Chips)
 - เมื่อเปิดหน้ารายการตั๋ว (`/my-tickets` หรือ `/staff/tickets`) ด้วยพารามิเตอร์การค้นหาจากการเจาะลึก (Drill-down) หน้าจอจะแสดงชิปตัวกรองที่ทำงานอยู่ (Active filter chip) พร้อมปุ่มล้างตัวกรอง (Clear button) ที่สามารถกดเพื่อล้างพารามิเตอร์และคืนค่ากลับสู่รายการปกติได้
@@ -157,26 +157,26 @@
 
 ## 5. รายการตรวจสอบภาพและการเข้าถึง (Visual and Accessibility Checklist)
 
-- [ ] ใช้ CSS Variables จาก `zen-green.css` ถูกต้องครบถ้วน ไม่มีสีที่เหลือจาก Lab ก่อนหน้า (หลักฐาน: STY-01, REG-04, `artifacts/lab-04/screenshots/`)
-- [ ] ไม่มี UI ที่ค้างมาจาก Lab ก่อนหน้า ไม่มี placeholder หรือ stub ที่ยังไม่เสร็จ (หลักฐาน: REG-04)
-- [ ] แดชบอร์ด IT Staff: ตัวเลข, การ์ด 5 bucket สถานะ (รวม REOPENED), drill-down links ทำงานถูกต้อง (หลักฐาน: SD-01, UI-01, `artifacts/lab-04/screenshots/staff-dashboard/`)
-- [ ] แดชบอร์ด Requester: ตัวเลข, การ์ด 3 ใบ, drill-down links ทำงานถูกต้อง (หลักฐาน: RD-01, UI-03, `artifacts/lab-04/screenshots/requester-dashboard/`)
-- [ ] Loading state ของแดชบอร์ด: แสดง skeleton (หลักฐาน: UI-02, UI-04)
-- [ ] Empty state ของแดชบอร์ด: แสดง 0 หรือข้อความว่างเปล่า (หลักฐาน: SD-02, RD-03)
-- [ ] Forbidden state: หน้า 403 ที่ถูกต้องพร้อมลิงก์กลับตามบทบาท (หลักฐาน: AUTHZ-06, SD-03)
-- [ ] Safe-failure / network error: banner พร้อมปุ่มลองใหม่ (หลักฐาน: UI-02)
-- [ ] ปุ่ม "รีเฟรช" บนแดชบอร์ดทั้งสอง: มี `aria-label`, โฟกัสด้วยคีย์บอร์ดได้, แสดง spinner ขณะโหลด (หลักฐาน: A11Y-01)
-- [ ] Metric cards มี accessible name ที่รวมค่าและป้ายกำกับ เช่น "ยังไม่ได้มอบหมาย 5 รายการ" (หลักฐาน: A11Y-01)
-- [ ] Actions Taken: เรียงตาราง (1280/768px) → card ที่ 360px ไม่มี horizontal scroll (หลักฐาน: RESP-01, UI-05, `artifacts/lab-04/screenshots/actions-taken/`)
-- [ ] Actions Taken: Conditional field — "บันทึกการติดตามผล" ปรากฏและเป็น Required เมื่อสวิตช์เปิด (หลักฐาน: UI-06)
-- [ ] Actions Taken: ตาราง semantic (`<caption>` + `<th scope="col">`) (หลักฐาน: A11Y-02)
-- [ ] ฟิลด์แก้ไขได้: พื้นขาว + ขอบ vs. ฟิลด์อ่านอย่างเดียว: พื้น `--zen-bg-readonly` + italic (หลักฐาน: STY-01, UI-06)
-- [ ] Validation messages แสดงข้างฟิลด์ เชื่อม `aria-describedby` และประกาศให้ Screen Reader (หลักฐาน: A11Y-01, UI-06)
-- [ ] ข้อมูลในฟอร์มถูกเก็บไว้หาก request ล้มเหลวแบบกู้คืนได้ (Recoverable failure) (หลักฐาน: UI-14, AC-45)
-- [ ] Keyboard focus ring มองเห็นได้ทุก element (หลักฐาน: A11Y-01, A11Y-02)
-- [ ] Modal (Confirmation dialog): focus-trap, ปิดด้วย Esc, คืน focus ที่ trigger (หลักฐาน: A11Y-02)
-- [ ] เมนูนำทาง mobile (360px): Hamburger button พร้อม `aria-expanded`/`aria-controls`, Esc ปิด, คืน focus ที่ toggle (หลักฐาน: RESP-01, A11Y-01)
-- [ ] Active nav item มี `aria-current="page"` (หลักฐาน: UI-13, A11Y-01)
-- [ ] ไม่มี clipping, ไม่มีการซ้อนทับกัน, ไม่มี horizontal scroll ที่ 360/768/1280px (หลักฐาน: RESP-01, AC-47)
-- [ ] สถานะและความสำคัญสื่อด้วยข้อความ + สีเสมอ ไม่ใช่สีอย่างเดียว (หลักฐาน: STY-01, A11Y-01)
-- [ ] Internal Notes แสดงด้วยพื้นสีอำพัน + ไอคอนแม่กุญแจ แตกต่างชัดเจนจาก Public Comments (หลักฐาน: STY-01, WF-10)
+- [x] ใช้ CSS Variables จาก `zen-green.css` ถูกต้องครบถ้วน ไม่มีสีที่เหลือจาก Lab ก่อนหน้า (หลักฐาน: STY-01, REG-04, `artifacts/lab-04/screenshots/`, ผ่าน 2026-10-18)
+- [x] ไม่มี UI ที่ค้างมาจาก Lab ก่อนหน้า ไม่มี placeholder หรือ stub ที่ยังไม่เสร็จ (หลักฐาน: REG-04, ผ่าน 2026-10-18)
+- [x] แดชบอร์ด IT Staff: ตัวเลข, การ์ด 5 bucket สถานะ (รวม REOPENED), drill-down links ทำงานถูกต้อง (หลักฐาน: SD-01, UI-01, `artifacts/lab-04/screenshots/staff-dashboard/`, ผ่าน 2026-10-18)
+- [x] แดชบอร์ด Requester: ตัวเลข, การ์ด 3 ใบ, drill-down links ทำงานถูกต้อง (หลักฐาน: RD-01, UI-03, `artifacts/lab-04/screenshots/requester-dashboard/`, ผ่าน 2026-10-18)
+- [x] Loading state ของแดชบอร์ด: แสดง skeleton (หลักฐาน: UI-02, UI-04, ผ่าน 2026-10-18)
+- [x] Empty state ของแดชบอร์ด: แสดง 0 หรือข้อความว่างเปล่า (หลักฐาน: SD-02, RD-03, ผ่าน 2026-10-18)
+- [x] Forbidden state: หน้า 403 ที่ถูกต้องพร้อมลิงก์กลับตามบทบาท (หลักฐาน: AUTHZ-06, SD-03, ผ่าน 2026-10-18)
+- [x] Safe-failure / network error: banner พร้อมปุ่มลองใหม่ (หลักฐาน: UI-02, ผ่าน 2026-10-18)
+- [x] ปุ่ม "รีเฟรช" บนแดชบอร์ดทั้งสอง: มี `aria-label`, โฟกัสด้วยคีย์บอร์ดได้, แสดง spinner ขณะโหลด (หลักฐาน: A11Y-01, ผ่าน 2026-10-18)
+- [x] Metric cards มี accessible name ที่รวมค่าและป้ายกำกับ เช่น "ยังไม่ได้มอบหมาย 5 รายการ" (หลักฐาน: A11Y-01, ผ่าน 2026-10-18)
+- [x] Actions Taken: เรียงตาราง (1280/768px) → card ที่ 360px ไม่มี horizontal scroll (หลักฐาน: RESP-01, UI-05, `artifacts/lab-04/screenshots/actions-taken/`, ผ่าน 2026-10-18)
+- [x] Actions Taken: Conditional field — "บันทึกการติดตามผล" ปรากฏและเป็น Required เมื่อสวิตช์เปิด (หลักฐาน: UI-06, ผ่าน 2026-10-18)
+- [x] Actions Taken: ตาราง semantic (`<caption>` + `<th scope="col">`) (หลักฐาน: A11Y-02, ผ่าน 2026-10-18)
+- [x] ฟิลด์แก้ไขได้: พื้นขาว + ขอบ vs. ฟิลด์อ่านอย่างเดียว: พื้น `--zen-bg-readonly` + italic (หลักฐาน: STY-01, UI-06, ผ่าน 2026-10-18)
+- [x] Validation messages แสดงข้างฟิลด์ เชื่อม `aria-describedby` และประกาศให้ Screen Reader (หลักฐาน: A11Y-01, UI-06, ผ่าน 2026-10-18)
+- [x] ข้อมูลในฟอร์มถูกเก็บไว้หาก request ล้มเหลวแบบกู้คืนได้ (Recoverable failure) (หลักฐาน: UI-14, AC-45, ผ่าน 2026-10-18)
+- [x] Keyboard focus ring มองเห็นได้ทุก element (หลักฐาน: A11Y-01, A11Y-02, ผ่าน 2026-10-18)
+- [x] Modal (Confirmation dialog): focus-trap, ปิดด้วย Esc, คืน focus ที่ trigger (หลักฐาน: A11Y-02, ผ่าน 2026-10-18)
+- [x] เมนูนำทาง mobile (<= 640px): ปุ่มสลับเมนู "เมนู" พร้อม `aria-expanded`/`aria-controls`, Esc ปิด, คืน focus ที่ toggle (หลักฐาน: RESP-01, A11Y-01, ผ่าน 2026-10-18)
+- [x] Active nav item มี `aria-current="page"` (หลักฐาน: UI-13, A11Y-01, ผ่าน 2026-10-18)
+- [x] ไม่มี clipping, ไม่มีการซ้อนทับกัน, ไม่มี horizontal scroll ที่ 360/768/1280px (หลักฐาน: RESP-01, AC-47, ผ่าน 2026-10-18)
+- [x] สถานะและความสำคัญสื่อด้วยข้อความ + สีเสมอ ไม่ใช่สีอย่างเดียว (หลักฐาน: STY-01, A11Y-01, ผ่าน 2026-10-18)
+- [x] Internal Notes แสดงด้วยพื้นสีอำพัน + ไอคอนแม่กุญแจ แตกต่างชัดเจนจาก Public Comments (หลักฐาน: STY-01, WF-10, ผ่าน 2026-10-18)

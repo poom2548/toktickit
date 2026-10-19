@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app.js';
-import { prisma, createTicket, createStaff, createRequester, createAdmin, createAction, resetTestData, assertTestDatabase, loginAs } from './helpers.js';
+import { prisma, getPrisma, createTicket, createStaff, createRequester, createAdmin, createAction, resetTestData, assertTestDatabase, loginAs } from './helpers.js';
 import { TicketStatus } from '@prisma/client';
 
 describe('Actions Taken API', () => {
@@ -341,7 +341,8 @@ describe('Actions Taken API', () => {
       { method: 'post', url: '/api/tickets/999/requester-resolved-indication' },
       { method: 'patch', url: '/staff/tickets/999/owner' },
       { method: 'get', url: '/api/dashboard/requester' },
-      { method: 'get', url: '/api/dashboard/staff' }
+      { method: 'get', url: '/api/dashboard/staff' },
+      { method: 'get', url: '/staff/assignable-users' }
     ];
     for (const ep of endpoints) {
       const res = await (request(app) as any)[ep.method](ep.url);
@@ -351,16 +352,61 @@ describe('Actions Taken API', () => {
 
   it('API-16: error envelope, no leaks', async () => {
     const staff = await createStaff();
+    const ticket = await createTicket();
     const agent = await loginAs(staff);
-    const res = await agent.post(`/api/tickets/invalid/actions-taken`).send({});
+
+    // 1) 422 validation error has envelope with code, message, fields, no stack
+    const res = await agent.post(`/api/tickets/${ticket.id}/actions-taken`).send({});
+    expect(res.status).toBe(422);
     expect(res.body).toHaveProperty('error');
-    expect(res.body.error).toHaveProperty('code');
+    expect(res.body.error).toHaveProperty('code', 'VALIDATION_FAILED');
     expect(res.body.error).not.toHaveProperty('stack');
+
+    // 2) Malformed JSON body -> 422 VALIDATION_FAILED "Malformed request body."
+    const resMalformed = await request(app)
+      .post(`/api/tickets/${ticket.id}/actions-taken`)
+      .set('Cookie', (agent as any).cookies || '')
+      .set('Content-Type', 'application/json')
+      .send('{"description": "broken json');
+    expect(resMalformed.status).toBe(422);
+    expect(resMalformed.body.error?.code).toBe('VALIDATION_FAILED');
+    expect(resMalformed.body.error?.message).toMatch(/Malformed request body/i);
+
+    // 3) Unmatched route when authenticated / outside /api -> 404 NOT_FOUND envelope
+    const resNotFound = await agent.get('/nonexistent-test-route-12345');
+    expect(resNotFound.status).toBe(404);
+    expect(resNotFound.body.error?.code).toBe('NOT_FOUND');
+    expect(resNotFound.body.error?.message).toMatch(/not found/i);
+
+    // 4) Unauthenticated request to unmatched /api route -> 401 (preserved from Lab 3 attachmentRouter requireAuth)
+    const resUnauthApi = await request(app).get('/api/nonexistent-route-12345');
+    expect(resUnauthApi.status).toBe(401);
+    expect(resUnauthApi.body).toEqual({ error: 'Authentication required.' });
+
+    // 5) Forced 500 error returns generic envelope without leaks
+    const serverPrisma = getPrisma();
+    const origFindMany = serverPrisma.actionTaken.findMany;
+    (serverPrisma.actionTaken as any).findMany = async () => { throw new Error('Sensitive DB connection detail leak'); };
+    try {
+      const res500 = await agent.get(`/api/tickets/${ticket.id}/actions-taken`);
+      expect(res500.status).toBe(500);
+      expect(res500.body.error?.code).toBe('INTERNAL_ERROR');
+      expect(res500.body.error?.message).toMatch(/unexpected error/i);
+      expect(res500.body.error?.message).not.toMatch(/Sensitive DB connection/);
+      expect(res500.body.error).not.toHaveProperty('stack');
+    } finally {
+      serverPrisma.actionTaken.findMany = origFindMany;
+    }
   });
 
-  it('API-17: health endpoint safe payload (Skip for now, from other tests)', async () => {
+  it('API-17: health endpoint safe payload', async () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      status: 'ok',
+      service: 'TokTickIT API'
+    });
+    expect(Object.keys(res.body).sort()).toEqual(['service', 'status']);
   });
 
   it('AUTHZ-01: Requester POST Actions -> 403', async () => {

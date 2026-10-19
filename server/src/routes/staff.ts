@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireAuth, requireRole } from '../middleware/auth.js'
-import { getStaffTickets } from '../controllers/staff.controller.js'
+import { getStaffTickets, getAssignableUsers } from '../controllers/staff.controller.js'
 import {
   getStaffTicketDetail,
   updateTicketOwner,
@@ -14,6 +14,7 @@ const router = Router()
 router.use(requireAuth, requireRole('IT_STAFF', 'ADMINISTRATOR'))
 
 router.get('/tickets', getStaffTickets)
+router.get('/assignable-users', getAssignableUsers)
 
 // Ticket Detail routes
 router.get('/tickets/:id', getStaffTicketDetail)

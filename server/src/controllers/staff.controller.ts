@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { getPrisma } from '../prisma.js'
 import { OPEN_TICKET_STATUSES } from '../dashboard/dashboard.constants.js'
+import { sendApiError } from '../actions-taken/actions-taken.middleware.js'
 
 const VALID_STATUSES = [
   'NEW', 'OPEN', 'IN_PROGRESS', 'WAITING_FOR_REQUESTER',
@@ -222,14 +223,8 @@ export async function getAssignableUsers(_req: Request, res: Response): Promise<
     });
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ users });
-  } catch (err) {
-    console.error('Get assignable users error:', err);
-    return res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred.',
-      },
-    });
+  } catch (_err) {
+    return sendApiError(res, 500, 'INTERNAL_ERROR', 'An unexpected error occurred.');
   }
 }
 

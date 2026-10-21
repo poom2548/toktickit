@@ -21,7 +21,7 @@
 | Issue 7 | Issue #7 – Ticket Detail UI: Actions Taken และ workflow controls | `feature/issue-7-lab4-ticket-detail-ui` | [#67](https://github.com/poom2548/toktickit/pull/67) | @meebotsompurin-stack | APPROVED | Merged (2026-10-15) |
 | Issue 8 | Issue #8: Dashboards UI | `feature/issue-8-lab4-dashboards-ui` | [#68](https://github.com/poom2548/toktickit/pull/68) | @meebotsompurin-stack | APPROVED | Merged (2026-10-17) |
 | Issue 9 | Issue #9 – Final hardening | `feature/issue-9-lab4-hardening` | [#69](https://github.com/poom2548/toktickit/pull/69) | @meebotsompurin-stack | APPROVED | Merged (2026-10-19) |
-| Issue 10 | [S4-10] Documentation and release preparation | `feature/issue-10-lab4-docs-release` | <<HUMAN TO FILL: PR link after it is opened>> | <<HUMAN TO FILL: reviewer name>> | <<HUMAN TO FILL: approval status>> | <<HUMAN TO FILL: merge status>> |
+| Issue 10 | Issue #10: Documentation and release preparation | `feature/issue-10-lab4-docs-release` | <<HUMAN TO FILL: PR link after it is opened>> | <<HUMAN TO FILL: reviewer name>> | <<HUMAN TO FILL: approval status>> | <<HUMAN TO FILL: merge status>> |
 
 ---
 
@@ -359,7 +359,7 @@
 > ตรวจสอบแล้วเรียบร้อยครบถ้วน
 >
 
-### Issue #10: [S4-10] Documentation and release preparation
+### Issue #10: Documentation and release preparation
 - **Branch:** `feature/issue-10-lab4-docs-release`
 - **PR Link:** <<HUMAN TO FILL: PR link after it is opened, e.g. https://github.com/poom2548/toktickit/pull/70>>
 - **Author:** @poom2548

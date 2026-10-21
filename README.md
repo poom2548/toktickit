@@ -161,6 +161,7 @@ Main Application Routes:
 # Create dedicated test database on Windows PowerShell
 & "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres toktickit_test
 $env:DATABASE_URL = "postgresql://postgres:password@localhost:5432/toktickit_test?schema=public"
+$env:JWT_SECRET = "CHANGE_ME_TO_A_LONG_RANDOM_STRING"
 npx --prefix server prisma migrate deploy --schema=server/prisma/schema.prisma
 npm run prisma:seed --prefix server
 ```

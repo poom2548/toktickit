@@ -205,7 +205,7 @@
 | REG-01 | migration/regression | AC-43 | Lab 1-3 baseline server tests | Pass | None | Pass |
 | REG-02 | migration/regression | AC-43 | Lab 1-3 baseline client tests | Pass | None | Pass |
 | REG-03 | migration/regression | AC-43 | Lab 1-3 baseline E2E tests | Pass | None | Pass |
-| REG-05 | migration/regression | AC-51 | manual fresh clone check | Pass | None | Pass |
+| REG-05 | migration/regression | AC-51 | manual fresh clone check | Pass | None | Pass (2026-10-21, manual fresh-clone run, artifacts/lab-04/evidence/fresh-clone-check.md) |
 
 ## 4. ตารางย้อนกลับ (Traceability)
 
@@ -287,7 +287,7 @@
 | responsive | 1 |
 
 ## 6. Todo/skipped tests with reasons
-- **Skipped Tests**: `REG-05` (Manual README check) เนื่องจากการทดสอบนี้ต้องทำด้วยมือเมื่อระบบทั้งหมดเสร็จสิ้นและนำไปสู่การ deployment
+- **Skipped Tests**: `REG-05` (Manual README check) ดำเนินการทดสอบ Fresh Clone ผ่านเรียบร้อยแล้วเมื่อ 2026-10-21 ดูหลักฐานใน [artifacts/lab-04/evidence/fresh-clone-check.md](artifacts/lab-04/evidence/fresh-clone-check.md)
 - **Assumptions**: `PERF-01` สมมติฐานคือ p95 < 500 ms เมื่อมีข้อมูลจำลองและการดึงข้อมูลพร้อมกัน 20 requests
 
 ## 7. How final status will be updated

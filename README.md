@@ -66,10 +66,10 @@ npm install --prefix client
 # Example: createdb -U postgres toktickit
 
 # 2. Generate Prisma Client
-npx prisma generate --schema=server/prisma/schema.prisma
+npx --prefix server prisma generate --schema=server/prisma/schema.prisma
 
 # 3. Apply database migrations
-npx prisma migrate deploy --schema=server/prisma/schema.prisma
+npx --prefix server prisma migrate deploy --schema=server/prisma/schema.prisma
 
 # 4. Seed initial database data (idempotent seed)
 npm run prisma:seed --prefix server
@@ -161,7 +161,7 @@ Main Application Routes:
 # Create dedicated test database on Windows PowerShell
 & "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres toktickit_test
 $env:DATABASE_URL = "postgresql://postgres:password@localhost:5432/toktickit_test?schema=public"
-npx prisma migrate deploy --schema=server/prisma/schema.prisma
+npx --prefix server prisma migrate deploy --schema=server/prisma/schema.prisma
 npm run prisma:seed --prefix server
 ```
 
@@ -284,7 +284,7 @@ toktickit/
 - **Port In Use (3000 / 5173):** Terminate existing node processes or set `$env:PORT = "3001"` in the server terminal.
 - **PostgreSQL Tools Missing:** Ensure PostgreSQL is installed and set `$env:PG_BIN_DIR = "C:\Program Files\PostgreSQL\18\bin"`.
 - **Database Does Not Exist:** Create the database with `createdb` or pgAdmin before running migrations.
-- **Prisma Client Not Generated:** Execute `npx prisma generate --schema=server/prisma/schema.prisma`.
+- **Prisma Client Not Generated:** Execute `npx --prefix server prisma generate --schema=server/prisma/schema.prisma`.
 - **Playwright Browsers Missing:** Execute `npx playwright install chromium`.
 - **PowerShell Encoding Issues:** Initialize UTF-8 encoding before executing scripts:
   ```powershell

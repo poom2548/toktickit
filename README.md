@@ -55,7 +55,7 @@ npm install --prefix client
    - Copy `server/.env.example` to `server/.env`
      - PowerShell: `Copy-Item server/.env.example server/.env`
      - Bash: `cp server/.env.example server/.env`
-   - Set `DATABASE_URL` to point to your PostgreSQL instance (e.g. `postgresql://toktickit:toktickit@localhost:5432/toktickit?schema=public`).
+   - Set `DATABASE_URL` to point to your PostgreSQL instance (e.g. `postgresql://USER:PASSWORD@localhost:5432/DB_NAME?schema=public`).
    - **คำเตือนความปลอดภัย:** ห้าม Commit ไฟล์ `.env` หรือไฟล์ความลับใดๆ ขึ้น GitHub เด็ดขาด (Never commit real credentials).
 2. **การตั้งค่าระบบหน้าบ้าน (Frontend Setup):**
    - Copy `client/.env.example` to `client/.env` if custom overrides are needed (Vite proxies API calls to port 3000 automatically).
@@ -124,16 +124,23 @@ Main Application Routes:
 
 ### 4.1 บทบาท ผู้ร้องขอ (Requester Walkthrough) — Login as alice@toktick.dev
 1. Navigate to `/dashboard`:
-   - Inspect metric cards: Open Tickets, Waiting For Me, and Recently Resolved.
-   - Click any metric card to drill down into `/my-tickets?status=...` with pre-applied filters.
+   - Inspect metric cards:
+     - **My Open Tickets** (all open tickets) -> drills down to `/my-tickets?statusGroup=open`
+     - **Waiting for Me** (tickets in WAITING_FOR_REQUESTER) -> drills down to `/my-tickets?status=WAITING_FOR_REQUESTER`
+     - **แก้ปัญหาแล้วล่าสุด (Recently Resolved)** (resolved within 7 days) -> drills down to `/my-tickets?status=RESOLVED&resolvedWithinDays=7`
+   - Inspect the **Recently Updated Tickets** list (up to 5 tickets).
 2. Open ticket detail (`/my-tickets` -> click ticket):
    - Review Actions Taken tab: view operational history in read-only mode (no add/edit actions permitted).
    - Problem Appears Resolved: on active tickets with progress, toggle or submit advisory indication to notify staff.
 
 ### 4.2 บทบาท เจ้าหน้าที่ไอที (IT Staff Walkthrough) — Login as frank@toktick.dev
 1. Navigate to `/staff/dashboard`:
-   - Inspect 7 operational cards: Unassigned, Waiting on IT, Waiting on Requester, Resolved Today, SLA Risk, Urgent Priority, Unset Priority.
-   - Click metric cards to drill down into `/staff/tickets?status=...&priority=...`.
+   - Inspect operational metric cards:
+     - **Unassigned** (open tickets with no assignee) -> drills down to `/staff/tickets?statusGroup=open&assignee=unassigned`
+     - **My Owned** (open tickets assigned to current user) -> drills down to `/staff/tickets?statusGroup=open&assignee=me`
+     - **By Status** (breakdown across statuses) -> drills down to `/staff/tickets?status=<STATUS>`
+     - **By IT Priority** (open tickets breakdown: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`, and `UNSET` for tickets with no priority set) -> drills down to `/staff/tickets?statusGroup=open&priority=<PRIORITY>`
+   - Inspect the **Recently Updated Tickets** list (up to 5 tickets).
 2. Open ticket detail (`/staff/tickets/:id`):
    - **Create Action Taken:** fill form with description, result, follow-up required/note.
    - **Edit Action Taken:** update recorded action; optimistic locking enforces concurrency using `version` (returns 409 Conflict if stale).
@@ -142,11 +149,11 @@ Main Application Routes:
    - **Owner Picker:** dropdown lists only active staff and administrator users (inactive user Ivy is omitted).
 
 ### 4.3 บทบาท ผู้ดูแลระบบ (Administrator Walkthrough) — Login as admin@toktick.dev
-1. Navigate to `/dashboard`:
-   - View User Accounts metric card and system-wide counters.
+1. Navigate to `/staff/dashboard`:
+   - Access the staff operational dashboard with an additional **User Accounts** summary card (active vs inactive user counts).
 2. Navigate to `/admin/users`:
-   - Create new user accounts, assign roles, and toggle required password change.
-   - Deactivate or reactivate user accounts, and trigger password resets.
+   - Create new user accounts, assign roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`), and set initial passwords (forcing `requiresPasswordChange: true`).
+   - Edit user profiles, toggle active status (with last-active-administrator safety guard), and set new initial passwords requiring the user to change password at next login.
 
 ---
 
@@ -157,10 +164,11 @@ Main Application Routes:
 - **The test helper guard (`assertTestDatabase`) strictly blocks execution against the primary development database (`toktickit`) to prevent data loss.**
 
 ### 5.2 Scratch Database Setup for Testing
+*Note: The test database name MUST contain the word `test` (e.g. `lab4_test_<suffix>` or `toktickit_test`) to satisfy the `assertTestDatabase` guard.*
 ```powershell
-# Create dedicated test database on Windows PowerShell
+# Create dedicated test database on Windows PowerShell (database name must contain "test")
 & "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres toktickit_test
-$env:DATABASE_URL = "postgresql://postgres:password@localhost:5432/toktickit_test?schema=public"
+$env:DATABASE_URL = "postgresql://USER:PASSWORD@localhost:5432/toktickit_test?schema=public"
 $env:JWT_SECRET = "CHANGE_ME_TO_A_LONG_RANDOM_STRING"
 npx --prefix server prisma migrate deploy --schema=server/prisma/schema.prisma
 npm run prisma:seed --prefix server
@@ -189,11 +197,11 @@ Documented in [docs/lab-04/tests.md](docs/lab-04/tests.md):
 - **Baseline (Lab 1-3):**
   - Server: 11 suites, 133 tests passed
   - Client: 8 suites, 45 tests passed
-  - E2E: 35 tests passed (5 skipped due to legacy UI state changes)
+  - E2E: 35 tests passed (5 skipped due to legacy UI timing dependencies)
 - **Lab 4 Suite:**
-  - Server: All tests pass (Actions Taken API, Ticket Workflow API, Dashboards API, List Filters, Migration Snapshot/Rollback, Performance Smoke).
-  - Client: All tests pass (RequesterDashboard, StaffDashboard, ActionsTaken, TicketWorkflow, FormsHardening).
-  - E2E: All specs pass (Actions Taken Flow, Ticket Resolution, Dashboards, Regression, Accessibility, Responsive, Screenshots).
+  - Server: 9 suites, 376 tests passed (Actions Taken API, Ticket Workflow API, Dashboards API, List Filters, Migration Snapshot/Rollback, Performance Smoke).
+  - Client: 6 suites, 40 tests passed (RequesterDashboard, StaffDashboard, ActionsTaken, TicketWorkflow, FormsHardening, AppShell; combined client total: 14 suites, 85 passed).
+  - E2E: 22 tests in 8 files on Chromium: 17 passed (14 functional E2E tests + 3 helper self-checks), 5 skipped (non-gating visual inspection captures in screenshots.spec.ts).
 
 ---
 

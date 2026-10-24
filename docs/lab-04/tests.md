@@ -287,7 +287,7 @@
 | responsive | 1 |
 
 ## 6. Todo/skipped tests with reasons
-- **Skipped Tests**: `REG-05` (Manual README check) ดำเนินการทดสอบ Fresh Clone ผ่านเรียบร้อยแล้วเมื่อ 2026-10-21 ดูหลักฐานใน [artifacts/lab-04/evidence/fresh-clone-check.md](artifacts/lab-04/evidence/fresh-clone-check.md)
+- **Skipped Tests**: ไม่มีชุดทดสอบ Lab 4 ที่ถูกข้าม โดยชุดทดสอบอัตโนมัติทั้งหมด 44 รายการ และการทดสอบ Fresh Clone REG-05 ดำเนินการผ่านสมบูรณ์ 100% ดูหลักฐานใน [artifacts/lab-04/evidence/fresh-clone-check.md](artifacts/lab-04/evidence/fresh-clone-check.md) (หมายเหตุ: ชุดทดสอบ SCREENSHOTS ใน e2e/lab-04/screenshots.spec.ts จะถูกข้ามตามการออกแบบ เว้นแต่จะระบุตัวแปร CAPTURE_SCREENSHOTS=1)
 - **Assumptions**: `PERF-01` สมมติฐานคือ p95 < 500 ms เมื่อมีข้อมูลจำลองและการดึงข้อมูลพร้อมกัน 20 requests
 
 ## 7. How final status will be updated

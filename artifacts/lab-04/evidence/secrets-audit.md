@@ -130,5 +130,5 @@
 ## 6. สรุปผลการตรวจสอบ (Audit Conclusion)
 
 1. **ไม่มีความลับจริงหลุดรอด (Zero Real Secrets):** ไม่พบรหัสผ่านจริง โทเค็น กุญแจส่วนบุคคล (Private Keys) หรือสตริงการเชื่อมต่อฐานข้อมูล Development จริงในไฟล์ข้อความที่ถูกติดตามบน Git
-2. **ไฟล์ Environment ตัวอย่างปลอดภัย:** ไฟล์ `server/.env.example` และ `client/.env.example` ใช้ค่า Placeholder ล้วน (`CHANGE_ME_TO_A_LONG_RANDOM_STRING`, `USER:PASSWORD`) และไม่มีค่าใดซ้ำกับไฟล์ `server/.env` จริง
+2. **ไฟล์ตัวอย่างและเอกสารปลอดภัย:** ไฟล์ `server/.env.example`, `client/.env.example` และ `README.md` ใช้รูปแบบสตริงจำลองอย่างชัดเจน (`postgresql://USER:PASSWORD@localhost:5432/DB_NAME?schema=public` และ `postgresql://USER:PASSWORD@localhost:5432/toktickit_test?schema=public`) พร้อมทั้งกำกับเงื่อนไขไว้อย่างชัดเจนว่าชื่อฐานข้อมูลสำหรับการรันชุดทดสอบจะต้องมีคำว่า "test"
 3. **การละเว้นไฟล์สมบูรณ์:** ไฟล์ `.env`, `.env.*`, ไดเรกทอรี `node_modules/`, `dist/`, `coverage/`, `*.dump`, `test-results/`, และโฟลเดอร์ของ IDE ถูกละเว้นอย่างรัดกุม ขณะที่ไฟล์ตัวอย่างคอนฟิก (`.env.example`) เอกสาร (`docs/`) และหลักฐานการทดสอบ (`artifacts/`) ยังคงได้รับการติดตามอย่างถูกต้อง

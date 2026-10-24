@@ -64,13 +64,15 @@
 | 7b. Server Lab 4 | `npm run test --prefix server -- tests/lab-04` | 0 (OK) | **9 suites, 376 tests passed** (0 failed, 0 skipped) |
 | 7c. Client Tests | `npm run test --prefix client` | 0 (OK) | **14 suites, 85 tests passed** (0 failed, 0 skipped) |
 | 7d. Client Build | `npm run build --prefix client` | 0 (OK) | คอมไพล์โปรดักชันด้วย TypeScript และ Vite สำเร็จ |
-| 7e. E2E Lab 4 | `npx playwright test e2e/lab-04` | 0 (OK) | **17 tests passed** (Actions flow, resolution gate, dashboards, etc.) |
+| 7e. E2E Lab 4 | `npx playwright test e2e/lab-04` | 0 (OK) | **22 tests in 8 files (Chromium): 17 passed** (14 functional + 3 helper self-checks), **5 skipped** (non-gating visual captures) |
+| 7f. Baseline E2E | `npx playwright test e2e/lab-02 e2e/lab-03` | 0 (OK) | **40 tests in 6 files (Chromium): 35 passed, 5 skipped** (legacy UI timing dependencies); `artifacts/lab-03/screenshots/` restored via git |
 
 ---
 
-## 5. ส่วนที่ไม่ได้รันและเหตุผล (What Was Not Run & Why)
-- **Baseline E2E Specs (Lab 2/3):** ไม่ได้รันในขั้นตอนนี้ เพื่อป้องกันไม่ให้ชุดทดสอบเดิมเขียนทับไฟล์รูปภาพที่ถูกบันทึกไว้ใน `artifacts/lab-03/screenshots/` ตามคำเตือนความปลอดภัยใน README
-- **การบันทึกภาพหน้าจอใหม่ (CAPTURE_SCREENSHOTS=1):** ไม่ได้สั่งเปิดตัวแปรนี้ เนื่องจากภาพถ่ายหน้าจอทั้ง 58 ภาพสำหรับ Lab 4 ได้รับการบันทึกและตรวจสอบเรียบร้อยแล้วใน Issue #9
+## 5. รายละเอียดชุดทดสอบ E2E และการจัดการภาพถ่ายหน้าจอ (E2E Test Details & Screenshot Safety)
+- **Lab 4 E2E Specs:** รวมทั้งหมด 22 รายการใน 8 ไฟล์ บนเบราว์เซอร์ Chromium: ผ่าน 17 รายการ (การทำงานหลัก 14 รายการ + Helper self-checks 3 รายการ) และถูกข้าม 5 รายการ (ชุดทดสอบใน `e2e/lab-04/screenshots.spec.ts` ซึ่งจะทำงานเฉพาะเมื่อเปิดใช้งาน `CAPTURE_SCREENSHOTS=1`)
+- **Baseline E2E Specs (Lab 2/3):** รวมทั้งหมด 40 รายการใน 6 ไฟล์ บนเบราว์เซอร์ Chromium: ผ่าน 35 รายการ และถูกข้าม 5 รายการ (เนื่องจากการเปลี่ยนแปลงโครงสร้าง UI ใน Lab 3) โดยหลังการรันได้สั่ง `git restore artifacts/lab-03/screenshots/` เพื่อกู้คืนภาพหน้าจอให้ตรงกับที่คอมมิตไว้เดิม
+- **เบราว์เซอร์ที่ใช้:** โครงการกำหนดค่าใน `playwright.config.ts` ให้ทดสอบเฉพาะ Chromium (ไม่มี Firefox หรือ WebKit)
 
 ---
 

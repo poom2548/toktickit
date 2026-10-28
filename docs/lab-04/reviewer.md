@@ -1,62 +1,38 @@
-# บันทึกการตรวจทานโค้ด (Peer Code Review Record) - Lab 4
+# Sprint 4 Code Review Record
 
-**ผู้พัฒนา (Author):** Saksorn Buranatananun — GitHub: [@poom2548](https://github.com/poom2548)  
-**ผู้ตรวจทาน (Peer Reviewer):** Purin Mebotsom — GitHub: [@meebotsompurin-stack](https://github.com/meebotsompurin-stack)  
-**คลังข้อมูล (Repository):** [poom2548/toktickit](https://github.com/poom2548/toktickit)  
+**Author:** Saksorn Buranatananun — student 67070507208 — GitHub: @poom2548
+**Peer reviewer:** Purin Mebotsom — student 67070507214 — GitHub: @meebotsompurin-stack
 
-เอกสารนี้รวบรวมประวัติการตรวจทานโค้ดผ่าน Pull Request บน GitHub สำหรับกระบวนการพัฒนา CPE 334 Lab 4 ตั้งแต่ Issue #1 ถึง Issue #10 โดยดึงข้อมูลจากประวัติของ Git และ GitHub API เพื่อความโปร่งใสและตรวจสอบได้
+## Pull Requests Reviewed by Others (My Code)
 
----
-
-## สรุปภาพรวมการตรวจทานโค้ด (PR Overview Table)
-
-| Issue | ชื่องาน (Issue / PR Title) | กิ่งงาน (Branch) | ลิงก์ Pull Request | ผู้ตรวจทาน (Reviewer) | สถานะการตรวจ (Review Status) | สถานะการรวมโค้ด (Merge Status) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Issue 1 | L4_Issue 1 engineering contract | `feature/issue-1-engineering-contract` | [#61](https://github.com/poom2548/toktickit/pull/61) | @meebotsompurin-stack | APPROVED | Merged (2026-10-04) |
-| Issue 2 | L4_Issue 2: Test DD, Baseline Audit, and Red-Test Scaffolding | `feature/issue-2-test-dd` | [#62](https://github.com/poom2548/toktickit/pull/62) | @meebotsompurin-stack | APPROVED | Merged (2026-10-06) |
-| Issue 3 | Issue #3: Database Foundation (Migration, Backfill, Rollback, Seed) | `feature/issue-3-lab4-db` | [#63](https://github.com/poom2548/toktickit/pull/63) | @meebotsompurin-stack | APPROVED | Merged (2026-10-07) |
-| Issue 4 | Issue #4 – Actions Taken API and authorization | `feature/issue-4-lab4-actions-api` | [#64](https://github.com/poom2548/toktickit/pull/64) | @meebotsompurin-stack | APPROVED | Merged (2026-10-08) |
-| Issue 5 | Issue #5 – Ticket workflow API | `feature/issue-5-lab4-workflow-api` | [#65](https://github.com/poom2548/toktickit/pull/65) | @meebotsompurin-stack | APPROVED | Merged (2026-10-11) |
-| Issue 6 | Issue #6: Role dashboards API (Requester, IT Staff, Admin) | `feature/issue-6-lab4-dashboards-api` | [#66](https://github.com/poom2548/toktickit/pull/66) | @meebotsompurin-stack | APPROVED | Merged (2026-10-13) |
-| Issue 7 | Issue #7 – Ticket Detail UI: Actions Taken และ workflow controls | `feature/issue-7-lab4-ticket-detail-ui` | [#67](https://github.com/poom2548/toktickit/pull/67) | @meebotsompurin-stack | APPROVED | Merged (2026-10-15) |
-| Issue 8 | Issue #8: Dashboards UI | `feature/issue-8-lab4-dashboards-ui` | [#68](https://github.com/poom2548/toktickit/pull/68) | @meebotsompurin-stack | APPROVED | Merged (2026-10-17) |
-| Issue 9 | Issue #9 – Final hardening | `feature/issue-9-lab4-hardening` | [#69](https://github.com/poom2548/toktickit/pull/69) | @meebotsompurin-stack | APPROVED | Merged (2026-10-19) |
-| Issue 10 | Issue #10: Documentation and release preparation | `feature/issue-10-lab4-docs-release` | <<HUMAN TO FILL: PR link after it is opened>> | <<HUMAN TO FILL: reviewer name>> | <<HUMAN TO FILL: approval status>> | <<HUMAN TO FILL: merge status>> |
+| Issue | Branch | PR Link | Status |
+| :--- | :--- | :--- | :--- |
+| Issue 1 | feature/issue-1-engineering-contract | https://github.com/poom2548/toktickit/pull/61 | Approved |
+| Issue 2 | feature/issue-2-test-dd | https://github.com/poom2548/toktickit/pull/62 | Approved |
+| Issue 3 | feature/issue-3-lab4-db | https://github.com/poom2548/toktickit/pull/63 | Approved |
+| Issue 4 | feature/issue-4-lab4-actions-api | https://github.com/poom2548/toktickit/pull/64 | Approved |
+| Issue 5 | feature/issue-5-lab4-workflow-api | https://github.com/poom2548/toktickit/pull/65 | Approved |
+| Issue 6 | feature/issue-6-lab4-dashboards-api | https://github.com/poom2548/toktickit/pull/66 | Approved |
+| Issue 7 | feature/issue-7-lab4-ticket-detail-ui | https://github.com/poom2548/toktickit/pull/67 | Approved |
+| Issue 8 | feature/issue-8-lab4-dashboards-ui | https://github.com/poom2548/toktickit/pull/68 | Approved |
+| Issue 9 | feature/issue-9-lab4-hardening | https://github.com/poom2548/toktickit/pull/69 | Approved |
+| Issue 10 | feature/issue-10-lab4-docs-release | <<HUMAN TO FILL: PR link after it is opened>> | <<HUMAN TO FILL: approval status>> |
 
 ---
 
-## รายละเอียดการตรวจทานราย Issue (Review Details)
-
-### Issue #1: L4_Issue 1 engineering contract
-- **Branch:** `feature/issue-1-engineering-contract`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/61](https://github.com/poom2548/toktickit/pull/61)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-04 by @meebotsompurin-stack
-
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[APPROVED] @meebotsompurin-stack (2026-10-04):**
+### Issue 1
+**Reviewer:**
 > ตรวจแล้วถูกต้องเรียบร้อย
->
 
-### Issue #2: L4_Issue 2: Test DD, Baseline Audit, and Red-Test Scaffolding
-- **Branch:** `feature/issue-2-test-dd`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/62](https://github.com/poom2548/toktickit/pull/62)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-06 by @meebotsompurin-stack
+---
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[CHANGES_REQUESTED] @meebotsompurin-stack (2026-10-04):**
+### Issue 2
+**Reviewer (Comment 1):**
 > * **Playwright viewport** (360/768/1280px) – ยังไม่พบในโปรเจกต์
 > * **Axe accessibility integration** – ยังไม่มีการ setup
 > * **Test data factories** – ไฟล์ `helpers.ts` มีอยู่แล้วแต่ยังไม่สมบูรณ์ (ขาดส่วนสร้างข้อมูลทดสอบและ Auth helpers)
->
-> **[APPROVED] @meebotsompurin-stack (2026-10-06):**
-> ตรวจแล้วครบถ้วน
->
-#### การตอบกลับของผู้พัฒนา (Author Responses)
-> **@poom2548:**
+
+**Author (Response 1):**
 > > * **Playwright viewport** (360/768/1280px) – ยังไม่พบในโปรเจกต์
 > > * **Axe accessibility integration** – ยังไม่มีการ setup
 > > * **Test data factories** – ไฟล์ `helpers.ts` มีอยู่แล้วแต่ยังไม่สมบูรณ์ (ขาดส่วนสร้างข้อมูลทดสอบและ Auth helpers)
@@ -78,48 +54,33 @@
 > สิ่งที่ทำ (ฝั่งเซิร์ฟเวอร์): เขียนทับไฟล์ server/tests/lab-04/helpers.ts เพื่อเพิ่ม data factories แบบสมบูรณ์ (createUser, createTicket, createPublicComment เป็นต้น) มีการเพิ่ม mocks แบบ try/catch สำหรับโมเดลของ Lab 4 ที่กำลังรอการดำเนินการ (ActionTaken, StatusHistory) รวมทั้งสร้างฟังก์ชัน resetTestData() ที่ทำงานได้อย่างปลอดภัย และตัวช่วย loginAs สำหรับ supertest auth
 > 
 > สิ่งที่ทำ (ฝั่ง E2E): สร้างไฟล์ e2e/lab-04/helpers/auth.ts ซึ่งประกอบด้วยตัวช่วย E2E loginAs(page, role) เพื่อช่วยในการล็อกอินเข้าสู่ระบบ UI แบบอัตโนมัติ โดยใช้บัญชีเดโม่ที่มีอยู่แล้วในระบบ (alice@toktick.dev, frank@toktick.dev, admin@toktick.dev)
->
 
-### Issue #3: Issue #3: Database Foundation (Migration, Backfill, Rollback, Seed)
-- **Branch:** `feature/issue-3-lab4-db`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/63](https://github.com/poom2548/toktickit/pull/63)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-07 by @meebotsompurin-stack
+**Reviewer (Comment 2):**
+> ตรวจแล้วครบถ้วน
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[CHANGES_REQUESTED] @meebotsompurin-stack (2026-10-07):**
+---
+
+### Issue 3
+**Reviewer (Comment 1):**
 > **การเช็ค Path ใน `migration.test.ts` (MIG-01):**
 >    ในโค้ดมีการ Hardcode path ของ Windows:
 >    `if (fs.existsSync(dumpPath) && fs.existsSync('C:\\Program Files\\PostgreSQL\\18\\bin\\pg_restore.exe'))`
 >    **ปัญหา:** ถ้าไปรันบนเครื่อง Mac/Linux (หรือ CI/CD) เทสต์นี้จะถูก Skip 
 >    **ข้อเสนอแนะ:** ควรแก้ให้รองรับ Cross-platform เช่น ดึงพาร์ทจาก Environment Variable (`process.env.PG_RESTORE_BIN`) หรือเช็คผ่านคำสั่ง `which pg_restore`
->
-> **[APPROVED] @meebotsompurin-stack (2026-10-07):**
+
+**Reviewer (Comment 2):**
 > ตรวจสอบแล้วถูกต้องเรียบร้อย
->
 
-### Issue #4: Issue #4 – Actions Taken API and authorization
-- **Branch:** `feature/issue-4-lab4-actions-api`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/64](https://github.com/poom2548/toktickit/pull/64)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-08 by @meebotsompurin-stack
+---
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[APPROVED] @meebotsompurin-stack (2026-10-08):**
+### Issue 4
+**Reviewer:**
 > ตรวจสอบแล้วครบถ้วน
->
 
-### Issue #5: Issue #5 – Ticket workflow API
-- **Branch:** `feature/issue-5-lab4-workflow-api`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/65](https://github.com/poom2548/toktickit/pull/65)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-11 by @meebotsompurin-stack
+---
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[CHANGES_REQUESTED] @meebotsompurin-stack (2026-10-10):**
+### Issue 5
+**Reviewer (Comment 1):**
 > #### 1. การตรวจสอบสิทธิ์หละหลวม (AC-5, AC-11)
 > - `GET /api/tickets/:id/allowed-transitions` และ `POST /api/tickets/:id/status` ไม่มี ownership/role gating ที่ชัดเจน
 > - **ปัญหา:** Requester สามารถดูข้อมูล Transition ของตั๋วคนอื่นได้
@@ -139,12 +100,8 @@
 > #### 5. การทดสอบ Matrix ไม่ครอบคลุม (AC-1, AC-2, AC-12)
 > - มี Matrix เดี่ยว แต่ไม่มี Test ยืนยันว่าทำงานถูกต้องครบทั้ง 8 สถานะและทุก Role
 > - **วิธีแก้:** เพิ่ม Test ให้ครอบคลุมทุก From/To/Role
->
-> **[APPROVED] @meebotsompurin-stack (2026-10-11):**
-> ตรวจสอบแล้วแก้ไขครบถ้วน
->
-#### การตอบกลับของผู้พัฒนา (Author Responses)
-> **@poom2548:**
+
+**Author (Response 1):**
 > > #### 1. การตรวจสอบสิทธิ์หละหลวม (AC-5, AC-11)
 > > * `GET /api/tickets/:id/allowed-transitions` และ `POST /api/tickets/:id/status` ไม่มี ownership/role gating ที่ชัดเจน
 > > * **ปัญหา:** Requester สามารถดูข้อมูล Transition ของตั๋วคนอื่นได้
@@ -184,17 +141,14 @@
 > 3.การแก้ไขเทสต์ของ Lab 3 ทำแค่ส่วน setup เท่านั้น: เทสต์ส่วนการ resolve ตอนนี้จะสร้าง ticket ที่มี owner และ Action ให้เลย เนื่องจาก gate ถูกนำไปบังคับใช้กับ route เดิมด้วย ไม่มีการเปลี่ยนแปลงโค้ดส่วนตรวจสอบความถูกต้อง (assertion) หรือชื่อของเทสต์
 > 
 > 4.รูปแบบ error ที่ปะปนกันยังคงอยู่บน legacy routes: ใน Issue #9 จะเข้ามาจัดการให้เป็นระเบียบ
->
 
-### Issue #6: Issue #6: Role dashboards API (Requester, IT Staff, Admin)
-- **Branch:** `feature/issue-6-lab4-dashboards-api`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/66](https://github.com/poom2548/toktickit/pull/66)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-13 by @meebotsompurin-stack
+**Reviewer (Comment 2):**
+> ตรวจสอบแล้วแก้ไขครบถ้วน
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[CHANGES_REQUESTED] @meebotsompurin-stack (2026-10-12):**
+---
+
+### Issue 6
+**Reviewer (Comment 1):**
 > **1. Test Oracle Independence (ห้ามนำ Production Code มาอ้างอิงใน Test)**
 > - **ปัญหา:** ในไฟล์ `server/tests/lab-04/helpers.ts` มีการ `export dashboardService` ออกมาให้ Test ใช้งาน และใน `staff-dashboard.api.test.ts` มีการใช้ `vi.spyOn(dashboardService, ...)` เพื่อจำลอง Error 
 > - **ทำไมถึงต้องแก้:** ตามกฎของการเขียน Test ที่ดี (Oracle Independence) ชุดทดสอบต้องคำนวณและคาดเดาผลลัพธ์ด้วยตัวเอง ไม่ควรดึง Logic ของ Production มาใช้งานหรือ Mock ตรงๆ
@@ -206,12 +160,8 @@
 > **2. `Cache-Control` สำหรับเคส 405 Method Not Allowed**
 > - **ปัญหา:** ในไฟล์ `server/src/dashboard/dashboard.routes.ts` จังหวะที่มีการดัก `.all(...)` เพื่อพ่น 405 Error ยังไม่มีการแนบ Header `Cache-Control: no-store` ตามที่ Spec กำหนด
 > - **วิธีแก้ที่แนะนำ:** เพิ่ม `res.setHeader('Cache-Control', 'no-store');` เข้าไปก่อนส่ง `res.status(405)...` ในทั้งเส้น `/requester` และ `/staff`
->
-> **[APPROVED] @meebotsompurin-stack (2026-10-13):**
-> ตรวจแล้วครบถ้วน
->
-#### การตอบกลับของผู้พัฒนา (Author Responses)
-> **@poom2548:**
+
+**Author (Response 1):**
 > > **1. Test Oracle Independence (ห้ามนำ Production Code มาอ้างอิงใน Test)**
 > > 
 > > * **ปัญหา:** ในไฟล์ `server/tests/lab-04/helpers.ts` มีการ `export dashboardService` ออกมาให้ Test ใช้งาน และใน `staff-dashboard.api.test.ts` มีการใช้ `vi.spyOn(dashboardService, ...)` เพื่อจำลอง Error
@@ -249,17 +199,14 @@
 > - ยืนยันความถูกต้องของการเข้ารหัส UTF-8 CRLF ในทุกไฟล์ผ่าน `encscan.js`
 > - ยืนยันการรันชุดทดสอบ Lab 4 แบบเต็มผ่าน 3 ครั้งติดต่อกัน (ผ่าน 369/369, ไม่มีการรั่วไหลของข้อมูลใน DB: Users=82, Tickets=300)
 > - สถานะ local git บน branch `feature/issue-6-lab4-dashboards-api` สะอาดเรียบร้อย; ไม่มีการ push และไม่มีการ merge ใดๆ เกิดขึ้น
->
 
-### Issue #7: Issue #7 – Ticket Detail UI: Actions Taken และ workflow controls
-- **Branch:** `feature/issue-7-lab4-ticket-detail-ui`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/67](https://github.com/poom2548/toktickit/pull/67)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-15 by @meebotsompurin-stack
+**Reviewer (Comment 2):**
+> ตรวจแล้วครบถ้วน
 
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[CHANGES_REQUESTED] @meebotsompurin-stack (2026-10-15):**
+---
+
+### Issue 7
+**Reviewer (Comment 1):**
 > **1. [AC-03, AC-05] ความยาวสูงสุดของ `followUpNote` และ `attachmentNotes` ไม่ตรงสเปก**
 > - **ปัญหา:** ในไฟล์ `client/src/components/actions/ActionsTakenSection.tsx` (ทั้งใน `handleFollowUpNoteChange` และตอน validate ใน `handleSubmit`) ตั้งค่าจำกัดความยาวไว้ที่ `> 2000` ตัวอักษร
 > - **ตามสเปก:** กำหนดความยาวสูงสุดไว้ที่ 2000 / 2000 / **1000 / 1000** (Description 2000, Result 2000, Follow-up 1000, Attachment 1000)
@@ -278,12 +225,8 @@
 > **4. [Error Sanitization] ป้องกันการหลุดข้อความดิบจากเซิร์ฟเวอร์ใน `parseApiError`**
 > - **ปัญหา:** ในไฟล์ `client/src/api/errors.ts` กรณีที่ `body.error` เป็น String ธรรมดาและไม่ตรงกับเงื่อนไขคำค้นที่ดักไว้ โค้ดจะตกลงไปที่ `else { message = rawError }` ซึ่งเสี่ยงต่อการเอาข้อความดิบจากเซิร์ฟเวอร์มาโชว์บนหน้าเว็บ
 > - **วิธีแก้:** เปลี่ยน Fallback สุดท้ายให้คืนค่าเป็นข้อความปลอดภัยทั่วไปแทน (เช่น `'เกิดข้อผิดพลาดในการดำเนินการ กรุณาลองใหม่อีกครั้ง'`) แล้วเก็บ `rawError` ไว้แสดงเฉพาะใน `console.debug`
->
-> **[APPROVED] @meebotsompurin-stack (2026-10-15):**
-> ตรวจแล้วครบถ้วน
->
-#### การตอบกลับของผู้พัฒนา (Author Responses)
-> **@poom2548:**
+
+**Author (Response 1):**
 > > **1. [AC-03, AC-05] ความยาวสูงสุดของ `followUpNote` และ `attachmentNotes` ไม่ตรงสเปก**
 > > 
 > > * **ปัญหา:** ในไฟล์ `client/src/components/actions/ActionsTakenSection.tsx` (ทั้งใน `handleFollowUpNoteChange` และตอน validate ใน `handleSubmit`) ตั้งค่าจำกัดความยาวไว้ที่ `> 2000` ตัวอักษร
@@ -333,57 +276,27 @@
 > -ปรับ errors.ts ให้แสดงเฉพาะข้อความภาษาไทยที่แมปตาม HTTP Status Code และ Error Code เท่านั้น ไม่แสดงข้อความดิบ (raw server text) หรือ stack trace หลุดไปที่ UI
 > -กรองและจำกัดความยาวของ reason ไม่เกิน 300 ตัวอักษร
 > -ลบการเรียก console.* ทั้งหมดในโค้ดใหม่
->
 
-### Issue #8: Issue #8: Dashboards UI
-- **Branch:** `feature/issue-8-lab4-dashboards-ui`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/68](https://github.com/poom2548/toktickit/pull/68)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-17 by @meebotsompurin-stack
-
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[APPROVED] @meebotsompurin-stack (2026-10-17):**
-> ตรวจสอบแล้วครบถ้วน
->
-
-### Issue #9: Issue #9 – Final hardening
-- **Branch:** `feature/issue-9-lab4-hardening`
-- **PR Link:** [https://github.com/poom2548/toktickit/pull/69](https://github.com/poom2548/toktickit/pull/69)
-- **Author:** @poom2548
-- **Reviewer:** @meebotsompurin-stack
-- **Merge Status:** Merged into `lab4-staging` on 2026-10-19 by @meebotsompurin-stack
-
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> **[APPROVED] @meebotsompurin-stack (2026-10-19):**
-> ตรวจสอบแล้วเรียบร้อยครบถ้วน
->
-
-### Issue #10: Documentation and release preparation
-- **Branch:** `feature/issue-10-lab4-docs-release`
-- **PR Link:** <<HUMAN TO FILL: PR link after it is opened, e.g. https://github.com/poom2548/toktickit/pull/70>>
-- **Author:** @poom2548
-- **Reviewer:** <<HUMAN TO FILL: reviewer name, e.g. @meebotsompurin-stack>>
-- **Approval Status:** <<HUMAN TO FILL: approval status, e.g. APPROVED>>
-- **Merge Status:** <<HUMAN TO FILL: merge status after PR is merged into lab4-staging>>
-
-#### ความคิดเห็นจากผู้ตรวจทาน (Reviewer Comments)
-> <<HUMAN TO FILL: comments and responses from the PR page>>
-
-#### การตอบกลับของผู้พัฒนา (Author Responses)
-> <<HUMAN TO FILL: author responses if changes requested>>
+**Reviewer (Comment 2):**
+> ตรวจแล้วครบถ้วน
 
 ---
 
-## วิธีเติมข้อมูล (How to Complete Missing Information)
+### Issue 8
+**Reviewer:**
+> ตรวจสอบแล้วครบถ้วน
 
-สำหรับข้อมูลของ Issue #10 ที่ยังเป็น Placeholder (`<<HUMAN TO FILL: ...>>`) นักศึกษาจะต้องเติมข้อมูลให้สมบูรณ์หลังจากดำเนินกระบวนการ Pull Request บน GitHub ดังนี้:
-1. **เมื่อเปิด Pull Request สำหรับ Issue #10:**
-   - คัดลอก URL ของ PR (เช่น `https://github.com/poom2548/toktickit/pull/70`) มาวางแทนที่ `<<HUMAN TO FILL: PR link...>>` ในตารางและหัวข้อย่อย
-2. **เมื่อ Reviewer ตรวจทานและให้ความเห็น:**
-   - ระบุชื่อ GitHub handle ของ Reviewer (เช่น `@meebotsompurin-stack`)
-   - คัดลอกข้อความ Review Comment จากแท็บ *Conversation* หรือ *Files changed* บนหน้า PR มาวางในส่วน Reviewer Comments
-   - หากมีการขอให้แก้ไข (Changes Requested) ให้บันทึกการตอบกลับใน Author Responses
-3. **เมื่อได้รับการอนุมัติและรวมโค้ด (Approved & Merged):**
-   - อัปเดตสถานะเป็น `APPROVED`
-   - ระบุวันที่และผู้ที่ทำการกดปุ่ม Merge เข้าสู่ `lab4-staging`
+---
+
+### Issue 9
+**Reviewer:**
+> ตรวจสอบแล้วเรียบร้อยครบถ้วน
+
+---
+
+### Issue 10
+**Reviewer:**
+> <<HUMAN TO FILL: comments and responses from the PR page>>
+
+**Author (Me):**
+> <<HUMAN TO FILL: author responses if changes requested>>

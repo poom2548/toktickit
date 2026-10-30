@@ -237,14 +237,16 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     }
 
     // 3.4 Conflict Banner (409 Stale Version on Action)
-    await page.route('**/actions/**', (route) => {
-      if (route.request().method() === 'POST' || route.request().method() === 'PUT') {
+    await page.route('**/api/tickets/*/actions-taken*', (route) => {
+      if (route.request().method() === 'POST' || route.request().method() === 'PATCH') {
         return route.fulfill({
           status: 409,
           contentType: 'application/json',
           body: JSON.stringify({
-            error: 'CONFLICT',
-            message: 'Data was modified by another user. Please reload.',
+            error: {
+              code: 'CONFLICT',
+              message: 'Data was modified by another user. Please reload.',
+            },
           }),
         });
       }
@@ -258,8 +260,10 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
       await page.getByRole('button', { name: /^save$/i }).first().click();
       await page.waitForTimeout(300);
       await capture(page, subDir, screen, 'conflict-banner', VIEWPORTS.desktop);
+      const cancelBtn = page.getByRole('button', { name: /cancel/i }).first();
+      if (await cancelBtn.isVisible()) await cancelBtn.click();
     }
-    await page.unroute('**/actions/**');
+    await page.unroute('**/api/tickets/*/actions-taken*');
 
     // 3.5 Empty State (Legacy Ticket 11 with 0 actions)
     await page.goto('/staff/tickets/11');
@@ -269,14 +273,16 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await capture(page, subDir, screen, 'empty-state', VIEWPORTS.desktop);
 
     // 3.6 Safe Failure Mocked
-    await page.route('**/actions**', (route) => {
+    await page.route('**/api/tickets/*/actions-taken*', (route) => {
       if (route.request().method() === 'GET') {
         return route.fulfill({
           status: 500,
           contentType: 'application/json',
           body: JSON.stringify({
-            error: 'INTERNAL_SERVER_ERROR',
-            message: 'Unable to load actions taken.',
+            error: {
+              code: 'INTERNAL_ERROR',
+              message: 'Unable to load actions taken.',
+            },
           }),
         });
       }
@@ -284,8 +290,10 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     });
     await page.goto('/staff/tickets/1');
     await page.waitForLoadState('networkidle');
+    const actionsSectionFailure = page.locator('.actions-taken-section').first();
+    await actionsSectionFailure.scrollIntoViewIfNeeded();
     await capture(page, subDir, screen, 'safe-failure-mocked', VIEWPORTS.desktop);
-    await page.unroute('**/actions**');
+    await page.unroute('**/api/tickets/*/actions-taken*');
     await logout(page);
 
     // 3.7 Requester Read-Only View (Requester on Ticket 1)
@@ -326,14 +334,17 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     }
 
     // 4.3 Resolution Gate Failure (attempt to resolve with unresolved gate)
-    await page.route('**/status**', (route) => {
-      if (route.request().method() === 'PATCH') {
+    await page.route('**/api/tickets/*/status', (route) => {
+      if (route.request().method() === 'POST') {
         return route.fulfill({
           status: 422,
           contentType: 'application/json',
           body: JSON.stringify({
-            error: 'RESOLUTION_PRECONDITION_FAILED',
-            message: 'Cannot resolve ticket: ticket has unresolved requester advisory or missing required actions taken.',
+            error: {
+              code: 'RESOLUTION_GATE_FAILED',
+              reason: 'Cannot resolve ticket: ticket has unresolved requester advisory or missing required actions taken.',
+              message: 'Resolution gate failed.',
+            },
           }),
         });
       }
@@ -353,17 +364,19 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
         }
       }
     }
-    await page.unroute('**/status**');
+    await page.unroute('**/api/tickets/*/status');
 
     // 4.4 Conflict Banner (409 Stale Version on Status)
-    await page.route('**/status**', (route) => {
-      if (route.request().method() === 'PATCH') {
+    await page.route('**/api/tickets/*/status', (route) => {
+      if (route.request().method() === 'POST') {
         return route.fulfill({
           status: 409,
           contentType: 'application/json',
           body: JSON.stringify({
-            error: 'CONFLICT',
-            message: 'Ticket was updated by another user. Please refresh and try again.',
+            error: {
+              code: 'CONFLICT',
+              message: 'The ticket was modified by another user. Please reload to get the latest data.',
+            },
           }),
         });
       }
@@ -382,7 +395,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
         }
       }
     }
-    await page.unroute('**/status**');
+    await page.unroute('**/api/tickets/*/status');
 
     // 4.5 Requester Advisory Banner on IT Staff View (Ticket 3)
     await page.goto('/staff/tickets/3');

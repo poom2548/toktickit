@@ -91,6 +91,16 @@ async function main() {
     },
   });
 
+  const inactiveUsers = await prisma.user.findMany({
+    where: { isActive: false },
+    select: { id: true, name: true, email: true, role: true, isActive: true },
+  });
+
+  const sampleTicket = await prisma.ticket.findFirst({
+    where: { status: { in: openStatuses } },
+    select: { id: true, ticketNumber: true, version: true, status: true },
+  });
+
   console.log('\n================================================================');
   console.log('       TOKTIKCIT: IT STAFF DASHBOARD DB METRICS VERIFICATION      ');
   console.log('================================================================');
@@ -120,6 +130,13 @@ async function main() {
   }));
   priorityList.push({ Priority: 'UNSET', Count: unsetPriority });
   console.table(priorityList);
+
+  console.log('\n>> [4] INACTIVE USERS (For Inactive-Assignee Rejection Test):');
+  console.table(inactiveUsers);
+
+  if (sampleTicket) {
+    console.log(`>> Sample Open Ticket for test: ID=${sampleTicket.id} (${sampleTicket.ticketNumber}), version=${sampleTicket.version}`);
+  }
   console.log('================================================================\n');
 }
 

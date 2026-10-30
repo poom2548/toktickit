@@ -448,8 +448,8 @@ export function StaffDashboardPage() {
             {recentlyUpdated.length === 0 ? (
               <p className="text-muted small my-3">No recent updates</p>
             ) : (
-              <div className="table-responsive" tabIndex={0} aria-label="Recently updated tickets for staff">
-                <table className="table table-hover align-middle mb-0">
+              <div className="table-responsive dashboard-table-wrapper" tabIndex={0} aria-label="Recently updated tickets for staff">
+                <table className="table table-hover align-middle mb-0 dashboard-table">
                   <caption className="visually-hidden">Recently updated tickets for staff</caption>
                   <thead>
                     <tr className="text-muted small">
@@ -463,7 +463,7 @@ export function StaffDashboardPage() {
                   <tbody>
                     {recentlyUpdated.map((ticket) => (
                       <tr key={ticket.id}>
-                        <td>
+                        <td data-label="Ticket ID">
                           <Link
                             to={`/staff/tickets/${ticket.id}`}
                             className="fw-semibold small text-decoration-none"
@@ -472,20 +472,20 @@ export function StaffDashboardPage() {
                             {ticket.ticketNumber}
                           </Link>
                         </td>
-                        <td className="fw-medium text-truncate" style={{ maxWidth: 220 }} title={ticket.title}>
+                        <td data-label="Summary" className="fw-medium text-truncate" style={{ maxWidth: 220 }} title={ticket.title}>
                           {ticket.title}
                         </td>
-                        <td>
+                        <td data-label="Status">
                           <StatusBadge status={ticket.status} />
                         </td>
-                        <td>
+                        <td data-label="IT Priority">
                           {ticket.priority ? (
                             <PriorityBadge priority={ticket.priority as any} />
                           ) : (
                             <span className="badge bg-light text-muted border">UNSET</span>
                           )}
                         </td>
-                        <td className="text-muted small">
+                        <td data-label="Last Updated" className="text-muted small">
                           {formatDate(ticket.updatedAt)}
                         </td>
                       </tr>
@@ -556,8 +556,8 @@ export function StaffDashboardPage() {
             {myActionsTaken.length === 0 ? (
               <p className="text-muted small my-3">No actions recorded by you yet</p>
             ) : (
-              <div className="table-responsive" tabIndex={0} aria-label="Recent actions taken by current user">
-                <table className="table table-hover align-middle mb-0">
+              <div className="table-responsive dashboard-table-wrapper" tabIndex={0} aria-label="Recent actions taken by current user">
+                <table className="table table-hover align-middle mb-0 dashboard-table">
                   <caption className="visually-hidden">Recent actions taken by current user</caption>
                   <thead>
                     <tr className="text-muted small">
@@ -571,7 +571,7 @@ export function StaffDashboardPage() {
                   <tbody>
                     {myActionsTaken.map((act) => (
                       <tr key={act.id}>
-                        <td>
+                        <td data-label="Ticket ID">
                           <Link
                             to={`/staff/tickets/${act.ticketId}`}
                             className="fw-semibold small text-decoration-none"
@@ -580,13 +580,13 @@ export function StaffDashboardPage() {
                             {act.ticketNumber}
                           </Link>
                         </td>
-                        <td className="fw-medium text-truncate" style={{ maxWidth: 260 }} title={act.action}>
+                        <td data-label="Action Taken" className="fw-medium text-truncate" style={{ maxWidth: 260 }} title={act.action}>
                           {act.action}
                         </td>
-                        <td className="text-muted small text-truncate" style={{ maxWidth: 240 }} title={act.result}>
+                        <td data-label="Result" className="text-muted small text-truncate" style={{ maxWidth: 240 }} title={act.result}>
                           {act.result}
                         </td>
-                        <td>
+                        <td data-label="Follow-Up">
                           {act.followUpRequired ? (
                             <span
                               className="badge"
@@ -603,7 +603,7 @@ export function StaffDashboardPage() {
                             </span>
                           )}
                         </td>
-                        <td className="text-muted small">
+                        <td data-label="Recorded At" className="text-muted small">
                           {formatDate(act.actionAt)}
                         </td>
                       </tr>

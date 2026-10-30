@@ -323,8 +323,8 @@ export function RequesterDashboardPage() {
             {recentlyUpdated.length === 0 ? (
               <p className="text-muted small my-3">No recent updates</p>
             ) : (
-              <div className="table-responsive" tabIndex={0} aria-label="Recently updated tickets">
-                <table className="table table-hover align-middle mb-0">
+              <div className="table-responsive dashboard-table-wrapper" tabIndex={0} aria-label="Recently updated tickets">
+                <table className="table table-hover align-middle mb-0 dashboard-table">
                   <caption className="visually-hidden">Recently updated tickets</caption>
                   <thead>
                     <tr className="text-muted small">
@@ -338,23 +338,23 @@ export function RequesterDashboardPage() {
                   <tbody>
                     {recentlyUpdated.map((ticket) => (
                       <tr key={ticket.id}>
-                        <td className="fw-semibold small" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
+                        <td data-label="Ticket ID" className="fw-semibold small" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
                           {ticket.ticketNumber}
                         </td>
-                        <td className="fw-medium text-truncate" style={{ maxWidth: 220 }} title={ticket.title}>
+                        <td data-label="Summary" className="fw-medium text-truncate" style={{ maxWidth: 220 }} title={ticket.title}>
                           {ticket.title}
                         </td>
-                        <td>
+                        <td data-label="Status">
                           <StatusBadge status={ticket.status} />
                         </td>
-                        <td>
+                        <td data-label="Priority">
                           {ticket.priority ? (
                             <PriorityBadge priority={ticket.priority as any} />
                           ) : (
                             <span className="text-muted small">—</span>
                           )}
                         </td>
-                        <td className="text-muted small">
+                        <td data-label="Last Updated" className="text-muted small">
                           {formatDate(ticket.updatedAt)}
                         </td>
                       </tr>

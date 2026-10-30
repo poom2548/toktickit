@@ -55,11 +55,16 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/my-tickets/);
 
-    // 7. Responsive check at 360px
+    // 7. Responsive check at 360px (no page or card horizontal scroll)
     await setViewport(page, VIEWPORTS.mobile);
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await expectNoHorizontalScroll(page);
+    const reqCardOverflow = await page.evaluate(() => {
+      const wrappers = Array.from(document.querySelectorAll('.dashboard-table-wrapper'));
+      return wrappers.some((el) => el.scrollWidth > el.clientWidth + 1);
+    });
+    expect(reqCardOverflow).toBe(false);
 
     // 8. Accessibility scan
     await setViewport(page, VIEWPORTS.desktop);
@@ -128,11 +133,16 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/staff\/tickets/);
 
-    // 8. Responsive check at 360px
+    // 8. Responsive check at 360px (no page or card horizontal scroll)
     await setViewport(page, VIEWPORTS.mobile);
     await page.goto('/staff/dashboard');
     await page.waitForLoadState('networkidle');
     await expectNoHorizontalScroll(page);
+    const staffCardOverflow = await page.evaluate(() => {
+      const wrappers = Array.from(document.querySelectorAll('.dashboard-table-wrapper'));
+      return wrappers.some((el) => el.scrollWidth > el.clientWidth + 1);
+    });
+    expect(staffCardOverflow).toBe(false);
 
     // 9. Accessibility scan
     await setViewport(page, VIEWPORTS.desktop);

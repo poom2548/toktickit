@@ -63,3 +63,68 @@
   padding: var(--zen-space-1, 0.25rem) var(--zen-space-3, 0.75rem);
   font-size: var(--zen-text-xs, 0.75rem);
 }
+
+
+/* Responsive Dashboard Tables: Stacked Cards on Mobile (<= 576px) */
+.dashboard-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+@media (max-width: 576px) {
+  .dashboard-table-wrapper {
+    overflow-x: visible !important;
+  }
+
+  .dashboard-table thead {
+    display: none;
+  }
+
+  .dashboard-table,
+  .dashboard-table tbody,
+  .dashboard-table tr,
+  .dashboard-table td {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .dashboard-table tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 0.5rem;
+  }
+
+  .dashboard-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .dashboard-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem !important;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: right;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  .dashboard-table td:last-child {
+    border-bottom: none;
+  }
+
+  .dashboard-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: left;
+    color: #495057;
+    flex-shrink: 0;
+  }
+}

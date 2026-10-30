@@ -34,7 +34,7 @@ describe('AppShell - Mobile Navigation (UI-13, Screen 5)', () => {
       </BrowserRouter>
     )
 
-    const toggleBtn = screen.getByRole('button', { name: /เมนู/i })
+    const toggleBtn = screen.getByRole('button', { name: /menu|เมนู/i })
     expect(toggleBtn).toBeInTheDocument()
     expect(toggleBtn).toHaveAttribute('aria-expanded', 'false')
     expect(toggleBtn).toHaveAttribute('aria-controls', 'mobile-nav')
@@ -49,7 +49,7 @@ describe('AppShell - Mobile Navigation (UI-13, Screen 5)', () => {
       </BrowserRouter>
     )
 
-    const toggleBtn = screen.getByRole('button', { name: /เมนู/i })
+    const toggleBtn = screen.getByRole('button', { name: /menu|เมนู/i })
     expect(toggleBtn).toHaveAttribute('aria-expanded', 'false')
 
     // Click to open
@@ -72,7 +72,7 @@ describe('AppShell - Mobile Navigation (UI-13, Screen 5)', () => {
       </BrowserRouter>
     )
 
-    const toggleBtn = screen.getByRole('button', { name: /เมนู/i })
+    const toggleBtn = screen.getByRole('button', { name: /menu|เมนู/i })
     fireEvent.click(toggleBtn)
     expect(toggleBtn).toHaveAttribute('aria-expanded', 'true')
 
@@ -91,7 +91,7 @@ describe('AppShell - Mobile Navigation (UI-13, Screen 5)', () => {
       </BrowserRouter>
     )
 
-    const toggleBtn = screen.getByRole('button', { name: /เมนู/i })
+    const toggleBtn = screen.getByRole('button', { name: /menu|เมนู/i })
     fireEvent.click(toggleBtn)
     expect(toggleBtn).toHaveAttribute('aria-expanded', 'true')
 

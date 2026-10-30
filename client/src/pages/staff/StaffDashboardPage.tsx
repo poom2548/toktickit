@@ -42,7 +42,7 @@ export function StaffDashboardPage() {
   // Format date helper
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString('th-TH', {
+      return new Date(iso).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -63,9 +63,9 @@ export function StaffDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
         >
           <div className="display-4 mb-3">🚫</div>
-          <h1 className="h4 text-danger mb-3">403 คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (Forbidden)</h1>
+          <h1 className="h4 text-danger mb-3">403 Forbidden</h1>
           <p className="text-muted mb-4">
-            หน้านี้สงวนไว้สำหรับเจ้าหน้าที่ไอที (IT Staff) และผู้ดูแลระบบ (Administrator) เท่านั้น
+            This page is reserved for IT Staff and Administrators only.
           </p>
           <div>
             <Link
@@ -77,7 +77,7 @@ export function StaffDashboardPage() {
                 fontWeight: 600,
               }}
             >
-              ไปยังแดชบอร์ดผู้ร้องขอ (Requester Dashboard)
+              Go to Requester Dashboard
             </Link>
           </div>
         </div>
@@ -130,8 +130,8 @@ export function StaffDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-md, 8px)' }}
         >
           <div>
-            <strong>เกิดข้อผิดพลาดในการโหลดแดชบอร์ด: </strong>
-            <span>{error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'}</span>
+            <strong>Failed to load dashboard: </strong>
+            <span>Unable to load dashboard metrics. Please try again.</span>
           </div>
           <button
             type="button"
@@ -139,7 +139,7 @@ export function StaffDashboardPage() {
             onClick={() => fetchDashboard(false)}
             style={{ borderRadius: 'var(--zen-radius-md, 8px)', fontWeight: 600 }}
           >
-            ลองใหม่ (Retry)
+            Retry
           </button>
         </div>
       </div>
@@ -172,10 +172,10 @@ export function StaffDashboardPage() {
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
           <h1 className="h3 mb-1 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-            ยินดีต้อนรับกลับ, {user?.name || 'เจ้าหน้าที่ไอที'}
+            Welcome back, {user?.name || 'IT Staff'}
           </h1>
           <p className="text-muted small mb-0">
-            ภาพรวมตั๋วในคิวงาน การมอบหมายงาน และสถิติล่าสุด
+            Overview of ticket queues, assignments, and current metrics
           </p>
         </div>
         <div>
@@ -184,7 +184,7 @@ export function StaffDashboardPage() {
             className="btn btn-sm d-inline-flex align-items-center gap-2"
             onClick={() => fetchDashboard(true)}
             disabled={refreshing}
-            aria-label="รีเฟรชข้อมูลแดชบอร์ด"
+            aria-label="Refresh dashboard"
             style={{
               borderRadius: 'var(--zen-radius-md, 8px)',
               backgroundColor: 'var(--zen-bg-surface, #fff)',
@@ -200,7 +200,7 @@ export function StaffDashboardPage() {
             >
               {!refreshing && '🔄'}
             </span>
-            {refreshing ? 'กำลังรีเฟรช...' : 'รีเฟรช (Refresh)'}
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -212,9 +212,9 @@ export function StaffDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
         >
           <div style={{ fontSize: 48 }} className="mb-2">📋</div>
-          <h2 className="h5 text-muted mb-2">ยังไม่มีข้อมูลตั๋ว (No tickets found)</h2>
+          <h2 className="h5 text-muted mb-2">No tickets found</h2>
           <p className="text-muted small mb-3">
-            ปัจจุบันยังไม่มีตั๋วเปิดอยู่ในคิวงานของระบบ
+            There are currently no open tickets in the queue.
           </p>
         </div>
       )}
@@ -232,10 +232,10 @@ export function StaffDashboardPage() {
                 backgroundColor: 'var(--zen-bg-surface, #fff)',
                 borderLeft: '4px solid #ef4444',
               }}
-              aria-label={`ยังไม่ได้มอบหมาย ${metrics.unassigned.value} รายการ`}
+              aria-label={`Unassigned ${metrics.unassigned.value}`}
             >
               <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="text-muted small fw-semibold">ยังไม่ได้มอบหมาย (Unassigned)</span>
+                <span className="text-muted small fw-semibold">Unassigned</span>
                 <span className="badge" style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>
                   Queue
                 </span>
@@ -244,7 +244,7 @@ export function StaffDashboardPage() {
                 {metrics.unassigned.value}
               </div>
               <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
-                ดูตั๋วที่ยังไม่ได้มอบหมาย →
+                View unassigned tickets →
               </div>
             </Link>
           </div>
@@ -259,10 +259,10 @@ export function StaffDashboardPage() {
                 backgroundColor: 'var(--zen-bg-surface, #fff)',
                 borderLeft: '4px solid var(--zen-color-primary, #006B3C)',
               }}
-              aria-label={`คิวของฉัน ${metrics.myOwned.value} รายการ`}
+              aria-label={`My Owned ${metrics.myOwned.value}`}
             >
               <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="text-muted small fw-semibold">คิวของฉัน (My Owned)</span>
+                <span className="text-muted small fw-semibold">My Owned</span>
                 <span className="badge" style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', color: 'var(--zen-color-primary, #006B3C)' }}>
                   Assigned
                 </span>
@@ -271,7 +271,7 @@ export function StaffDashboardPage() {
                 {metrics.myOwned.value}
               </div>
               <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
-                ดูตั๋วในคิวของฉัน →
+                View my queue →
               </div>
             </Link>
           </div>
@@ -296,17 +296,17 @@ export function StaffDashboardPage() {
                 <div className="d-flex align-items-center gap-3 mt-1">
                   <div>
                     <div className="h3 mb-0 fw-bold text-success">{userCounts.active}</div>
-                    <div className="text-muted small">ใช้งานอยู่ (Active)</div>
+                    <div className="text-muted small">Active</div>
                   </div>
                   <div className="vr my-1"></div>
                   <div>
                     <div className="h3 mb-0 fw-bold" style={{ color: '#475569' }}>{userCounts.inactive}</div>
-                    <div className="text-muted small">ปิดใช้งาน (Inactive)</div>
+                    <div className="text-muted small">Inactive</div>
                   </div>
                 </div>
                 <div className="mt-auto pt-2">
                   <Link to="/admin/users" className="small fw-semibold text-decoration-none" style={{ color: '#1d4ed8' }}>
-                    จัดการผู้ใช้ →
+                    Manage users →
                   </Link>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export function StaffDashboardPage() {
               style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
             >
               <h2 className="h5 mb-3 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-                ตามสถานะ (By Status)
+                By Status
               </h2>
               <div className="d-flex flex-wrap gap-2">
                 {STATUS_ORDER.map((statusKey) => {
@@ -342,7 +342,7 @@ export function StaffDashboardPage() {
                         borderColor: '#e5e7eb',
                         backgroundColor: '#fafafa',
                       }}
-                      aria-label={`${statusKey} ${val} รายการ`}
+                      aria-label={`${statusKey} ${val}`}
                     >
                       <span className="small fw-semibold text-dark">{statusKey}</span>
                       <span className="badge rounded-pill bg-white text-dark border ms-2">
@@ -362,13 +362,12 @@ export function StaffDashboardPage() {
               style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
             >
               <h2 className="h5 mb-3 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-                ตามระดับความสำคัญ (By IT Priority)
+                By IT Priority
               </h2>
               <div className="d-flex flex-wrap gap-2">
                 {PRIORITY_ORDER.map((priorityKey) => {
                   const val = metrics.priorityCounts.values[priorityKey] ?? 0;
                   const href = `${metrics.priorityCounts.drillDownBase}${priorityKey}`;
-                  const label = priorityKey === 'UNSET' ? 'ยังไม่ระบุ (UNSET)' : priorityKey;
                   return (
                     <Link
                       key={priorityKey}
@@ -380,9 +379,9 @@ export function StaffDashboardPage() {
                         borderColor: '#e5e7eb',
                         backgroundColor: '#fafafa',
                       }}
-                      aria-label={`${priorityKey === 'UNSET' ? 'ยังไม่ระบุ' : priorityKey} ${val} รายการ`}
+                      aria-label={`${priorityKey} ${val}`}
                     >
-                      <span className="small fw-semibold text-dark">{label}</span>
+                      <span className="small fw-semibold text-dark">{priorityKey}</span>
                       <span className="badge rounded-pill bg-white text-dark border ms-2">
                         {val}
                       </span>
@@ -405,24 +404,24 @@ export function StaffDashboardPage() {
           >
             <div className="d-flex align-items-center justify-content-between mb-3">
               <h2 className="h5 mb-0 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-                อัปเดตล่าสุด (Recent Updates)
+                Recent Updates
               </h2>
-              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>5 รายการล่าสุด</span>
+              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>Latest 5</span>
             </div>
 
             {recentlyUpdated.length === 0 ? (
-              <p className="text-muted small my-3">ไม่มีรายการล่าสุด</p>
+              <p className="text-muted small my-3">No recent updates</p>
             ) : (
-              <div className="table-responsive" tabIndex={0} aria-label="รายการตั๋วที่ได้รับการอัปเดตล่าสุดสำหรับเจ้าหน้าที่">
+              <div className="table-responsive" tabIndex={0} aria-label="Recently updated tickets for staff">
                 <table className="table table-hover align-middle mb-0">
-                  <caption className="visually-hidden">รายการตั๋วที่ได้รับการอัปเดตล่าสุดสำหรับเจ้าหน้าที่</caption>
+                  <caption className="visually-hidden">Recently updated tickets for staff</caption>
                   <thead>
                     <tr className="text-muted small">
-                      <th scope="col" style={{ width: 110 }}>หมายเลขตั๋ว</th>
-                      <th scope="col">หัวข้อปัญหา</th>
-                      <th scope="col" style={{ width: 120 }}>สถานะ</th>
+                      <th scope="col" style={{ width: 110 }}>Ticket ID</th>
+                      <th scope="col">Summary</th>
+                      <th scope="col" style={{ width: 120 }}>Status</th>
                       <th scope="col" style={{ width: 100 }}>IT Priority</th>
-                      <th scope="col" style={{ width: 140 }}>อัปเดตล่าสุด</th>
+                      <th scope="col" style={{ width: 140 }}>Last Updated</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -469,7 +468,7 @@ export function StaffDashboardPage() {
             style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
           >
             <h2 className="h5 mb-3 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-              การดำเนินการด่วน (Quick Actions)
+              Quick Actions
             </h2>
             <div className="d-flex flex-column gap-3">
               <Link
@@ -482,7 +481,7 @@ export function StaffDashboardPage() {
                 }}
               >
                 <span>🎫</span>
-                <span>คิวตั๋วทั้งหมด (Ticket Queue)</span>
+                <span>Ticket Queue</span>
               </Link>
               <Link
                 to="/staff/tickets?statusGroup=open&assignee=me"
@@ -495,7 +494,7 @@ export function StaffDashboardPage() {
                 }}
               >
                 <span>👤</span>
-                <span>ตั๋วที่ฉันรับผิดชอบ (My Queue)</span>
+                <span>My Queue</span>
               </Link>
             </div>
           </div>

@@ -499,19 +499,19 @@ export default function MyTicketsPage({ categories: initialCategories, onNewTick
           style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', border: '1px solid #c3e6cb' }}
         >
           <span className="small fw-bold" style={{ color: 'var(--zen-color-primary-dark, #004d2b)' }}>
-            🔍 ตัวกรองที่ใช้งานอยู่ (Active Filter):
+            🔍 Active Filter:
           </span>
           {appliedStatusGroup && (
-            <span className="badge bg-success">กลุ่มสถานะ: {appliedStatusGroup}</span>
+            <span className="badge bg-success">Status Group: {appliedStatusGroup}</span>
           )}
           {appliedStatus && (
-            <span className="badge bg-secondary">สถานะ: {appliedStatus}</span>
+            <span className="badge bg-secondary">Status: {appliedStatus}</span>
           )}
           {appliedResolvedWithinDays && (
-            <span className="badge bg-info text-dark">แก้ปัญหาใน: {appliedResolvedWithinDays} วัน</span>
+            <span className="badge bg-info text-dark">Resolved within: {appliedResolvedWithinDays} days</span>
           )}
           {appliedPriority && (
-            <span className="badge bg-warning text-dark">ความสำคัญ: {appliedPriority}</span>
+            <span className="badge bg-warning text-dark">Priority: {appliedPriority}</span>
           )}
           <button
             type="button"
@@ -519,7 +519,7 @@ export default function MyTicketsPage({ categories: initialCategories, onNewTick
             style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem', color: 'var(--zen-color-error, #8b0000)', borderColor: 'var(--zen-color-error, #8b0000)' }}
             onClick={handleReset}
           >
-            ล้างตัวกรอง (Clear filters)
+            Clear filters
           </button>
         </div>
       )}

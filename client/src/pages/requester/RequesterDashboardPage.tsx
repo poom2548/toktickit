@@ -39,7 +39,7 @@ export function RequesterDashboardPage() {
   // Format date helper
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString('th-TH', {
+      return new Date(iso).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -60,9 +60,9 @@ export function RequesterDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
         >
           <div className="display-4 mb-3">🚫</div>
-          <h1 className="h4 text-danger mb-3">403 คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (Forbidden)</h1>
+          <h1 className="h4 text-danger mb-3">403 Forbidden</h1>
           <p className="text-muted mb-4">
-            หน้านี้สงวนไว้สำหรับผู้ร้องขอ (Requester) เท่านั้น เจ้าหน้าที่ไอทีหรือผู้ดูแลระบบกรุณาใช้แดชบอร์ดเจ้าหน้าที่
+            This page is reserved for Requesters only. IT Staff and Administrators should use the Staff Dashboard.
           </p>
           <div>
             <Link
@@ -74,7 +74,7 @@ export function RequesterDashboardPage() {
                 fontWeight: 600,
               }}
             >
-              ไปยังแดชบอร์ดเจ้าหน้าที่ (Staff Dashboard)
+              Go to Staff Dashboard
             </Link>
           </div>
         </div>
@@ -127,8 +127,8 @@ export function RequesterDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-md, 8px)' }}
         >
           <div>
-            <strong>เกิดข้อผิดพลาดในการโหลดแดชบอร์ด: </strong>
-            <span>{error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'}</span>
+            <strong>Failed to load dashboard: </strong>
+            <span>Unable to load dashboard metrics. Please try again.</span>
           </div>
           <button
             type="button"
@@ -136,7 +136,7 @@ export function RequesterDashboardPage() {
             onClick={() => fetchDashboard(false)}
             style={{ borderRadius: 'var(--zen-radius-md, 8px)', fontWeight: 600 }}
           >
-            ลองใหม่ (Retry)
+            Retry
           </button>
         </div>
       </div>
@@ -159,10 +159,10 @@ export function RequesterDashboardPage() {
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
           <h1 className="h3 mb-1 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-            ยินดีต้อนรับกลับ, {user?.name || 'ผู้ร้องขอ'}
+            Welcome back, {user?.name || 'Requester'}
           </h1>
           <p className="text-muted small mb-0">
-            ภาพรวมตั๋วแจ้งปัญหาและการดำเนินการที่เกี่ยวข้องกับคุณ
+            Overview of your reported tickets and recent activity
           </p>
         </div>
         <div>
@@ -171,7 +171,7 @@ export function RequesterDashboardPage() {
             className="btn btn-sm d-inline-flex align-items-center gap-2"
             onClick={() => fetchDashboard(true)}
             disabled={refreshing}
-            aria-label="รีเฟรชข้อมูลแดชบอร์ด"
+            aria-label="Refresh dashboard"
             style={{
               borderRadius: 'var(--zen-radius-md, 8px)',
               backgroundColor: 'var(--zen-bg-surface, #fff)',
@@ -187,7 +187,7 @@ export function RequesterDashboardPage() {
             >
               {!refreshing && '🔄'}
             </span>
-            {refreshing ? 'กำลังรีเฟรช...' : 'รีเฟรช (Refresh)'}
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -199,9 +199,9 @@ export function RequesterDashboardPage() {
           style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
         >
           <div style={{ fontSize: 48 }} className="mb-2">📋</div>
-          <h2 className="h5 text-muted mb-2">ยังไม่มีข้อมูลตั๋ว (No tickets found)</h2>
+          <h2 className="h5 text-muted mb-2">No tickets found</h2>
           <p className="text-muted small mb-3">
-            คุณยังไม่มีตั๋วแจ้งปัญหาในระบบ หรือยังไม่มีตั๋วที่อยู่ในกระบวนการ
+            You do not have any tickets in the system yet.
           </p>
           <div>
             <Link
@@ -213,7 +213,7 @@ export function RequesterDashboardPage() {
                 fontWeight: 600,
               }}
             >
-              ➕ สร้างตั๋วใหม่ทันที
+              ➕ Create New Ticket
             </Link>
           </div>
         </div>
@@ -232,10 +232,10 @@ export function RequesterDashboardPage() {
                 backgroundColor: 'var(--zen-bg-surface, #fff)',
                 borderLeft: '4px solid var(--zen-color-primary, #006B3C)',
               }}
-              aria-label={`ตั๋วที่ยังเปิดอยู่ ${metrics.openTickets.value} รายการ`}
+              aria-label={`My Open Tickets ${metrics.openTickets.value}`}
             >
               <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="text-muted small fw-semibold">ตั๋วที่ยังเปิดอยู่ (My Open Tickets)</span>
+                <span className="text-muted small fw-semibold">My Open Tickets</span>
                 <span className="badge" style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', color: 'var(--zen-color-primary, #006B3C)' }}>
                   Open
                 </span>
@@ -244,7 +244,7 @@ export function RequesterDashboardPage() {
                 {metrics.openTickets.value}
               </div>
               <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
-                ดูทั้งหมด →
+                View all →
               </div>
             </Link>
           </div>
@@ -259,10 +259,10 @@ export function RequesterDashboardPage() {
                 backgroundColor: 'var(--zen-bg-surface, #fff)',
                 borderLeft: '4px solid #f59e0b',
               }}
-              aria-label={`รอฉันดำเนินการ ${metrics.waitingForMe.value} รายการ`}
+              aria-label={`Waiting for Me ${metrics.waitingForMe.value}`}
             >
               <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="text-muted small fw-semibold">รอฉันดำเนินการ (Waiting for Me)</span>
+                <span className="text-muted small fw-semibold">Waiting for Me</span>
                 <span className="badge" style={{ backgroundColor: '#fffbeb', color: '#b45309' }}>
                   Action Needed
                 </span>
@@ -271,7 +271,7 @@ export function RequesterDashboardPage() {
                 {metrics.waitingForMe.value}
               </div>
               <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
-                ดูทั้งหมด →
+                View all →
               </div>
             </Link>
           </div>
@@ -286,19 +286,19 @@ export function RequesterDashboardPage() {
                 backgroundColor: 'var(--zen-bg-surface, #fff)',
                 borderLeft: '4px solid var(--zen-color-secondary, #0B7A46)',
               }}
-              aria-label={`แก้ปัญหาแล้วล่าสุด ${metrics.recentlyResolved.value} รายการ`}
+              aria-label={`Recently Resolved ${metrics.recentlyResolved.value}`}
             >
               <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="text-muted small fw-semibold">แก้ปัญหาแล้วล่าสุด (Recently Resolved)</span>
+                <span className="text-muted small fw-semibold">Recently Resolved</span>
                 <span className="badge" style={{ backgroundColor: '#ecfdf5', color: '#047857' }}>
-                  7 วันล่าสุด
+                  Last 7 Days
                 </span>
               </div>
               <div className="h2 mb-2 fw-bold" style={{ color: 'var(--zen-color-secondary, #0B7A46)' }}>
                 {metrics.recentlyResolved.value}
               </div>
               <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
-                ดูทั้งหมด →
+                View all →
               </div>
             </Link>
           </div>
@@ -315,24 +315,24 @@ export function RequesterDashboardPage() {
           >
             <div className="d-flex align-items-center justify-content-between mb-3">
               <h2 className="h5 mb-0 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-                อัปเดตล่าสุด (Recent Updates)
+                Recent Updates
               </h2>
-              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>5 รายการล่าสุด</span>
+              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>Latest 5</span>
             </div>
 
             {recentlyUpdated.length === 0 ? (
-              <p className="text-muted small my-3">ไม่มีรายการล่าสุด</p>
+              <p className="text-muted small my-3">No recent updates</p>
             ) : (
-              <div className="table-responsive" tabIndex={0} aria-label="รายการตั๋วที่ได้รับการอัปเดตล่าสุด">
+              <div className="table-responsive" tabIndex={0} aria-label="Recently updated tickets">
                 <table className="table table-hover align-middle mb-0">
-                  <caption className="visually-hidden">รายการตั๋วที่ได้รับการอัปเดตล่าสุด</caption>
+                  <caption className="visually-hidden">Recently updated tickets</caption>
                   <thead>
                     <tr className="text-muted small">
-                      <th scope="col" style={{ width: 110 }}>หมายเลขตั๋ว</th>
-                      <th scope="col">หัวข้อปัญหา</th>
-                      <th scope="col" style={{ width: 120 }}>สถานะ</th>
-                      <th scope="col" style={{ width: 100 }}>ความสำคัญ</th>
-                      <th scope="col" style={{ width: 140 }}>อัปเดตล่าสุด</th>
+                      <th scope="col" style={{ width: 110 }}>Ticket ID</th>
+                      <th scope="col">Summary</th>
+                      <th scope="col" style={{ width: 120 }}>Status</th>
+                      <th scope="col" style={{ width: 100 }}>Priority</th>
+                      <th scope="col" style={{ width: 140 }}>Last Updated</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -373,7 +373,7 @@ export function RequesterDashboardPage() {
             style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
           >
             <h2 className="h5 mb-3 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
-              การดำเนินการด่วน (Quick Actions)
+              Quick Actions
             </h2>
             <div className="d-flex flex-column gap-3">
               <Link
@@ -386,7 +386,7 @@ export function RequesterDashboardPage() {
                 }}
               >
                 <span>➕</span>
-                <span>สร้างตั๋วใหม่ (New Ticket)</span>
+                <span>New Ticket</span>
               </Link>
               <Link
                 to="/my-tickets"
@@ -399,7 +399,7 @@ export function RequesterDashboardPage() {
                 }}
               >
                 <span>🎟️</span>
-                <span>ดูตั๋วทั้งหมดของฉัน (My Tickets)</span>
+                <span>My Tickets</span>
               </Link>
             </div>
           </div>

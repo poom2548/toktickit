@@ -200,7 +200,7 @@ describe('Requester Dashboard', () => {
 
     // Verify recentlyResolved
     expect(res.body.metrics.recentlyResolved.value).toBe(expectedRecentlyResolved);
-    expect(res.body.metrics.recentlyResolved.label).toBe('แก้ปัญหาแล้วล่าสุด (Recently Resolved)');
+    expect(res.body.metrics.recentlyResolved.label).toBe('Recently Resolved');
     expect(res.body.metrics.recentlyResolved.drillDown).toBe('/my-tickets?status=RESOLVED&resolvedWithinDays=7');
 
     // Verify recentlyUpdated order and cap of 5

@@ -73,12 +73,21 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          unassignedOpenCount: 0,
-          myOpenCount: 0,
-          recentlyResolvedCount: 0,
-          totalOpenCount: 0,
-          statusCounts: { NEW: 0, OPEN: 0, IN_PROGRESS: 0, WAITING_FOR_REQUESTER: 0, REOPENED: 0 },
-          priorityCounts: { UNSET: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 },
+          metrics: {
+            unassigned: { value: 0, label: 'Unassigned', drillDown: '/staff/tickets?statusGroup=open&assignee=unassigned' },
+            myOwned: { value: 0, label: 'My Owned', drillDown: '/staff/tickets?statusGroup=open&assignee=me' },
+            statusCounts: {
+              label: 'By Status',
+              values: { NEW: 0, OPEN: 0, IN_PROGRESS: 0, WAITING_FOR_REQUESTER: 0, REOPENED: 0 },
+              drillDownBase: '/staff/tickets?status=',
+            },
+            priorityCounts: {
+              label: 'By IT Priority',
+              values: { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0, UNSET: 0 },
+              drillDownBase: '/staff/tickets?statusGroup=open&priority=',
+            },
+          },
+          recentlyUpdated: [],
         }),
       })
     );
@@ -141,10 +150,12 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          openTicketsCount: 0,
-          recentlyResolvedCount: 0,
-          actionNeededCount: 0,
-          highPriorityOpenCount: 0,
+          metrics: {
+            openTickets: { value: 0, label: 'My Open Tickets', drillDown: '/my-tickets?statusGroup=open' },
+            waitingForMe: { value: 0, label: 'Waiting for Me', drillDown: '/my-tickets?status=WAITING_FOR_REQUESTER' },
+            recentlyResolved: { value: 0, label: 'Recently Resolved', drillDown: '/my-tickets?status=RESOLVED&resolvedWithinDays=7' },
+          },
+          recentlyUpdated: [],
         }),
       })
     );
@@ -417,7 +428,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
 
     // 5.2 My Tickets (with drill-down chip)
     await loginAs(page, 'REQUESTER');
-    await page.goto('/tickets?statusGroup=open');
+    await page.goto('/my-tickets?statusGroup=open');
     await page.waitForLoadState('networkidle');
     for (const vp of [VIEWPORTS.desktop, VIEWPORTS.mobile]) {
       await capture(page, subDir, screen, 'my-tickets', vp);
@@ -454,7 +465,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await setViewport(page, VIEWPORTS.mobile);
     await page.goto('/staff/dashboard');
     await page.waitForLoadState('networkidle');
-    const toggler = page.locator('button[aria-label="เมนู"], button:has-text("☰")').first();
+    const toggler = page.locator('button[aria-label="Menu"], button[aria-label="เมนู"], button:has-text("☰")').first();
     if (await toggler.isVisible()) {
       await toggler.click();
       await page.waitForTimeout(300);

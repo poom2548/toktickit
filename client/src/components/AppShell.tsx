@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {user?.role === 'REQUESTER' && (
                 <>
                   <Link to="/dashboard" style={navLinkStyle('/dashboard')} aria-current={isActive('/dashboard') ? 'page' : undefined}>
-                    📊 แดชบอร์ด
+                    📊 Dashboard
                   </Link>
                   <Link to="/tickets" style={navLinkStyle('/tickets')} aria-current={isActive('/tickets') ? 'page' : undefined}>
                     My Tickets
@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {(user?.role === 'IT_STAFF' || user?.role === 'ADMINISTRATOR') && (
                 <>
                   <Link to="/staff/dashboard" style={navLinkStyle('/staff/dashboard')} aria-current={isActive('/staff/dashboard') ? 'page' : undefined}>
-                    📊 แดชบอร์ด
+                    📊 Dashboard
                   </Link>
                   <Link to="/staff/tickets" style={navLinkStyle('/staff/tickets')} aria-current={isActive('/staff/tickets') ? 'page' : undefined}>
                     🎫 Ticket Queue
@@ -150,13 +150,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               ref={toggleBtnRef}
               type="button"
               className="btn btn-sm d-md-none text-white border-0 p-1"
-              aria-label="เมนู"
+              aria-label="Menu"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-nav"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
               style={{ fontSize: '1.25rem', lineHeight: 1 }}
             >
-              ☰ <span className="visually-hidden">เมนู</span>
+              ☰ <span className="visually-hidden">Menu</span>
             </button>
           </div>
         </div>
@@ -177,7 +177,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     aria-current={isActive('/dashboard') ? 'page' : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    📊 แดชบอร์ด
+                    📊 Dashboard
                   </Link>
                   <Link
                     to="/tickets"
@@ -197,7 +197,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     aria-current={isActive('/staff/dashboard') ? 'page' : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    📊 แดชบอร์ด
+                    📊 Dashboard
                   </Link>
                   <Link
                     to="/staff/tickets"

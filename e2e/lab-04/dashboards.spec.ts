@@ -35,7 +35,7 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await expect(resolvedCard).toHaveAttribute('href', '/my-tickets?status=RESOLVED&resolvedWithinDays=7');
 
     // 5. Quick Actions
-    const myTicketsAction = page.locator('main').getByRole('link', { name: /ดูตั๋วทั้งหมดของฉัน/i });
+    const myTicketsAction = page.locator('main').getByRole('link', { name: /my tickets|ดูตั๋วทั้งหมดของฉัน/i });
     await expect(myTicketsAction).toBeVisible();
     await expect(myTicketsAction).toHaveAttribute('href', '/my-tickets');
 
@@ -141,7 +141,7 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
 
     // 2. User accounts card should be visible
     await expect(page.getByText(/user accounts/i)).toBeVisible();
-    await expect(page.getByText(/ใช้งานอยู่ \(active\)/i)).toBeVisible();
+    await expect(page.getByText(/^active$|ใช้งานอยู่ \(active\)/i)).toBeVisible();
   });
 
   test('E2E-03d: IT Staff accessing Requester Dashboard shows 403 page with back link to Staff Dashboard', async ({ page }) => {

@@ -35,7 +35,7 @@ export const LABELS = {
   requester: {
     openTickets: 'My Open Tickets',
     waitingForMe: 'Waiting for Me',
-    recentlyResolved: 'แก้ปัญหาแล้วล่าสุด (Recently Resolved)',
+    recentlyResolved: 'Recently Resolved',
   },
   staff: {
     unassigned: 'Unassigned',

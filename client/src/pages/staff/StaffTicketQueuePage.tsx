@@ -137,20 +137,20 @@ export function StaffTicketQueuePage() {
       style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', border: '1px solid #c3e6cb' }}
     >
       <span className="small fw-bold" style={{ color: 'var(--zen-color-primary-dark, #004d2b)' }}>
-        🔍 ตัวกรองที่ใช้งานอยู่ (Active Filter):
+        🔍 Active Filter:
       </span>
-      {statusGroup && <span className="badge bg-success">กลุ่มสถานะ: {statusGroup}</span>}
-      {assignee && <span className="badge bg-primary">ผู้รับผิดชอบ: {assignee === 'me' ? 'ฉัน' : 'ยังไม่ได้มอบหมาย'}</span>}
-      {statusFilter && <span className="badge bg-secondary">สถานะ: {statusFilter}</span>}
-      {priorityFilter && <span className="badge bg-warning text-dark">ระดับความสำคัญ: {priorityFilter}</span>}
-      {resolvedWithinDays && <span className="badge bg-info text-dark">แก้ปัญหาใน: {resolvedWithinDays} วัน</span>}
+      {statusGroup && <span className="badge bg-success">Status Group: {statusGroup}</span>}
+      {assignee && <span className="badge bg-primary">Assignee: {assignee === 'me' ? 'Me' : 'Unassigned'}</span>}
+      {statusFilter && <span className="badge bg-secondary">Status: {statusFilter}</span>}
+      {priorityFilter && <span className="badge bg-warning text-dark">Priority: {priorityFilter}</span>}
+      {resolvedWithinDays && <span className="badge bg-info text-dark">Resolved within: {resolvedWithinDays} days</span>}
       <button
         type="button"
         className="btn btn-sm btn-outline-danger ms-auto"
         style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem', color: 'var(--zen-color-error, #8b0000)', borderColor: 'var(--zen-color-error, #8b0000)' }}
         onClick={handleClearFilters}
       >
-        ล้างตัวกรอง (Clear filters)
+        Clear filters
       </button>
     </div>
   )

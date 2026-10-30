@@ -48,7 +48,7 @@ const mockRequesterDashboardData = {
     },
     recentlyResolved: {
       value: 2,
-      label: 'แก้ปัญหาแล้วล่าสุด (Recently Resolved)',
+      label: 'Recently Resolved',
       drillDown: '/my-tickets?status=RESOLVED&resolvedWithinDays=7',
     },
   },

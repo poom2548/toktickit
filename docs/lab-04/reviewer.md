@@ -16,7 +16,7 @@
 | Issue 7 | feature/issue-7-lab4-ticket-detail-ui | https://github.com/poom2548/toktickit/pull/67 | Approved |
 | Issue 8 | feature/issue-8-lab4-dashboards-ui | https://github.com/poom2548/toktickit/pull/68 | Approved |
 | Issue 9 | feature/issue-9-lab4-hardening | https://github.com/poom2548/toktickit/pull/69 | Approved |
-| Issue 10 | feature/issue-10-lab4-docs-release | <<HUMAN TO FILL: PR link after it is opened>> | <<HUMAN TO FILL: approval status>> |
+| Issue 10 | feature/issue-10-lab4-docs-release | https://github.com/poom2548/toktickit/pull/70 | Approved |
 
 ---
 
@@ -296,7 +296,5 @@
 
 ### Issue 10
 **Reviewer:**
-> <<HUMAN TO FILL: comments and responses from the PR page>>
+> ตรวจแล้วผ่านเรียบร้อย
 
-**Author (Me):**
-> <<HUMAN TO FILL: author responses if changes requested>>

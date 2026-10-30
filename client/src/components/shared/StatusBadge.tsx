@@ -15,7 +15,7 @@ import './badges.css'
 // e.g., .badge--new { background: var(--zen-status-new-bg); color: var(--zen-status-new-text); }
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`badge badge--status badge--${status.toLowerCase().replace('_', '-')}`}>
+    <span className={`badge badge--status badge--${status.toLowerCase().replace(/_/g, '-')}`}>
       {STATUS_LABELS[status] ?? status}
     </span>
   )

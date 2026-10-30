@@ -78,10 +78,12 @@ export async function getStaffDashboardData(
   const [
     unassigned,
     myOwned,
+    myActionsTakenCount,
     statusGroupCounts,
     priorityGroupCounts,
     unsetPriorityCount,
     recentlyUpdated,
+    myActionsTaken,
     userCounts,
   ] = await Promise.all([
     prisma.ticket.count({
@@ -94,6 +96,11 @@ export async function getStaffDashboardData(
       where: {
         ownerId: userId,
         status: { in: [...OPEN_TICKET_STATUSES] },
+      },
+    }),
+    prisma.actionTaken.count({
+      where: {
+        performedById: userId,
       },
     }),
     prisma.ticket.groupBy({
@@ -130,6 +137,27 @@ export async function getStaffDashboardData(
         updatedAt: true,
       },
     }),
+    prisma.actionTaken.findMany({
+      where: {
+        performedById: userId,
+      },
+      orderBy: [{ actionAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      take: RECENTLY_UPDATED_CAP,
+      select: {
+        id: true,
+        ticketId: true,
+        actionAt: true,
+        description: true,
+        result: true,
+        followUpRequired: true,
+        ticket: {
+          select: {
+            ticketNumber: true,
+            summary: true,
+          },
+        },
+      },
+    }),
     userCountsPromise,
   ]);
 
@@ -162,9 +190,11 @@ export async function getStaffDashboardData(
   return {
     unassigned,
     myOwned,
+    myActionsTakenCount,
     statusCounts,
     priorityCounts,
     recentlyUpdated,
+    myActionsTaken,
     userCounts,
   };
 }

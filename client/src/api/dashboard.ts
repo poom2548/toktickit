@@ -26,9 +26,21 @@ export interface RequesterDashboardResponse {
   recentlyUpdated: RecentlyUpdatedTicket[];
 }
 
+export interface StaffDashboardActionItem {
+  id: string;
+  ticketId: number;
+  ticketNumber: string;
+  ticketTitle: string;
+  action: string;
+  result: string;
+  followUpRequired: boolean;
+  actionAt: string;
+}
+
 export interface StaffDashboardMetrics {
   unassigned: DashboardMetricItem;
   myOwned: DashboardMetricItem;
+  myActionsTaken?: DashboardMetricItem;
   statusCounts: {
     label: string;
     values: {
@@ -66,6 +78,7 @@ export interface StaffDashboardResponse {
     inactive: number;
   };
   recentlyUpdated: RecentlyUpdatedTicket[];
+  myActionsTaken?: StaffDashboardActionItem[];
 }
 
 export async function getRequesterDashboard(): Promise<RequesterDashboardResponse> {

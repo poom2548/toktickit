@@ -92,6 +92,12 @@ test.describe('E2E-03: Dashboards UI, Navigation, and Drill-Down Integration', (
     await expect(myOwnedCard).toBeVisible();
     await expect(myOwnedCard).toHaveAttribute('href', '/staff/tickets?statusGroup=open&assignee=me');
 
+    const myActionsCard = page.getByRole('link', { name: /my actions taken/i });
+    await expect(myActionsCard).toBeVisible();
+    await expect(myActionsCard).toHaveAttribute('href', '/staff/tickets?assignee=me');
+
+    await expect(page.getByText(/my recent actions taken/i)).toBeVisible();
+
     // 5. By Status and By IT Priority buckets
     await expect(page.getByText(/ตามสถานะ|by status/i)).toBeVisible();
     const inProgressBucket = page.getByRole('link', { name: /IN_PROGRESS/i });

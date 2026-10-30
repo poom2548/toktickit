@@ -149,6 +149,12 @@ export function StaffDashboardPage() {
   // 4. Data View
   const metrics = data?.metrics;
   const recentlyUpdated = data?.recentlyUpdated ?? [];
+  const myActionsTaken = data?.myActionsTaken ?? [];
+  const myActionsTakenMetric = metrics?.myActionsTaken ?? {
+    label: 'My Actions Taken',
+    value: myActionsTaken.length,
+    drillDown: '/staff/tickets?assignee=me',
+  };
   const statusValues = metrics?.statusCounts?.values;
   const priorityValues = metrics?.priorityCounts?.values;
 
@@ -165,6 +171,9 @@ export function StaffDashboardPage() {
   const isAdmin = user?.role === 'ADMINISTRATOR';
   const userCounts = data?.userCounts || (metrics as any)?.userCounts;
   const showUserCounts = isAdmin && !!userCounts;
+  const topCardColClass = showUserCounts
+    ? 'col-12 col-sm-6 col-lg-3'
+    : 'col-12 col-sm-6 col-lg-4';
 
   return (
     <div className="container py-4" style={{ maxWidth: 1140 }}>
@@ -219,11 +228,11 @@ export function StaffDashboardPage() {
         </div>
       )}
 
-      {/* Top Metric Cards: Unassigned, My Owned, User Accounts (Admin only) */}
+      {/* Top Metric Cards: Unassigned, My Owned, My Actions Taken, User Accounts (Admin only) */}
       {metrics && (
         <div className="row g-3 mb-4">
           {/* Card 1: Unassigned */}
-          <div className="col-12 col-sm-6 col-lg-4">
+          <div className={topCardColClass}>
             <Link
               to={metrics.unassigned.drillDown}
               className="card text-decoration-none shadow-sm border-0 p-3 h-100 transition-shadow"
@@ -250,7 +259,7 @@ export function StaffDashboardPage() {
           </div>
 
           {/* Card 2: My Owned */}
-          <div className="col-12 col-sm-6 col-lg-4">
+          <div className={topCardColClass}>
             <Link
               to={metrics.myOwned.drillDown}
               className="card text-decoration-none shadow-sm border-0 p-3 h-100 transition-shadow"
@@ -276,9 +285,36 @@ export function StaffDashboardPage() {
             </Link>
           </div>
 
-          {/* Card 3: User Accounts (Admin Only) */}
+          {/* Card 3: My Actions Taken */}
+          <div className={topCardColClass}>
+            <Link
+              to={myActionsTakenMetric.drillDown}
+              className="card text-decoration-none shadow-sm border-0 p-3 h-100 transition-shadow"
+              style={{
+                borderRadius: 'var(--zen-radius-lg, 12px)',
+                backgroundColor: 'var(--zen-bg-surface, #fff)',
+                borderLeft: '4px solid #0284c7',
+              }}
+              aria-label={`My Actions Taken ${myActionsTakenMetric.value}`}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <span className="text-muted small fw-semibold">My Actions Taken</span>
+                <span className="badge" style={{ backgroundColor: '#e0f2fe', color: '#0369a1' }}>
+                  Actions
+                </span>
+              </div>
+              <div className="h2 mb-2 fw-bold" style={{ color: '#0369a1' }}>
+                {myActionsTakenMetric.value}
+              </div>
+              <div className="mt-auto small fw-semibold d-flex align-items-center gap-1" style={{ color: 'var(--zen-color-primary, #006B3C)' }}>
+                View my tickets →
+              </div>
+            </Link>
+          </div>
+
+          {/* Card 4: User Accounts (Admin Only) */}
           {showUserCounts && userCounts && (
-            <div className="col-12 col-sm-6 col-lg-4">
+            <div className={topCardColClass}>
               <div
                 className="card shadow-sm border-0 p-3 h-100"
                 style={{
@@ -395,7 +431,7 @@ export function StaffDashboardPage() {
       )}
 
       {/* Lower Row: Recent Updates (60%) & Quick Actions (40%) */}
-      <div className="row g-4">
+      <div className="row g-4 mb-4">
         {/* Recent Updates */}
         <div className="col-12 col-lg-8">
           <div
@@ -497,6 +533,85 @@ export function StaffDashboardPage() {
                 <span>My Queue</span>
               </Link>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Current-User Actions Taken Section */}
+      <div className="row g-4">
+        <div className="col-12">
+          <div
+            className="card shadow-sm border-0 p-4"
+            style={{ borderRadius: 'var(--zen-radius-lg, 12px)', backgroundColor: 'var(--zen-bg-surface, #fff)' }}
+          >
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h2 className="h5 mb-0 fw-bold" style={{ color: 'var(--zen-color-text, #212529)' }}>
+                My Recent Actions Taken
+              </h2>
+              <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1' }}>
+                Latest 5
+              </span>
+            </div>
+
+            {myActionsTaken.length === 0 ? (
+              <p className="text-muted small my-3">No actions recorded by you yet</p>
+            ) : (
+              <div className="table-responsive" tabIndex={0} aria-label="Recent actions taken by current user">
+                <table className="table table-hover align-middle mb-0">
+                  <caption className="visually-hidden">Recent actions taken by current user</caption>
+                  <thead>
+                    <tr className="text-muted small">
+                      <th scope="col" style={{ width: 110 }}>Ticket ID</th>
+                      <th scope="col">Action Taken</th>
+                      <th scope="col">Result</th>
+                      <th scope="col" style={{ width: 140 }}>Follow-Up</th>
+                      <th scope="col" style={{ width: 160 }}>Recorded At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myActionsTaken.map((act) => (
+                      <tr key={act.id}>
+                        <td>
+                          <Link
+                            to={`/staff/tickets/${act.ticketId}`}
+                            className="fw-semibold small text-decoration-none"
+                            style={{ color: 'var(--zen-color-primary, #006B3C)' }}
+                          >
+                            {act.ticketNumber}
+                          </Link>
+                        </td>
+                        <td className="fw-medium text-truncate" style={{ maxWidth: 260 }} title={act.action}>
+                          {act.action}
+                        </td>
+                        <td className="text-muted small text-truncate" style={{ maxWidth: 240 }} title={act.result}>
+                          {act.result}
+                        </td>
+                        <td>
+                          {act.followUpRequired ? (
+                            <span
+                              className="badge"
+                              style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d' }}
+                            >
+                              Follow-up Required
+                            </span>
+                          ) : (
+                            <span
+                              className="badge"
+                              style={{ backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1' }}
+                            >
+                              None
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-muted small">
+                          {formatDate(act.actionAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

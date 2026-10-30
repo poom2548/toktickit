@@ -26,6 +26,7 @@ export const DRILL_DOWNS = {
   staff: {
     unassigned: '/staff/tickets?statusGroup=open&assignee=unassigned',
     myOwned: '/staff/tickets?statusGroup=open&assignee=me',
+    myActionsTaken: '/staff/tickets?assignee=me',
     statusCountsBase: '/staff/tickets?status=',
     priorityCountsBase: '/staff/tickets?statusGroup=open&priority=',
   },
@@ -40,6 +41,7 @@ export const LABELS = {
   staff: {
     unassigned: 'Unassigned',
     myOwned: 'My Owned',
+    myActionsTaken: 'My Actions Taken',
     statusCounts: 'By Status',
     priorityCounts: 'By IT Priority',
     userCounts: 'User Accounts (Admin Only)',

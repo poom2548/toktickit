@@ -382,6 +382,11 @@
         "value": 4,
         "drillDown": "/staff/tickets?statusGroup=open&assignee=me"
       },
+      "myActionsTaken": {
+        "label": "My Actions Taken",
+        "value": 2,
+        "drillDown": "/staff/tickets?assignee=me"
+      },
       "statusCounts": {
         "label": "By Status",
         "values": { "NEW": 2, "OPEN": 5, "IN_PROGRESS": 3, "WAITING_FOR_REQUESTER": 1, "REOPENED": 1 },
@@ -406,6 +411,18 @@
         "status": "WAITING_FOR_REQUESTER",
         "priority": "HIGH",
         "updatedAt": "2026-10-03T09:30:00Z"
+      }
+    ],
+    "myActionsTaken": [
+      {
+        "id": "seed-act-TKT-001-3",
+        "ticketId": 1,
+        "ticketNumber": "TKT-001",
+        "ticketTitle": "Cannot access VPN",
+        "action": "Contacted ISP",
+        "result": "Awaiting response",
+        "followUpRequired": false,
+        "actionAt": "2026-10-02T09:00:00Z"
       }
     ]
   }

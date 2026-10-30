@@ -82,12 +82,53 @@ export function serializeRequesterDashboard(data: RequesterDashboardData) {
   };
 }
 
+export interface RecentStaffActionRecord {
+  id: string;
+  ticketId: number;
+  actionAt: Date;
+  description: string;
+  result: string;
+  followUpRequired: boolean;
+  ticket: {
+    ticketNumber: string;
+    summary: string;
+  };
+}
+
+export interface SerializedStaffAction {
+  id: string;
+  ticketId: number;
+  ticketNumber: string;
+  ticketTitle: string;
+  action: string;
+  result: string;
+  followUpRequired: boolean;
+  actionAt: string;
+}
+
+export function serializeStaffRecentAction(
+  record: RecentStaffActionRecord
+): SerializedStaffAction {
+  return {
+    id: record.id,
+    ticketId: record.ticketId,
+    ticketNumber: record.ticket.ticketNumber,
+    ticketTitle: record.ticket.summary,
+    action: record.description,
+    result: record.result,
+    followUpRequired: record.followUpRequired,
+    actionAt: record.actionAt.toISOString(),
+  };
+}
+
 export interface StaffDashboardData {
   unassigned: number;
   myOwned: number;
+  myActionsTakenCount?: number;
   statusCounts: Record<string, number>;
   priorityCounts: Record<string, number>;
   recentlyUpdated: RecentTicketRecord[];
+  myActionsTaken?: RecentStaffActionRecord[];
   userCounts?: {
     active: number;
     inactive: number;
@@ -103,6 +144,11 @@ export function serializeStaffDashboard(data: StaffDashboardData) {
         drillDown: string;
       };
       myOwned: {
+        label: string;
+        value: number;
+        drillDown: string;
+      };
+      myActionsTaken: {
         label: string;
         value: number;
         drillDown: string;
@@ -124,6 +170,7 @@ export function serializeStaffDashboard(data: StaffDashboardData) {
       inactive: number;
     };
     recentlyUpdated: SerializedRecentTicket[];
+    myActionsTaken: SerializedStaffAction[];
   } = {
     metrics: {
       unassigned: {
@@ -135,6 +182,11 @@ export function serializeStaffDashboard(data: StaffDashboardData) {
         label: LABELS.staff.myOwned,
         value: data.myOwned,
         drillDown: DRILL_DOWNS.staff.myOwned,
+      },
+      myActionsTaken: {
+        label: LABELS.staff.myActionsTaken,
+        value: data.myActionsTakenCount ?? 0,
+        drillDown: DRILL_DOWNS.staff.myActionsTaken,
       },
       statusCounts: {
         label: LABELS.staff.statusCounts,
@@ -148,6 +200,7 @@ export function serializeStaffDashboard(data: StaffDashboardData) {
       },
     },
     recentlyUpdated: data.recentlyUpdated.map(serializeStaffRecentTicket),
+    myActionsTaken: (data.myActionsTaken ?? []).map(serializeStaffRecentAction),
   };
 
   if (data.userCounts) {

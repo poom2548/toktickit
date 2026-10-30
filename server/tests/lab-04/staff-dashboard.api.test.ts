@@ -100,17 +100,36 @@ describe('Staff Dashboard', () => {
     });
 
     // 5. Open tickets with null itPriority (only requestedPriority set) -> must be counted under UNSET
-    await createTicket({
+    const openUnsetTicket = await createTicket({
       ownerId: null,
       status: TicketStatus.OPEN,
       itPriority: null as any,
       requestedPriority: Priority.HIGH,
     });
-    await createTicket({
+    const staffOwnedTicket = await createTicket({
       ownerId: staff.id,
       status: TicketStatus.IN_PROGRESS,
       itPriority: null as any,
       requestedPriority: Priority.LOW,
+    });
+
+    // 6. Actions Taken by current user (staff) vs other staff
+    await createAction(staffOwnedTicket.id, {
+      performedById: staff.id,
+      description: 'Reset network adapter',
+      result: 'Connection restored',
+      followUpRequired: true,
+      followUpNote: 'Verify stability tomorrow',
+    });
+    await createAction(openUnsetTicket.id, {
+      performedById: staff.id,
+      description: 'Checked router logs',
+      result: 'No packet loss detected',
+    });
+    await createAction(openUnsetTicket.id, {
+      performedById: otherStaff.id,
+      description: 'Other staff action',
+      result: 'Other staff result',
     });
 
     const openStatuses: TicketStatus[] = [
@@ -185,6 +204,17 @@ describe('Staff Dashboard', () => {
     expect(res.body.metrics.myOwned.value).toBe(expectedMyOwned);
     expect(res.body.metrics.myOwned.label).toBe('My Owned');
     expect(res.body.metrics.myOwned.drillDown).toBe('/staff/tickets?statusGroup=open&assignee=me');
+
+    // Verify myActionsTaken (current-user Actions Taken)
+    const expectedMyActionsCount = await prisma.actionTaken.count({
+      where: { performedById: staff.id },
+    });
+    expect(res.body.metrics.myActionsTaken.value).toBe(expectedMyActionsCount);
+    expect(res.body.metrics.myActionsTaken.label).toBe('My Actions Taken');
+    expect(res.body.metrics.myActionsTaken.drillDown).toBe('/staff/tickets?assignee=me');
+    expect(Array.isArray(res.body.myActionsTaken)).toBe(true);
+    expect(res.body.myActionsTaken).toHaveLength(expectedMyActionsCount);
+    expect(res.body.myActionsTaken.every((a: any) => a.action !== 'Other staff action')).toBe(true);
 
     // Verify statusCounts
     expect(res.body.metrics.statusCounts.label).toBe('By Status');
@@ -538,14 +568,14 @@ describe('Staff Dashboard', () => {
     const staffAgent = await loginAs(staff);
     const staffRes = await staffAgent.get('/api/dashboard/staff');
     expect(staffRes.status).toBe(200);
-    expect(Object.keys(staffRes.body).sort()).toEqual(['metrics', 'recentlyUpdated']);
+    expect(Object.keys(staffRes.body).sort()).toEqual(['metrics', 'myActionsTaken', 'recentlyUpdated']);
     expect(staffRes.body.recentlyUpdated).toHaveLength(5);
 
     // Admin response check
     const adminAgent = await loginAs(admin);
     const adminRes = await adminAgent.get('/api/dashboard/staff');
     expect(adminRes.status).toBe(200);
-    expect(Object.keys(adminRes.body).sort()).toEqual(['metrics', 'recentlyUpdated', 'userCounts']);
+    expect(Object.keys(adminRes.body).sort()).toEqual(['metrics', 'myActionsTaken', 'recentlyUpdated', 'userCounts']);
     expect(adminRes.body.recentlyUpdated).toHaveLength(5);
 
     // Item allowlist

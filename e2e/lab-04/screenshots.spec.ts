@@ -76,6 +76,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
           metrics: {
             unassigned: { value: 0, label: 'Unassigned', drillDown: '/staff/tickets?statusGroup=open&assignee=unassigned' },
             myOwned: { value: 0, label: 'My Owned', drillDown: '/staff/tickets?statusGroup=open&assignee=me' },
+            myActionsTaken: { value: 0, label: 'My Actions Taken', drillDown: '/staff/tickets?assignee=me' },
             statusCounts: {
               label: 'By Status',
               values: { NEW: 0, OPEN: 0, IN_PROGRESS: 0, WAITING_FOR_REQUESTER: 0, REOPENED: 0 },
@@ -88,6 +89,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
             },
           },
           recentlyUpdated: [],
+          myActionsTaken: [],
         }),
       })
     );

@@ -51,10 +51,12 @@
 - **การ์ดตัวชี้วัด (Metric Cards):** แต่ละการ์ดเป็นลิงก์ (Link) สำหรับ Drill-down โดยมี accessible name รวมค่าและป้ายกำกับ เช่น `aria-label="ยังไม่ได้มอบหมาย 5 รายการ"`
   1. **Unassigned** → drill-down `/staff/tickets?statusGroup=open&assignee=unassigned`
   2. **My Owned** → drill-down `/staff/tickets?statusGroup=open&assignee=me`
+  3. **My Actions Taken** → แสดงจำนวน Actions Taken ที่บันทึกโดยผู้ใช้ปัจจุบัน (`performedById = current_user.id`) พร้อม drill-down `/staff/tickets?assignee=me`
   3. **By Status** (5 buckets: NEW, OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, REOPENED) → drill-down `/staff/tickets?status={STATUS}`
   4. **By IT Priority** (LOW, MEDIUM, HIGH, CRITICAL, UNSET) → drill-down `/staff/tickets?statusGroup=open&priority={PRIORITY}` (รวมการแสดงผล bucket สำหรับตั๋วที่ยังไม่ได้ระบุความสำคัญ "ยังไม่ระบุ (Unset)" พร้อมป้ายกำกับข้อความชัดเจน เชื่อมไปยัง `/staff/tickets?statusGroup=open&priority=UNSET`)
   5. **User Accounts** — **มองเห็นเฉพาะ Administrator เท่านั้น**
 - **อัปเดตล่าสุด (Recent Updates):** รายการตั๋ว 5 อันดับล่าสุดตาม updatedAt desc
+- **การดำเนินการล่าสุดของฉัน (My Recent Actions Taken):** รายการ Actions Taken 5 อันดับล่าสุดที่บันทึกโดยผู้ใช้ปัจจุบัน พร้อมลิงก์ไปยังหน้ารายละเอียดตั๋ว (`/staff/tickets/:id`)
 - **Quick Actions:** สร้างตั๋ว (ไปยังหน้าสร้างตั๋ว), ค้นหาตั๋ว (ไปยังคิวตั๋ว), คิวของฉัน (`/staff/tickets?statusGroup=open&assignee=me`)
 
 **Layout ตอบสนอง:**

@@ -46,6 +46,11 @@ const mockStaffDashboardData = {
       label: 'My Owned',
       drillDown: '/staff/tickets?statusGroup=open&assignee=me',
     },
+    myActionsTaken: {
+      value: 2,
+      label: 'My Actions Taken',
+      drillDown: '/staff/tickets?assignee=me',
+    },
     statusCounts: {
       values: {
         NEW: 1,
@@ -90,6 +95,18 @@ const mockStaffDashboardData = {
       status: 'NEW',
       priority: null,
       updatedAt: '2026-10-12T07:30:00.000Z',
+    },
+  ],
+  myActionsTaken: [
+    {
+      id: 'act-1',
+      ticketId: 103,
+      ticketNumber: 'TKT-103',
+      ticketTitle: 'VPN connection issue',
+      action: 'Investigated VPN logs',
+      result: 'Found timeout errors',
+      followUpRequired: true,
+      actionAt: '2026-10-12T08:00:00.000Z',
     },
   ],
 };
@@ -150,6 +167,12 @@ describe('StaffDashboard', () => {
     const myOwnedLink = screen.getByRole('link', { name: /my owned|คิวของฉัน/i });
     expect(myOwnedLink).toHaveAttribute('href', '/staff/tickets?statusGroup=open&assignee=me');
     expect(myOwnedLink).toHaveTextContent('2');
+
+    const myActionsLink = screen.getByRole('link', { name: /my actions taken/i });
+    expect(myActionsLink).toHaveAttribute('href', '/staff/tickets?assignee=me');
+    expect(myActionsLink).toHaveTextContent('2');
+    expect(screen.getByText('My Recent Actions Taken')).toBeInTheDocument();
+    expect(screen.getByText('Investigated VPN logs')).toBeInTheDocument();
 
     // 3. Status count buckets drill-downs
     const inProgressLink = screen.getByRole('link', { name: /IN_PROGRESS/i });

@@ -89,7 +89,7 @@ describe('ActionsTaken', () => {
     )
 
     // Verify loading state is shown initially
-    expect(screen.getByRole('status', { name: /กำลังโหลด|loading/i }) || screen.getByText(/กำลังโหลด/i)).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /loading/i }) || screen.getByText(/loading/i)).toBeInTheDocument()
 
     // Wait for list to render
     await waitFor(() => {
@@ -110,7 +110,7 @@ describe('ActionsTaken', () => {
     expect(screen.getByText(/Grace Admin/)).toBeInTheDocument()
 
     // 4. Follow-up indicator uses text AND an icon (not color alone), plus follow-up note
-    const followUpBadge = screen.getByText(/ต้องการติดตามผล/i)
+    const followUpBadge = screen.getByText(/follow-up required/i)
     expect(followUpBadge).toBeInTheDocument()
     expect(screen.getByText('Monitor interface errors for 2 hours')).toBeInTheDocument()
 
@@ -147,7 +147,7 @@ describe('ActionsTaken', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument()
+      expect(screen.getByText('No actions taken recorded yet')).toBeInTheDocument()
     })
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 
@@ -171,7 +171,7 @@ describe('ActionsTaken', () => {
     })
     // No raw error text or stack trace
     expect(screen.queryByText(/DB down/i)).not.toBeInTheDocument()
-    const retryBtn = screen.getByRole('button', { name: /ลองใหม่|retry/i })
+    const retryBtn = screen.getByRole('button', { name: /retry/i })
     expect(retryBtn).toBeInTheDocument()
   })
 
@@ -196,38 +196,38 @@ describe('ActionsTaken', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument()
+      expect(screen.getByText('No actions taken recorded yet')).toBeInTheDocument()
     })
 
-    // Click "เพิ่ม Action" to open the inline form
-    const addBtn = screen.getByRole('button', { name: /เพิ่ม action/i })
+    // Click "+ Add Action" to open the inline form
+    const addBtn = screen.getByRole('button', { name: /add action/i })
     fireEvent.click(addBtn)
 
     // Form opens inline above list (no modal dialog)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    const descInput = screen.getByLabelText(/คำอธิบาย|description/i)
-    const resultInput = screen.getByLabelText(/ผลลัพธ์|result/i)
-    const followUpToggle = screen.getByLabelText(/ต้องการติดตามผล/i)
-    const submitBtn = screen.getByRole('button', { name: /บันทึก/i })
+    const descInput = screen.getByLabelText(/description/i)
+    const resultInput = screen.getByLabelText(/result/i)
+    const followUpToggle = screen.getByLabelText(/follow-up required/i)
+    const submitBtn = screen.getByRole('button', { name: /^save$/i })
 
     // Date/time defaults to now (Asia/Bangkok)
-    const dateInput = screen.getByLabelText(/วันที่\/เวลา|action date/i) as HTMLInputElement
+    const dateInput = screen.getByLabelText(/action date/i) as HTMLInputElement
     expect(dateInput.value).toBeTruthy()
 
     // Performed by is not an editable input, but shown read-only / automatic
-    expect(screen.queryByRole('textbox', { name: /ผู้ดำเนินการ/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /performed by/i })).not.toBeInTheDocument()
     expect(screen.getByText(/Frank IT/)).toBeInTheDocument()
 
     // Submit with empty required fields -> client validation messages
     fireEvent.click(submitBtn)
 
-    expect(screen.getByText(/กรุณาระบุคำอธิบาย|description is required/i)).toBeInTheDocument()
-    expect(screen.getByText(/กรุณาระบุผลลัพธ์|result is required/i)).toBeInTheDocument()
+    expect(screen.getByText(/description is required/i)).toBeInTheDocument()
+    expect(screen.getByText(/result is required/i)).toBeInTheDocument()
     expect(descInput).toHaveAttribute('aria-describedby')
 
-    // Turning on "ต้องการติดตามผล" reveals follow-up note and makes it required
+    // Turning on "Follow-up Required" reveals follow-up note and makes it required
     fireEvent.click(followUpToggle)
-    const followUpNoteInput = screen.getByLabelText(/บันทึกการติดตามผล/i)
+    const followUpNoteInput = screen.getByLabelText(/follow-up note/i)
     expect(followUpNoteInput).toBeInTheDocument()
 
     // Fill description and result, but leave followUpNote empty
@@ -235,15 +235,15 @@ describe('ActionsTaken', () => {
     fireEvent.change(resultInput, { target: { value: 'Replaced faulty RAM module' } })
     fireEvent.click(submitBtn)
 
-    expect(screen.getByText(/กรุณาระบุบันทึกการติดตามผล|follow-up note is required/i)).toBeInTheDocument()
+    expect(screen.getByText(/follow-up note is required/i)).toBeInTheDocument()
 
-    // Turning off "ต้องการติดตามผล" hides the follow-up note
+    // Turning off "Follow-up Required" hides the follow-up note
     fireEvent.click(followUpToggle)
-    expect(screen.queryByLabelText(/บันทึกการติดตามผล/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/follow-up note/i)).not.toBeInTheDocument()
 
     // Enforce length limits (2000 chars)
     fireEvent.change(descInput, { target: { value: 'A'.repeat(2001) } })
-    expect(screen.getByText(/ความยาวเกิน|exceeds/i)).toBeInTheDocument()
+    expect(screen.getByText(/exceeds maximum length/i)).toBeInTheDocument()
     fireEvent.change(descInput, { target: { value: 'Diagnosed motherboard issue' } })
 
     // Simulate server 422 with fields mapping
@@ -300,11 +300,11 @@ describe('ActionsTaken', () => {
 
     fireEvent.click(submitBtn)
 
-    // On success: form closes and role="status" message "บันทึก Action สำเร็จ" is announced
+    // On success: form closes and role="status" message "Action saved successfully" is announced
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(/บันทึก action สำเร็จ/i)
+      expect(screen.getByRole('status')).toHaveTextContent(/action saved successfully/i)
     })
-    expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument()
   })
 
   it('UI-07: ActionsTaken update and stale versions', async () => {
@@ -317,7 +317,7 @@ describe('ActionsTaken', () => {
       return { ok: false, status: 404, json: async () => ({ error: 'Not found' }) }
     })
 
-    const { rerender } = render(
+    render(
       <Component
         ticketId={42}
         ticketStatus="IN_PROGRESS"
@@ -331,15 +331,15 @@ describe('ActionsTaken', () => {
       expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument()
     })
 
-    // Each row has an explicit "แก้ไข" button with accessible label
-    const editBtns = screen.getAllByRole('button', { name: /แก้ไข/i })
+    // Each row has an explicit "Edit" button with accessible label
+    const editBtns = screen.getAllByRole('button', { name: /edit action/i })
     expect(editBtns.length).toBe(2)
     expect(editBtns[0]).toHaveAttribute('aria-label')
 
     // Click edit on the first action -> form opens prefilled
     fireEvent.click(editBtns[0])
 
-    const descInput = screen.getByLabelText(/คำอธิบาย|description/i) as HTMLInputElement
+    const descInput = screen.getByLabelText(/description/i) as HTMLInputElement
     expect(descInput.value).toBe('Checked router hardware and cables')
 
     // Edit description
@@ -365,14 +365,14 @@ describe('ActionsTaken', () => {
       return { ok: true, status: 200, json: async () => ({ actions: mockActions }) }
     })
 
-    const saveBtn = screen.getByRole('button', { name: /บันทึก/i })
+    const saveBtn = screen.getByRole('button', { name: /^save$/i })
     fireEvent.click(saveBtn)
 
-    // Shows role="alert" banner "รายการถูกแก้ไขโดยผู้อื่น" with "โหลดซ้ำ" action
+    // Shows role="alert" banner "Modified by another user" with "Reload" action
     await waitFor(() => {
       const banner = screen.getByRole('alert')
-      expect(banner).toHaveTextContent(/รายการถูกแก้ไขโดยผู้อื่น|ตั๋วถูกอัปเดตโดยผู้อื่น/i)
-      expect(within(banner).getByRole('button', { name: /โหลดซ้ำ/i })).toBeInTheDocument()
+      expect(banner).toHaveTextContent(/modified by another user/i)
+      expect(within(banner).getByRole('button', { name: /reload/i })).toBeInTheDocument()
     })
 
     // Typed text is kept available in the form
@@ -398,7 +398,7 @@ describe('ActionsTaken', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(/ticket is locked|closed/i)
     })
     // Form is closed/removed on TICKET_LOCKED
-    expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument()
   })
 
   it('UI-08: ActionsTaken role view rules', async () => {
@@ -429,9 +429,9 @@ describe('ActionsTaken', () => {
     expect(screen.getByText('Monitor interface errors for 2 hours')).toBeInTheDocument()
     expect(screen.getByText('See router_syslog.txt')).toBeInTheDocument()
 
-    // Requester has NO "เพิ่ม Action" button, no form, no "แก้ไข" button in DOM
-    expect(screen.queryByRole('button', { name: /เพิ่ม action/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /แก้ไข/i })).not.toBeInTheDocument()
+    // Requester has NO "+ Add Action" button, no form, no "Edit" button in DOM
+    expect(screen.queryByRole('button', { name: /add action/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /edit action/i })).not.toBeInTheDocument()
 
     // 403 Forbidden handling
     fetchMock.mockImplementation(async () => {
@@ -449,7 +449,7 @@ describe('ActionsTaken', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/ไม่มีสิทธิ์|access denied/i)).toBeInTheDocument()
+      expect(screen.getByText(/do not have permission|access denied/i)).toBeInTheDocument()
     })
   })
 
@@ -493,14 +493,14 @@ describe('ActionsTaken', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument()
+      expect(screen.getByText('No actions taken recorded yet')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
-    fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'Duplicate test' } })
-    fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: 'Success' } })
+    fireEvent.click(screen.getByRole('button', { name: /add action/i }))
+    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Duplicate test' } })
+    fireEvent.change(screen.getByLabelText(/result/i), { target: { value: 'Success' } })
 
-    const submitBtn = screen.getByRole('button', { name: /บันทึก/i })
+    const submitBtn = screen.getByRole('button', { name: /^save$/i })
 
     // First click triggers POST
     fireEvent.click(submitBtn)
@@ -521,7 +521,7 @@ describe('ActionsTaken', () => {
     resolvePost()
 
     await waitFor(() => {
-      expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument()
     })
   })
 
@@ -567,20 +567,20 @@ describe('ActionsTaken', () => {
   }
 
   const LIMIT_CASES = [
-    { field: 'description', limit: 2000, label: /คำอธิบาย|description/i },
-    { field: 'result', limit: 2000, label: /ผลลัพธ์|result/i },
-    { field: 'followUpNote', limit: 1000, label: /บันทึกการติดตามผล/i },
-    { field: 'attachmentNotes', limit: 1000, label: /บันทึกไฟล์แนบ|attachment notes/i },
+    { field: 'description', limit: 2000, label: /description/i },
+    { field: 'result', limit: 2000, label: /result/i },
+    { field: 'followUpNote', limit: 1000, label: /follow-up note/i },
+    { field: 'attachmentNotes', limit: 1000, label: /attachment notes/i },
   ]
 
   async function openCreate(Component: any) {
     const view = render(<Component {...staffProps} />)
-    await waitFor(() => expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument())
-    fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
-    fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'valid description' } })
-    fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: 'valid result' } })
-    fireEvent.click(screen.getByLabelText(/ต้องการติดตามผล/i))
-    fireEvent.change(screen.getByLabelText(/บันทึกการติดตามผล/i), { target: { value: 'valid note' } })
+    await waitFor(() => expect(screen.getByText('No actions taken recorded yet')).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /add action/i }))
+    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'valid description' } })
+    fireEvent.change(screen.getByLabelText(/result/i), { target: { value: 'valid result' } })
+    fireEvent.click(screen.getByLabelText(/follow-up required/i))
+    fireEvent.change(screen.getByLabelText(/follow-up note/i), { target: { value: 'valid note' } })
     return view
   }
 
@@ -591,8 +591,8 @@ describe('ActionsTaken', () => {
       let calls = installApi([])
       let view = await openCreate(Component)
       fireEvent.change(screen.getByLabelText(c.label), { target: { value: 'A'.repeat(c.limit) } })
-      expect(screen.queryByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))).not.toBeInTheDocument()
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      expect(screen.queryByText(new RegExp(`max ${c.limit} characters`))).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.posts.length).toBe(1))
       view.unmount()
 
@@ -601,12 +601,12 @@ describe('ActionsTaken', () => {
       view = await openCreate(Component)
       const input = screen.getByLabelText(c.label)
       fireEvent.change(input, { target: { value: 'A'.repeat(c.limit + 1) } })
-      const msg = screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))
+      const msg = screen.getByText(new RegExp(`max ${c.limit} characters`))
       expect(msg).toBeInTheDocument()
       expect(input.getAttribute('aria-describedby') || '').toContain(msg.id)
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       expect(calls.posts.length).toBe(0)
-      expect(screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))).toBeInTheDocument()
+      expect(screen.getByText(new RegExp(`max ${c.limit} characters`))).toBeInTheDocument()
       view.unmount()
     }
   })
@@ -617,21 +617,21 @@ describe('ActionsTaken', () => {
       let calls = installApi(mockActions)
       let view = render(<Component {...staffProps} />)
       await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
-      fireEvent.click(screen.getAllByRole('button', { name: /แก้ไข/i })[0])
+      fireEvent.click(screen.getAllByRole('button', { name: /edit action/i })[0])
       fireEvent.change(screen.getByLabelText(c.label), { target: { value: 'A'.repeat(c.limit) } })
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.patches.length).toBe(1))
       view.unmount()
 
       calls = installApi(mockActions)
       view = render(<Component {...staffProps} />)
       await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
-      fireEvent.click(screen.getAllByRole('button', { name: /แก้ไข/i })[0])
+      fireEvent.click(screen.getAllByRole('button', { name: /edit action/i })[0])
       const input = screen.getByLabelText(c.label)
       fireEvent.change(input, { target: { value: 'A'.repeat(c.limit + 1) } })
-      const msg = screen.getByText(new RegExp(`ไม่เกิน ${c.limit} ตัวอักษร`))
+      const msg = screen.getByText(new RegExp(`max ${c.limit} characters`))
       expect(input.getAttribute('aria-describedby') || '').toContain(msg.id)
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       expect(calls.patches.length).toBe(0)
       view.unmount()
     }
@@ -643,13 +643,13 @@ describe('ActionsTaken', () => {
     render(<Component {...staffProps} />)
     await waitFor(() => expect(screen.getByText('Checked router hardware and cables')).toBeInTheDocument())
 
-    const first = screen.getByRole('button', { name: /แก้ไข.*03\/10\/2026, 10:00/ })
-    const second = screen.getByRole('button', { name: /แก้ไข.*03\/10\/2026, 11:30/ })
+    const first = screen.getByRole('button', { name: /Edit Action at .*03\/10\/2026, 10:00/ })
+    const second = screen.getByRole('button', { name: /Edit Action at .*03\/10\/2026, 11:30/ })
     expect(first).not.toBe(second)
-    expect(first.getAttribute('aria-label')!.startsWith('แก้ไข')).toBe(true)
-    expect(second.getAttribute('aria-label')!.startsWith('แก้ไข')).toBe(true)
+    expect(first.getAttribute('aria-label')!.startsWith('Edit')).toBe(true)
+    expect(second.getAttribute('aria-label')!.startsWith('Edit')).toBe(true)
     expect(first.getAttribute('aria-label')).not.toBe(second.getAttribute('aria-label'))
-    expect(first).toHaveTextContent(/^แก้ไข$/)
+    expect(first).toHaveTextContent(/^Edit$/)
   })
 
   it('UI-07: edit buttons of actions with the same time are told apart by a truncated description snippet', async () => {
@@ -662,7 +662,7 @@ describe('ActionsTaken', () => {
     installApi(sameTime)
     render(<Component {...staffProps} />)
     await waitFor(() => expect(screen.getByText('Alpha task')).toBeInTheDocument())
-    const buttons = screen.getAllByRole('button', { name: /แก้ไข/i })
+    const buttons = screen.getAllByRole('button', { name: /edit action/i })
     const labels = buttons.map((b) => b.getAttribute('aria-label')!)
     expect(labels[0]).not.toBe(labels[1])
     expect(labels[0]).toMatch(/03\/10\/2026, 10:00/)
@@ -674,22 +674,22 @@ describe('ActionsTaken', () => {
 
   describe('UI-09: idempotency key reuse', () => {
     async function fillAndSubmit(desc = 'Retry me', res = 'Same data') {
-      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: desc } })
-      fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: res } })
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.change(screen.getByLabelText(/description/i), { target: { value: desc } })
+      fireEvent.change(screen.getByLabelText(/result/i), { target: { value: res } })
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
     }
     const keyOf = (calls: any, i: number) => calls.posts[i].headers['Idempotency-Key']
     const serverError = { ok: false, status: 500, json: async () => ({ error: { code: 'INTERNAL_ERROR', message: 'boom' } }) }
 
     async function openEmpty(Component: any) {
       const view = render(<Component {...staffProps} />)
-      await waitFor(() => expect(screen.getByText('ยังไม่มีประวัติการดำเนินงาน')).toBeInTheDocument())
-      fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
+      await waitFor(() => expect(screen.getByText('No actions taken recorded yet')).toBeInTheDocument())
+      fireEvent.click(screen.getByRole('button', { name: /add action/i }))
       return view
     }
     async function waitReady(n: number, calls: any) {
       await waitFor(() => expect(calls.posts.length).toBe(n))
-      await waitFor(() => expect(screen.getByRole('button', { name: /บันทึก/i })).not.toBeDisabled())
+      await waitFor(() => expect(screen.getByRole('button', { name: /^save$/i })).not.toBeDisabled())
     }
 
     it('UI-09: a retry after a network failure reuses the same key', async () => {
@@ -698,7 +698,7 @@ describe('ActionsTaken', () => {
       await openEmpty(Component)
       await fillAndSubmit()
       await waitReady(1, calls)
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.posts.length).toBe(2))
       expect(keyOf(calls, 0)).toBeTruthy()
       expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
@@ -710,7 +710,7 @@ describe('ActionsTaken', () => {
       await openEmpty(Component)
       await fillAndSubmit()
       await waitReady(1, calls)
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.posts.length).toBe(2))
       expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
     })
@@ -721,11 +721,11 @@ describe('ActionsTaken', () => {
       await openEmpty(Component)
       await fillAndSubmit()
       await waitReady(1, calls)
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitReady(2, calls)
       expect(keyOf(calls, 1)).toBe(keyOf(calls, 0))
-      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'Edited description' } })
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Edited description' } })
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.posts.length).toBe(3))
       expect(keyOf(calls, 2)).toBeTruthy()
       expect(keyOf(calls, 2)).not.toBe(keyOf(calls, 1))
@@ -736,8 +736,8 @@ describe('ActionsTaken', () => {
       const calls = installApi([])
       await openEmpty(Component)
       await fillAndSubmit()
-      await waitFor(() => expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument())
-      fireEvent.click(screen.getByRole('button', { name: /เพิ่ม action/i }))
+      await waitFor(() => expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument())
+      fireEvent.click(screen.getByRole('button', { name: /add action/i }))
       await fillAndSubmit('Retry me', 'Same data')
       await waitFor(() => expect(calls.posts.length).toBe(2))
       expect(typeof keyOf(calls, 0)).toBe('string')
@@ -757,9 +757,9 @@ describe('ActionsTaken', () => {
       })
       await openEmpty(Component)
       await fillAndSubmit()
-      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/บันทึก action สำเร็จ/i))
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/action saved successfully/i))
       expect(calls.posts.length).toBe(1)
-      expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument()
     })
 
     it('UI-09: IDEMPOTENCY_KEY_REUSED shows a safe message and the next attempt uses a new key', async () => {
@@ -770,7 +770,7 @@ describe('ActionsTaken', () => {
       await fillAndSubmit()
       await waitReady(1, calls)
       expect(screen.queryByText(/raw internal text/)).not.toBeInTheDocument()
-      fireEvent.click(screen.getByRole('button', { name: /บันทึก/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
       await waitFor(() => expect(calls.posts.length).toBe(2))
       expect(keyOf(calls, 1)).not.toBe(keyOf(calls, 0))
     })
@@ -782,15 +782,15 @@ describe('ActionsTaken', () => {
         post: () => new Promise((resolve) => { release = () => resolve({ ok: true, status: 201, json: async () => ({ id: 'x' }) }) }),
       })
       await openEmpty(Component)
-      fireEvent.change(screen.getByLabelText(/คำอธิบาย|description/i), { target: { value: 'Rapid' } })
-      fireEvent.change(screen.getByLabelText(/ผลลัพธ์|result/i), { target: { value: 'Click' } })
-      const btn = screen.getByRole('button', { name: /บันทึก/i })
+      fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Rapid' } })
+      fireEvent.change(screen.getByLabelText(/result/i), { target: { value: 'Click' } })
+      const btn = screen.getByRole('button', { name: /^save$/i })
       fireEvent.click(btn)
       fireEvent.click(btn)
       fireEvent.click(btn)
       expect(calls.posts.length).toBe(1)
       release()
-      await waitFor(() => expect(screen.queryByLabelText(/คำอธิบาย|description/i)).not.toBeInTheDocument())
+      await waitFor(() => expect(screen.queryByLabelText(/description/i)).not.toBeInTheDocument())
     })
   })
 })

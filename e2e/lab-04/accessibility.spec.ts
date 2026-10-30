@@ -92,13 +92,13 @@ test.describe('A11Y-01 & A11Y-02: Accessibility and Keyboard Navigation', () => 
       await scanScreen(page, testInfo, 'Staff Ticket Detail (list, status, owner)', vp.width);
 
       // Staff Ticket Detail with Create Action form open
-      const addActionBtn = page.getByRole('button', { name: /เพิ่ม action|\+ action/i }).first();
+      const addActionBtn = page.getByRole('button', { name: /add action|\+ action/i }).first();
       if (await addActionBtn.isVisible()) {
         await addActionBtn.click();
         await page.waitForTimeout(300);
         await scanScreen(page, testInfo, 'Staff Ticket Detail (Create Action form open)', vp.width);
         // Cancel/close form
-        const cancelBtn = page.getByRole('button', { name: /ยกเลิก|cancel/i }).first();
+        const cancelBtn = page.getByRole('button', { name: /cancel/i }).first();
         if (await cancelBtn.isVisible()) await cancelBtn.click();
       }
     }
@@ -178,7 +178,7 @@ test.describe('A11Y-01 & A11Y-02: Accessibility and Keyboard Navigation', () => 
     await page.goto(`/staff/tickets/${ticketId}`);
     await page.waitForLoadState('networkidle');
 
-    const addActionBtn = page.getByRole('button', { name: /เพิ่ม action|\+ action/i }).first();
+    const addActionBtn = page.getByRole('button', { name: /add action|\+ action/i }).first();
     await addActionBtn.focus();
     await page.keyboard.press('Enter');
 
@@ -192,7 +192,7 @@ test.describe('A11Y-01 & A11Y-02: Accessibility and Keyboard Navigation', () => 
     await resInput.focus();
     await page.keyboard.type(`Result created solely via keyboard navigation`);
 
-    const submitBtn = page.locator('button[type="submit"]:has-text("บันทึก"), button[type="submit"]:has-text("Save")').first();
+    const submitBtn = page.locator('button[type="submit"]:has-text("Save")').first();
     await submitBtn.focus();
     await page.keyboard.press('Enter');
     await page.waitForLoadState('networkidle');

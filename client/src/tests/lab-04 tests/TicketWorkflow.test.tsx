@@ -115,7 +115,7 @@ describe('TicketWorkflow', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/terminal state|ไม่สามารถเปลี่ยนสถานะได้/i)).toBeInTheDocument()
+      expect(screen.getByText(/terminal state/i)).toBeInTheDocument()
     })
     expect(screen.queryByLabelText(/update status/i)).not.toBeInTheDocument()
 
@@ -135,7 +135,7 @@ describe('TicketWorkflow', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: /ลองใหม่|retry/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
   })
 
   it('UI-11: TicketWorkflow stale versions and errors', async () => {
@@ -207,7 +207,7 @@ describe('TicketWorkflow', () => {
     // Status is unchanged
     expect(handleTicketUpdate).not.toHaveBeenCalled()
 
-    // 2. Simulate 409 CONFLICT (stale version) with "โหลดซ้ำ" button
+    // 2. Simulate 409 CONFLICT (stale version) with "Reload" button
     fetchMock.mockImplementation(async (url: string, opts: any) => {
       if (opts?.method === 'POST' && url.includes('/status')) {
         return {
@@ -233,8 +233,8 @@ describe('TicketWorkflow', () => {
 
     await waitFor(() => {
       const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent(/ตั๋วถูกอัปเดตโดยผู้อื่น|modified by another user/i)
-      expect(within(alert).getByRole('button', { name: /โหลดซ้ำ/i })).toBeInTheDocument()
+      expect(alert).toHaveTextContent(/modified by another user/i)
+      expect(within(alert).getByRole('button', { name: /reload/i })).toBeInTheDocument()
     })
 
     // 3. Requester View & Advisory indication
@@ -261,9 +261,9 @@ describe('TicketWorkflow', () => {
       />
     )
 
-    // Requester sees advisory button "ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว"
+    // Requester sees advisory button "Mark as Problem Appears Resolved"
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว|appears resolved/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /appears resolved/i })).toBeInTheDocument()
     })
 
     // Click advisory button
@@ -288,7 +288,7 @@ describe('TicketWorkflow', () => {
       return { ok: true, status: 200, json: async () => ({ currentStatus: 'OPEN', version: 2, allowedTransitions: [] }) }
     })
 
-    const advisoryBtn = screen.getByRole('button', { name: /ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว|appears resolved/i })
+    const advisoryBtn = screen.getByRole('button', { name: /appears resolved/i })
     fireEvent.click(advisoryBtn)
 
     await waitFor(() => {
@@ -305,7 +305,7 @@ describe('TicketWorkflow', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว/i)).toBeInTheDocument()
+      expect(screen.getByText(/requester marked this problem as resolved/i)).toBeInTheDocument()
     })
   })
 
@@ -346,10 +346,10 @@ describe('TicketWorkflow', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/ticket owner|ผู้รับผิดชอบ/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/ticket owner/i)).toBeInTheDocument()
     })
 
-    const ownerSelect = screen.getByLabelText(/ticket owner|ผู้รับผิดชอบ/i) as HTMLSelectElement
+    const ownerSelect = screen.getByLabelText(/ticket owner/i) as HTMLSelectElement
     const ownerOptions = Array.from(ownerSelect.querySelectorAll('option')).map((o) => (o as HTMLOptionElement).text)
 
     // MUST contain Frank IT (IT_STAFF) and Grace Admin (ADMINISTRATOR)
@@ -391,7 +391,7 @@ describe('TicketWorkflow', () => {
     })
 
     fireEvent.change(ownerSelect, { target: { value: 'u3' } })
-    const saveOwnerBtn = screen.getByRole('button', { name: /save owner|บันทึกผู้รับผิดชอบ|assign/i })
+    const saveOwnerBtn = screen.getByRole('button', { name: /save owner/i })
     fireEvent.click(saveOwnerBtn)
 
     await waitFor(() => {
@@ -408,10 +408,10 @@ describe('TicketWorkflow', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole('combobox', { name: /ticket owner|ผู้รับผิดชอบ/i })).toBeInTheDocument()
+      expect(screen.getByRole('combobox', { name: /ticket owner/i })).toBeInTheDocument()
     })
 
-    const staffOwnerSelect = screen.getByRole('combobox', { name: /ticket owner|ผู้รับผิดชอบ/i }) as HTMLSelectElement
+    const staffOwnerSelect = screen.getByRole('combobox', { name: /ticket owner/i }) as HTMLSelectElement
     const staffOptions = Array.from(staffOwnerSelect.querySelectorAll('option')).map((o) => (o as HTMLOptionElement).text)
     expect(staffOptions.some((t) => t.includes('Frank IT'))).toBe(true)
     expect(staffOptions.some((t) => t.includes('Grace Admin'))).toBe(true)
@@ -611,14 +611,14 @@ describe('TicketWorkflow', () => {
   })
 
   const SAFE = {
-    validation: 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบและลองใหม่',
-    auth: 'กรุณาเข้าสู่ระบบอีกครั้ง',
-    forbidden: 'คุณไม่มีสิทธิ์ดำเนินการนี้',
-    notFound: 'ไม่พบข้อมูลที่ต้องการ',
-    conflict: 'ข้อมูลถูกเปลี่ยนแปลงแล้ว กรุณาโหลดซ้ำ',
-    server: 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง',
-    network: 'เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่',
-    generic: 'เกิดข้อผิดพลาดในการดำเนินการ กรุณาลองใหม่อีกครั้ง',
+    validation: 'Invalid input. Please check your entries and try again.',
+    auth: 'Please sign in again.',
+    forbidden: 'You do not have permission to perform this action.',
+    notFound: 'The requested resource was not found.',
+    conflict: 'Data was modified by another user. Please reload.',
+    server: 'Server error. Please try again.',
+    network: 'Network error. Please check your connection and try again.',
+    generic: 'An unexpected error occurred. Please try again.',
   }
   const STATUS_MAP: Array<[number, string]> = [
     [400, SAFE.validation], [422, SAFE.validation], [401, SAFE.auth], [403, SAFE.forbidden],

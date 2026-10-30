@@ -17,25 +17,25 @@ test.describe('E2E-01: actions taken full flow', () => {
     const actionsSection = page.locator('.actions-taken-section, [data-testid="actions-taken-section"]')
     await expect(actionsSection).toBeVisible()
 
-    // Click "เพิ่ม Action"
-    const addActionBtn = actionsSection.getByRole('button', { name: /เพิ่ม action/i })
+    // Click "+ Add Action"
+    const addActionBtn = actionsSection.getByRole('button', { name: /add action/i })
     await addActionBtn.click()
 
     // Fill form with Follow-up ON but NO follow-up note
-    await actionsSection.getByLabel(/คำอธิบาย|description/i).fill(`E2E-${runId}: Investigated faulty switch`)
-    await actionsSection.getByLabel(/ผลลัพธ์|result/i).fill('Replaced power cable')
-    const followUpToggle = actionsSection.getByLabel(/ต้องการติดตามผล/i)
+    await actionsSection.getByLabel(/description/i).fill(`E2E-${runId}: Investigated faulty switch`)
+    await actionsSection.getByLabel(/result/i).fill('Replaced power cable')
+    const followUpToggle = actionsSection.getByLabel(/follow-up required/i)
     await followUpToggle.check()
 
     // Try submitting without follow-up note
-    const submitBtn = actionsSection.getByRole('button', { name: /บันทึก/i })
+    const submitBtn = actionsSection.getByRole('button', { name: /^save$/i })
     await submitBtn.click()
 
     // Expect inline validation error
-    await expect(actionsSection.getByText(/กรุณาระบุบันทึกการติดตามผล|follow-up note is required/i)).toBeVisible()
+    await expect(actionsSection.getByText(/follow-up note is required/i)).toBeVisible()
 
     // Fix error: provide follow-up note
-    await actionsSection.getByLabel(/บันทึกการติดตามผล/i).fill('Verify voltage levels after 1 hour')
+    await actionsSection.getByLabel(/follow-up note/i).fill('Verify voltage levels after 1 hour')
     await submitBtn.click()
 
     // Verify new row appears
@@ -43,12 +43,12 @@ test.describe('E2E-01: actions taken full flow', () => {
     await expect(actionsSection.getByText('Verify voltage levels after 1 hour')).toBeVisible()
 
     // Edit the action
-    const editBtn = actionsSection.getByRole('button', { name: /แก้ไข/i }).first()
+    const editBtn = actionsSection.getByRole('button', { name: /edit action/i }).first()
     await editBtn.click()
 
-    const resultInput = actionsSection.getByLabel(/ผลลัพธ์|result/i)
+    const resultInput = actionsSection.getByLabel(/result/i)
     await resultInput.fill('Replaced power cable and tested successfully')
-    await actionsSection.getByRole('button', { name: /บันทึก/i }).click()
+    await actionsSection.getByRole('button', { name: /^save$/i }).click()
 
     // Verify update
     await expect(actionsSection.getByText('Replaced power cable and tested successfully')).toBeVisible()
@@ -60,10 +60,10 @@ test.describe('E2E-01: actions taken full flow', () => {
     await page.waitForLoadState('networkidle')
 
     const adminActionsSection = page.locator('.actions-taken-section, [data-testid="actions-taken-section"]')
-    await adminActionsSection.getByRole('button', { name: /เพิ่ม action/i }).click()
-    await adminActionsSection.getByLabel(/คำอธิบาย|description/i).fill(`E2E-${runId}: Second tech review`)
-    await adminActionsSection.getByLabel(/ผลลัพธ์|result/i).fill('Approved hardware change')
-    await adminActionsSection.getByRole('button', { name: /บันทึก/i }).click()
+    await adminActionsSection.getByRole('button', { name: /add action/i }).click()
+    await adminActionsSection.getByLabel(/description/i).fill(`E2E-${runId}: Second tech review`)
+    await adminActionsSection.getByLabel(/result/i).fill('Approved hardware change')
+    await adminActionsSection.getByRole('button', { name: /^save$/i }).click()
 
     await expect(adminActionsSection.getByText(`E2E-${runId}: Second tech review`)).toBeVisible()
 
@@ -79,8 +79,8 @@ test.describe('E2E-01: actions taken full flow', () => {
     await expect(requesterActionsSection.getByText(`E2E-${runId}: Second tech review`)).toBeVisible()
 
     // Ensure NO create or edit controls exist in the DOM for Requester
-    await expect(requesterActionsSection.getByRole('button', { name: /เพิ่ม action/i })).toHaveCount(0)
-    await expect(requesterActionsSection.getByRole('button', { name: /แก้ไข/i })).toHaveCount(0)
+    await expect(requesterActionsSection.getByRole('button', { name: /add action/i })).toHaveCount(0)
+    await expect(requesterActionsSection.getByRole('button', { name: /edit action/i })).toHaveCount(0)
 
     // 4. Responsive checks: No horizontal scroll at 360, 768, 1280 px
     for (const vp of [VIEWPORTS.mobile, VIEWPORTS.tablet, VIEWPORTS.desktop]) {

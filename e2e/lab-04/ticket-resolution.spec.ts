@@ -12,7 +12,7 @@ test.describe('Ticket Resolution & Concurrency', () => {
     await page.goto(`/tickets/${ticketId}`)
     await page.waitForLoadState('networkidle')
 
-    const advisoryBtn = page.getByRole('button', { name: /ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว|appears resolved/i })
+    const advisoryBtn = page.getByRole('button', { name: /appears resolved/i })
     if (await advisoryBtn.isVisible()) {
       await advisoryBtn.click()
       // Status remains unchanged
@@ -25,7 +25,7 @@ test.describe('Ticket Resolution & Concurrency', () => {
     await page.goto(`/staff/tickets/${ticketId}`)
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText(/ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว/i)).toBeVisible()
+    await expect(page.getByText(/requester marked this problem as resolved/i)).toBeVisible()
 
     // 3. Staff tries to resolve ticket without an action result -> gate failure
     // (If ticket has no action result or attempts invalid transition)
@@ -47,10 +47,10 @@ test.describe('Ticket Resolution & Concurrency', () => {
     // 4. Staff adds an Action with result, then resolves
     const actionsSection = page.locator('.actions-taken-section, [data-testid="actions-taken-section"]')
     if (await actionsSection.isVisible()) {
-      await actionsSection.getByRole('button', { name: /เพิ่ม action/i }).click()
-      await actionsSection.getByLabel(/คำอธิบาย|description/i).fill(`E2E-${runId}: Final resolution step`)
-      await actionsSection.getByLabel(/ผลลัพธ์|result/i).fill('Root cause fixed and verified')
-      await actionsSection.getByRole('button', { name: /บันทึก/i }).click()
+      await actionsSection.getByRole('button', { name: /add action/i }).click()
+      await actionsSection.getByLabel(/description/i).fill(`E2E-${runId}: Final resolution step`)
+      await actionsSection.getByLabel(/result/i).fill('Root cause fixed and verified')
+      await actionsSection.getByRole('button', { name: /^save$/i }).click()
       await expect(actionsSection.getByText(`E2E-${runId}: Final resolution step`)).toBeVisible()
     }
 
@@ -70,11 +70,11 @@ test.describe('Ticket Resolution & Concurrency', () => {
     await page.goto(`/tickets/${newTicketId}`)
     await page.waitForLoadState('networkidle')
 
-    const cancelBtn = page.getByRole('button', { name: /ยกเลิกตั๋ว|cancel ticket/i })
+    const cancelBtn = page.getByRole('button', { name: /cancel ticket/i })
     if (await cancelBtn.isVisible()) {
       await cancelBtn.click()
       // If modal confirmation opens, confirm
-      const confirmBtn = page.getByRole('button', { name: /ยืนยัน|confirm/i })
+      const confirmBtn = page.getByRole('button', { name: /^confirm$/i })
       if (await confirmBtn.isVisible()) {
         await confirmBtn.click()
       }
@@ -118,33 +118,33 @@ test.describe('Ticket Resolution & Concurrency', () => {
 
       // Session A edits an Action or changes Status
       const actionsA = pageA.locator('.actions-taken-section, [data-testid="actions-taken-section"]')
-      const editBtnA = actionsA.getByRole('button', { name: /แก้ไข/i }).first()
+      const editBtnA = actionsA.getByRole('button', { name: /edit action/i }).first()
 
       if (await editBtnA.isVisible()) {
         const actionsB = pageB.locator('.actions-taken-section, [data-testid="actions-taken-section"]')
-        const editBtnB = actionsB.getByRole('button', { name: /แก้ไข/i }).first()
+        const editBtnB = actionsB.getByRole('button', { name: /edit action/i }).first()
 
         // Both open edit form on the same action
         await editBtnA.click()
         await editBtnB.click()
 
         // Session A saves first
-        await actionsA.getByLabel(/ผลลัพธ์|result/i).fill('Session A edit at ' + Date.now())
-        await actionsA.getByRole('button', { name: /บันทึก/i }).click()
+        await actionsA.getByLabel(/result/i).fill('Session A edit at ' + Date.now())
+        await actionsA.getByRole('button', { name: /^save$/i }).click()
 
         // Session B attempts to save with stale version
-        await actionsB.getByLabel(/ผลลัพธ์|result/i).fill('Session B conflicting edit')
-        await actionsB.getByRole('button', { name: /บันทึก/i }).click()
+        await actionsB.getByLabel(/result/i).fill('Session B conflicting edit')
+        await actionsB.getByRole('button', { name: /^save$/i }).click()
 
-        // Session B must see 409 conflict banner with "โหลดซ้ำ"
+        // Session B must see 409 conflict banner with "Reload"
         const conflictBanner = actionsB.locator('[role="alert"]')
-        await expect(conflictBanner).toContainText(/รายการถูกแก้ไขโดยผู้อื่น|ตั๋วถูกอัปเดตโดยผู้อื่น|conflict/i)
+        await expect(conflictBanner).toContainText(/modified by another user|conflict/i)
 
         // Session B's typed text is preserved
-        await expect(actionsB.getByLabel(/ผลลัพธ์|result/i)).toHaveValue('Session B conflicting edit')
+        await expect(actionsB.getByLabel(/result/i)).toHaveValue('Session B conflicting edit')
 
-        // Clicking "โหลดซ้ำ" reloads the data
-        const reloadBtn = conflictBanner.getByRole('button', { name: /โหลดซ้ำ/i })
+        // Clicking "Reload" reloads the data
+        const reloadBtn = conflictBanner.getByRole('button', { name: /reload/i })
         await reloadBtn.click()
       }
     } finally {

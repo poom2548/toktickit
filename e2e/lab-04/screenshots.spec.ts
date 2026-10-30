@@ -203,36 +203,36 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await loginAs(page, 'IT_STAFF');
     await page.goto('/staff/tickets/1');
     await page.waitForLoadState('networkidle');
-    const actionsSection = page.locator('.actions-taken-section, :has-text("ประวัติการดำเนินงาน")').first();
+    const actionsSection = page.locator('.actions-taken-section, :has-text("Actions Taken")').first();
     await actionsSection.scrollIntoViewIfNeeded();
     for (const vp of [VIEWPORTS.desktop, VIEWPORTS.tablet, VIEWPORTS.mobile]) {
       await capture(page, subDir, screen, 'multiple-actions', vp);
     }
 
     // 3.2 Create Form with Validation Errors
-    const addBtn = page.getByRole('button', { name: /\+ เพิ่ม Action/i }).first();
+    const addBtn = page.getByRole('button', { name: /\+ Add Action/i }).first();
     if (await addBtn.isVisible()) {
       await addBtn.click();
       await page.waitForTimeout(200);
-      const submitBtn = page.getByRole('button', { name: /บันทึก/i }).first();
+      const submitBtn = page.getByRole('button', { name: /^save$/i }).first();
       await submitBtn.click();
       await page.waitForTimeout(200);
       for (const vp of [VIEWPORTS.desktop, VIEWPORTS.mobile]) {
         await capture(page, subDir, screen, 'create-form-validation-errors', vp);
       }
-      const cancelBtn = page.getByRole('button', { name: /ยกเลิก/i }).first();
+      const cancelBtn = page.getByRole('button', { name: /cancel/i }).first();
       if (await cancelBtn.isVisible()) await cancelBtn.click();
     }
 
     // 3.3 Edit Form
-    const editBtn = page.getByRole('button', { name: /แก้ไข/i }).first();
+    const editBtn = page.getByRole('button', { name: /edit action/i }).first();
     if (await editBtn.isVisible()) {
       await editBtn.click();
       await page.waitForTimeout(200);
       for (const vp of [VIEWPORTS.desktop, VIEWPORTS.mobile]) {
         await capture(page, subDir, screen, 'edit-form', vp);
       }
-      const cancelEditBtn = page.getByRole('button', { name: /ยกเลิก/i }).first();
+      const cancelEditBtn = page.getByRole('button', { name: /cancel/i }).first();
       if (await cancelEditBtn.isVisible()) await cancelEditBtn.click();
     }
 
@@ -244,7 +244,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             error: 'CONFLICT',
-            message: 'ข้อมูลถูกเปลี่ยนแปลงโดยผู้ใช้อื่น กรุณารีเฟรชหน้านี้เพื่อดูข้อมูลล่าสุด (Data was modified by another user)',
+            message: 'Data was modified by another user. Please reload.',
           }),
         });
       }
@@ -255,7 +255,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
       await addBtn.click();
       await page.locator('#action-desc-input, textarea[name="description"]').first().fill('Conflicting action test');
       await page.locator('#action-result-input, textarea[name="result"]').first().fill('Conflicting result');
-      await page.getByRole('button', { name: /บันทึก/i }).first().click();
+      await page.getByRole('button', { name: /^save$/i }).first().click();
       await page.waitForTimeout(300);
       await capture(page, subDir, screen, 'conflict-banner', VIEWPORTS.desktop);
     }
@@ -264,7 +264,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     // 3.5 Empty State (Legacy Ticket 11 with 0 actions)
     await page.goto('/staff/tickets/11');
     await page.waitForLoadState('networkidle');
-    const legacyActions = page.locator('.actions-taken-section, :has-text("ประวัติการดำเนินงาน")').first();
+    const legacyActions = page.locator('.actions-taken-section, :has-text("Actions Taken")').first();
     await legacyActions.scrollIntoViewIfNeeded();
     await capture(page, subDir, screen, 'empty-state', VIEWPORTS.desktop);
 
@@ -292,7 +292,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await loginAs(page, 'REQUESTER');
     await page.goto('/tickets/1');
     await page.waitForLoadState('networkidle');
-    const reqActions = page.locator('.actions-taken-section, :has-text("ประวัติการดำเนินงาน")').first();
+    const reqActions = page.locator('.actions-taken-section, :has-text("Actions Taken")').first();
     if (await reqActions.isVisible()) {
       await reqActions.scrollIntoViewIfNeeded();
     }
@@ -345,7 +345,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
       const resolveOpt = options.find((o) => o.includes('RESOLVED') || o.includes('Resolved'));
       if (resolveOpt) {
         await statusSelect.selectOption({ label: resolveOpt });
-        const updateBtn = page.getByRole('button', { name: /update status|เปลี่ยนสถานะ/i }).first();
+        const updateBtn = page.getByRole('button', { name: /update status/i }).first();
         if (await updateBtn.isVisible()) {
           await updateBtn.click();
           await page.waitForTimeout(300);
@@ -374,7 +374,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
       const nextOpt = options.find((o) => !o.includes('Current:') && o.trim() !== '');
       if (nextOpt) {
         await statusSelect.selectOption({ label: nextOpt });
-        const updateBtn = page.getByRole('button', { name: /update status|เปลี่ยนสถานะ/i }).first();
+        const updateBtn = page.getByRole('button', { name: /update status/i }).first();
         if (await updateBtn.isVisible()) {
           await updateBtn.click();
           await page.waitForTimeout(300);
@@ -387,7 +387,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     // 4.5 Requester Advisory Banner on IT Staff View (Ticket 3)
     await page.goto('/staff/tickets/3');
     await page.waitForLoadState('networkidle');
-    const advisoryBanner = page.locator('.advisory-staff-banner, .alert-info, :has-text("แก้ไขแล้ว")').first();
+    const advisoryBanner = page.locator('.advisory-staff-banner, .alert-info, :has-text("Requester marked")').first();
     if (await advisoryBanner.isVisible()) {
       await advisoryBanner.scrollIntoViewIfNeeded();
     }
@@ -407,7 +407,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await loginAs(page, 'REQUESTER');
     await page.goto('/tickets/9');
     await page.waitForLoadState('networkidle');
-    const cancelTicketBtn = page.getByRole('button', { name: /cancel ticket|ยกเลิกตั๋ว/i }).first();
+    const cancelTicketBtn = page.getByRole('button', { name: /cancel ticket/i }).first();
     if (await cancelTicketBtn.isVisible()) {
       await cancelTicketBtn.scrollIntoViewIfNeeded();
       await capture(page, subDir, screen, 'cancel-modal', VIEWPORTS.desktop);
@@ -467,7 +467,7 @@ test.describe('SCREENSHOTS: Automated Visual Inspection Capture', () => {
     await setViewport(page, VIEWPORTS.mobile);
     await page.goto('/staff/dashboard');
     await page.waitForLoadState('networkidle');
-    const toggler = page.locator('button[aria-label="Menu"], button[aria-label="เมนู"], button:has-text("☰")').first();
+    const toggler = page.locator('button[aria-label="Menu"], button:has-text("☰")').first();
     if (await toggler.isVisible()) {
       await toggler.click();
       await page.waitForTimeout(300);

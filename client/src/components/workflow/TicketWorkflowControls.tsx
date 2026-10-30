@@ -165,7 +165,7 @@ export function TicketWorkflowControls({
 
       // Success (including a replayed response): the intent is finished.
       statusKeyRef.current = null
-      setStatusSuccess('อัปเดตสำเร็จ (Status updated successfully)')
+      setStatusSuccess('Status updated successfully')
       onTicketUpdate(updated)
       await fetchTransitions()
     } catch (err: unknown) {
@@ -280,7 +280,7 @@ export function TicketWorkflowControls({
       {/* Staff Advisory Banner */}
       {isStaff && (ticket.problemAppearsResolved || ticket.requesterMarkedResolvedAt) && (
         <div className="advisory-staff-banner" role="status">
-          <span>ℹ️ ผู้ร้องขอได้ทำเครื่องหมายว่าแก้ไขแล้ว</span>
+          <span>ℹ️ Requester marked this problem as resolved</span>
         </div>
       )}
 
@@ -288,7 +288,7 @@ export function TicketWorkflowControls({
       {statusError && (
         <div className="workflow-alert" role="alert">
           <div>
-            <strong>ข้อผิดพลาด: </strong>
+            <strong>Error: </strong>
             <span>{statusError.message}</span>
           </div>
           {statusError.isConflict && (
@@ -300,7 +300,7 @@ export function TicketWorkflowControls({
                 fetchTransitions()
               }}
             >
-              โหลดซ้ำ (Reload)
+              Reload
             </button>
           )}
         </div>
@@ -315,7 +315,7 @@ export function TicketWorkflowControls({
             className="btn-secondary btn-sm"
             onClick={fetchTransitions}
           >
-            ลองใหม่ (Retry)
+            Retry
           </button>
         </div>
       )}
@@ -340,8 +340,8 @@ export function TicketWorkflowControls({
               disabled={savingAdvisory}
             >
               {savingAdvisory
-                ? 'กำลังบันทึก…'
-                : 'ทำเครื่องหมายว่าปัญหาดูเหมือนจะได้รับการแก้ไขแล้ว (Problem Appears Resolved)'}
+                ? 'Saving…'
+                : 'Mark as Problem Appears Resolved'}
             </button>
           </div>
         )}
@@ -356,7 +356,7 @@ export function TicketWorkflowControls({
               onClick={() => handleUpdateStatus('CANCELLED')}
               disabled={savingStatus}
             >
-              ยกเลิกตั๋ว (Cancel Ticket)
+              Cancel Ticket
             </button>
           </div>
         )}
@@ -364,7 +364,7 @@ export function TicketWorkflowControls({
         {/* Owner Controls (Staff & Admin only) */}
         {isStaff && (
           <div className="workflow-field-group">
-            <label htmlFor="owner-select">Ticket Owner (ผู้รับผิดชอบ)</label>
+            <label htmlFor="owner-select">Ticket Owner</label>
             <div className="workflow-controls-row">
               <select
                 id="owner-select"
@@ -373,7 +373,7 @@ export function TicketWorkflowControls({
                 onChange={(e) => setSelectedOwnerId(e.target.value)}
                 disabled={savingOwner}
               >
-                <option value="">— Unassigned (ยังไม่ได้มอบหมาย) —</option>
+                <option value="">— Unassigned —</option>
                 {assignableUsers.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name} ({u.role})
@@ -446,10 +446,10 @@ export function TicketWorkflowControls({
           <div className="workflow-field-group">
             <label htmlFor="status-select">Update Status</label>
             {loadingTransitions ? (
-              <span className="text-muted">กำลังโหลดสถานะที่อนุญาต…</span>
+              <span className="text-muted">Loading allowed transitions…</span>
             ) : isTerminal ? (
               <p className="terminal-status-note">
-                This ticket is in a terminal state (<strong>{ticket.status}</strong>) and cannot be transitioned further. (ไม่สามารถเปลี่ยนสถานะได้)
+                This ticket is in a terminal state (<strong>{ticket.status}</strong>) and cannot be transitioned further.
               </p>
             ) : (
               <div className="workflow-controls-row">
@@ -496,10 +496,10 @@ export function TicketWorkflowControls({
         >
           <div className="modal-content">
             <h3 id="cancel-modal-title" className="modal-title">
-              ยืนยันการยกเลิกตั๋ว (Confirm Cancellation)
+              Confirm Cancellation
             </h3>
             <p id="cancel-modal-desc">
-              คุณแนใจหรือไม่ว่าต้องการยกเลิกตั๋วนี้? การยกเลิกตั๋วเป็นสถานะสิ้นสุด (Terminal State) และไม่สามารถเปิดใหม่ได้
+              Are you sure you want to cancel this ticket? Cancellation is a terminal state and cannot be reopened.
             </p>
             <div className="modal-actions">
               <button
@@ -508,7 +508,7 @@ export function TicketWorkflowControls({
                 onClick={closeCancelModal}
                 disabled={savingStatus}
               >
-                ยกเลิก (ปิด)
+                Cancel
               </button>
               <button
                 type="button"
@@ -517,7 +517,7 @@ export function TicketWorkflowControls({
                 onClick={() => handleUpdateStatus('CANCELLED')}
                 disabled={savingStatus}
               >
-                {savingStatus ? 'กำลังยกเลิก…' : 'ยืนยัน (Confirm)'}
+                {savingStatus ? 'Cancelling…' : 'Confirm'}
               </button>
             </div>
           </div>

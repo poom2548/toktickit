@@ -59,7 +59,7 @@ const SNIPPET_MAX = 40
 function editButtonLabel(action: ActionTaken): string {
   const plain = (action.description || '').replace(/\s+/g, ' ').trim()
   const snippet = plain.length > SNIPPET_MAX ? plain.slice(0, SNIPPET_MAX) + '…' : plain
-  const base = `แก้ไข Action เมื่อ ${formatBangkokDateTime(action.actionAt)}`
+  const base = `Edit Action at ${formatBangkokDateTime(action.actionAt)}`
   return snippet ? `${base} - ${snippet}` : base
 }
 
@@ -191,14 +191,14 @@ export function ActionsTakenSection({
 
     const errors: Record<string, string> = {}
     if (!description.trim()) {
-      errors.description = 'กรุณาระบุคำอธิบาย (Description is required)'
+      errors.description = 'Description is required'
     } else {
       const tooLong = lengthError('description', description)
       if (tooLong) errors.description = tooLong
     }
 
     if (!result.trim()) {
-      errors.result = 'กรุณาระบุผลลัพธ์ (Result is required)'
+      errors.result = 'Result is required'
     } else {
       const tooLong = lengthError('result', result)
       if (tooLong) errors.result = tooLong
@@ -206,7 +206,7 @@ export function ActionsTakenSection({
 
     if (followUpRequired) {
       if (!followUpNote.trim()) {
-        errors.followUpNote = 'กรุณาระบุบันทึกการติดตามผล (Follow-up note is required)'
+        errors.followUpNote = 'Follow-up note is required'
       } else {
         const tooLong = lengthError('followUpNote', followUpNote)
         if (tooLong) errors.followUpNote = tooLong
@@ -257,7 +257,7 @@ export function ActionsTakenSection({
 
       // Success (including a replayed response): the intent is finished.
       closeForm()
-      setStatusMessage('บันทึก Action สำเร็จ')
+      setStatusMessage('Action saved successfully')
       await loadActions()
     } catch (err: unknown) {
       const apiError = toApiError(err)
@@ -297,14 +297,14 @@ export function ActionsTakenSection({
       aria-labelledby="actions-taken-heading"
     >
       <div className="actions-header">
-        <h3 id="actions-taken-heading">ประวัติการดำเนินงาน (Actions Taken)</h3>
+        <h3 id="actions-taken-heading">Actions Taken</h3>
         {isStaff && !isFormOpen && (
           <button
             type="button"
             className="btn-primary"
             onClick={openCreateForm}
           >
-            + เพิ่ม Action
+            + Add Action
           </button>
         )}
       </div>
@@ -321,7 +321,7 @@ export function ActionsTakenSection({
         <div className="actions-alert" role="alert">
           <span>{error.message}</span>
           <button type="button" className="btn-secondary btn-sm" onClick={loadActions}>
-            ลองใหม่ (Retry)
+            Retry
           </button>
         </div>
       )}
@@ -330,7 +330,7 @@ export function ActionsTakenSection({
       {conflictError && (
         <div className="actions-alert" role="alert">
           <div>
-            <strong>รายการถูกแก้ไขโดยผู้อื่น (Conflict)</strong>
+            <strong>Modified by another user (Conflict)</strong>
             <p style={{ margin: '4px 0 0 0' }}>{conflictError.message}</p>
           </div>
           <button
@@ -338,7 +338,7 @@ export function ActionsTakenSection({
             className="btn-secondary btn-sm"
             onClick={handleReloadConflict}
           >
-            โหลดซ้ำ (Reload)
+            Reload
           </button>
         </div>
       )}
@@ -347,7 +347,7 @@ export function ActionsTakenSection({
       {isStaff && isFormOpen && (
         <form className="action-inline-form" onSubmit={handleSubmit} noValidate>
           <h4 style={{ margin: '0 0 1rem 0', color: 'var(--zen-color-primary, #006B3C)' }}>
-            {editingAction ? 'แก้ไขการดำเนินงาน' : 'เพิ่มการดำเนินงานใหม่'}
+            {editingAction ? 'Edit Action Taken' : 'Add New Action Taken'}
           </h4>
 
           {fieldErrors.general && (
@@ -360,7 +360,7 @@ export function ActionsTakenSection({
             {/* Action Date/Time */}
             <div className="action-field">
               <label htmlFor="action-at-input">
-                วันที่/เวลา (Action Date/Time) <span style={{ color: 'red' }}>*</span>
+                Action Date/Time <span style={{ color: 'red' }}>*</span>
               </label>
               <input
                 id="action-at-input"
@@ -374,7 +374,7 @@ export function ActionsTakenSection({
 
             {/* Performed By (Read-only / automatic) */}
             <div className="action-field">
-              <label id="performed-by-label">ผู้ดำเนินการ (Performed By)</label>
+              <label id="performed-by-label">Performed By</label>
               <span
                 className="performed-by-readonly"
                 aria-labelledby="performed-by-label"
@@ -388,7 +388,7 @@ export function ActionsTakenSection({
             {/* Description */}
             <div className="action-field action-form-full">
               <label htmlFor="action-desc-input">
-                คำอธิบาย (Description) <span style={{ color: 'red' }}>*</span>
+                Description <span style={{ color: 'red' }}>*</span>
               </label>
               <textarea
                 id="action-desc-input"
@@ -410,7 +410,7 @@ export function ActionsTakenSection({
             {/* Result */}
             <div className="action-field action-form-full">
               <label htmlFor="action-result-input">
-                ผลลัพธ์ (Result) <span style={{ color: 'red' }}>*</span>
+                Result <span style={{ color: 'red' }}>*</span>
               </label>
               <textarea
                 id="action-result-input"
@@ -438,14 +438,14 @@ export function ActionsTakenSection({
                 onChange={(e) => toggleFollowUp(e.target.checked)}
                 disabled={submitting}
               />
-              <label htmlFor="action-follow-up-checkbox">ต้องการติดตามผล</label>
+              <label htmlFor="action-follow-up-checkbox">Follow-up Required</label>
             </div>
 
             {/* Conditional Follow-up Note */}
             {followUpRequired && (
               <div className="action-field action-form-full">
                 <label htmlFor="action-follow-up-note">
-                  บันทึกการติดตามผล (Follow-up Note) <span style={{ color: 'red' }}>*</span>
+                  Follow-up Note <span style={{ color: 'red' }}>*</span>
                 </label>
                 <textarea
                   id="action-follow-up-note"
@@ -468,7 +468,7 @@ export function ActionsTakenSection({
             {/* Attachment Notes */}
             <div className="action-field action-form-full">
               <label htmlFor="action-attachment-notes">
-                บันทึกไฟล์แนบ (Attachment Notes)
+                Attachment Notes
               </label>
               <input
                 id="action-attachment-notes"
@@ -493,7 +493,7 @@ export function ActionsTakenSection({
               className="btn-primary"
               disabled={submitting}
             >
-              {submitting ? 'กำลังบันทึก…' : 'บันทึก'}
+              {submitting ? 'Saving…' : 'Save'}
             </button>
             <button
               type="button"
@@ -501,7 +501,7 @@ export function ActionsTakenSection({
               onClick={closeForm}
               disabled={submitting}
             >
-              ยกเลิก
+              Cancel
             </button>
           </div>
         </form>
@@ -511,48 +511,48 @@ export function ActionsTakenSection({
       {loading ? (
         <div
           role="status"
-          aria-label="กำลังโหลด"
+          aria-label="Loading"
           aria-live="polite"
           style={{ padding: '1rem', textAlign: 'center' }}
         >
-          กำลังโหลดประวัติการดำเนินงาน...
+          Loading actions taken...
         </div>
       ) : actions.length === 0 ? (
-        <div className="actions-empty">ยังไม่มีประวัติการดำเนินงาน</div>
+        <div className="actions-empty">No actions taken recorded yet</div>
       ) : (
         <div className="actions-table-wrapper">
           <table className="actions-table">
-            <caption>ประวัติการดำเนินงาน (Actions Taken)</caption>
+            <caption>Actions Taken</caption>
             <thead>
               <tr>
-                <th scope="col">วันที่/เวลา</th>
-                <th scope="col">ผู้ดำเนินการ</th>
-                <th scope="col">คำอธิบาย</th>
-                <th scope="col">ผลลัพธ์</th>
-                <th scope="col">การติดตามผล / หมายเหตุ</th>
-                {isStaff && <th scope="col">จัดการ</th>}
+                <th scope="col">Date/Time</th>
+                <th scope="col">Performed By</th>
+                <th scope="col">Description</th>
+                <th scope="col">Result</th>
+                <th scope="col">Follow-Up / Notes</th>
+                {isStaff && <th scope="col">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {actions.map((act) => (
                 <tr key={act.id}>
-                  <td data-label="วันที่/เวลา">
+                  <td data-label="Date/Time">
                     {formatBangkokDateTime(act.actionAt)}
                   </td>
-                  <td data-label="ผู้ดำเนินการ">
+                  <td data-label="Performed By">
                     {act.performedBy?.name || 'N/A'}
                   </td>
-                  <td data-label="คำอธิบาย" style={{ whiteSpace: 'pre-wrap' }}>
+                  <td data-label="Description" style={{ whiteSpace: 'pre-wrap' }}>
                     {act.description}
                   </td>
-                  <td data-label="ผลลัพธ์" style={{ whiteSpace: 'pre-wrap' }}>
+                  <td data-label="Result" style={{ whiteSpace: 'pre-wrap' }}>
                     {act.result}
                   </td>
-                  <td data-label="การติดตามผล / หมายเหตุ">
+                  <td data-label="Follow-Up / Notes">
                     {act.followUpRequired && (
                       <div style={{ marginBottom: '4px' }}>
                         <span className="follow-up-badge">
-                          <span aria-hidden="true">⚠️</span> ต้องการติดตามผล
+                          <span aria-hidden="true">⚠️</span> Follow-up Required
                         </span>
                         {act.followUpNote && (
                           <div style={{ marginTop: '4px', fontStyle: 'italic' }}>
@@ -569,14 +569,14 @@ export function ActionsTakenSection({
                     )}
                   </td>
                   {isStaff && (
-                    <td data-label="จัดการ">
+                    <td data-label="Actions">
                       <button
                         type="button"
                         className="btn-secondary btn-sm"
                         aria-label={editButtonLabel(act)}
                         onClick={() => startEdit(act)}
                       >
-                        แก้ไข
+                        Edit
                       </button>
                     </td>
                   )}

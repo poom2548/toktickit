@@ -12,17 +12,17 @@ export const ACTION_LIMITS = {
 export type ActionLimitField = keyof typeof ACTION_LIMITS
 
 const FIELD_LABELS: Record<ActionLimitField, string> = {
-  description: 'คำอธิบาย',
-  result: 'ผลลัพธ์',
-  followUpNote: 'บันทึกการติดตามผล',
-  attachmentNotes: 'บันทึกไฟล์แนบ',
+  description: 'Description',
+  result: 'Result',
+  followUpNote: 'Follow-up Note',
+  attachmentNotes: 'Attachment Notes',
 }
 
 /** Returns the visible error for an over-long value, or undefined when it fits. */
 export function lengthError(field: ActionLimitField, value: string): string | undefined {
   const limit = ACTION_LIMITS[field]
   if (value.trim().length > limit) {
-    return `${FIELD_LABELS[field]}ความยาวเกินกำหนด (ไม่เกิน ${limit} ตัวอักษร)`
+    return `${FIELD_LABELS[field]} exceeds maximum length (max ${limit} characters)`
   }
   return undefined
 }

@@ -15,26 +15,26 @@ export interface NormalizedApiError {
 const MAX_SERVER_TEXT = 300
 
 export const SAFE_MESSAGES = {
-  validation: 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบและลองใหม่',
-  unauthenticated: 'กรุณาเข้าสู่ระบบอีกครั้ง',
-  forbidden: 'คุณไม่มีสิทธิ์ดำเนินการนี้',
-  notFound: 'ไม่พบข้อมูลที่ต้องการ',
-  conflict: 'ข้อมูลถูกเปลี่ยนแปลงแล้ว กรุณาโหลดซ้ำ',
-  server: 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง',
-  network: 'เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่',
-  generic: 'เกิดข้อผิดพลาดในการดำเนินการ กรุณาลองใหม่อีกครั้ง',
+  validation: 'Invalid input. Please check your entries and try again.',
+  unauthenticated: 'Please sign in again.',
+  forbidden: 'You do not have permission to perform this action.',
+  notFound: 'The requested resource was not found.',
+  conflict: 'Data was modified by another user. Please reload.',
+  server: 'Server error. Please try again.',
+  network: 'Network error. Please check your connection and try again.',
+  generic: 'An unexpected error occurred. Please try again.',
 } as const
 
 // Messages for the known Lab 4 error codes.
 const CODE_MESSAGES: Record<string, string> = {
-  VALIDATION_FAILED: 'ข้อมูลที่ระบุไม่ถูกต้อง กรุณาตรวจสอบข้อมูลในฟอร์ม',
-  CONFLICT: 'ตั๋วถูกอัปเดตโดยผู้อื่น (The ticket was modified by another user.) กรุณาโหลดซ้ำเพื่อรับข้อมูลล่าสุด',
-  TICKET_LOCKED: 'ตั๋วอยู่ในสถานะปิดใช้งาน (Closed หรือ Cancelled) ไม่สามารถดำเนินการต่อได้',
-  INVALID_TRANSITION: 'ไม่สามารถเปลี่ยนสถานะไปยังสถานะที่เลือกได้',
-  RESOLUTION_GATE_FAILED: 'ไม่ผ่านเงื่อนไขการปิดงาน',
-  INVALID_ASSIGNEE: 'ไม่สามารถมอบหมายให้ผู้ใช้นี้ได้ (เฉพาะ IT Staff หรือ Administrator ที่ยังทำงานอยู่เท่านั้น)',
-  IDEMPOTENCY_KEY_REUSED: 'คำขอถูกส่งซ้ำด้วยข้อมูลที่แตกต่างกัน กรุณาลองใหม่อีกครั้ง',
-  INVALID_TICKET_STATE: 'การดำเนินการนี้ไม่ได้รับอนุญาตในสถานะปัจจุบันของตั๋ว',
+  VALIDATION_FAILED: 'Invalid form data. Please check the highlighted fields.',
+  CONFLICT: 'The ticket was modified by another user. Please reload to get the latest data.',
+  TICKET_LOCKED: 'Ticket is locked (Closed or Cancelled) and cannot be modified.',
+  INVALID_TRANSITION: 'Cannot transition to the selected status.',
+  RESOLUTION_GATE_FAILED: 'Resolution precondition failed.',
+  INVALID_ASSIGNEE: 'Invalid assignee (only active IT Staff or Administrators can be assigned).',
+  IDEMPOTENCY_KEY_REUSED: 'Request was re-sent with different data. Please try again.',
+  INVALID_TICKET_STATE: 'This action is not allowed in the current ticket status.',
   FORBIDDEN: SAFE_MESSAGES.forbidden,
   NOT_FOUND: SAFE_MESSAGES.notFound,
   UNAUTHENTICATED: SAFE_MESSAGES.unauthenticated,

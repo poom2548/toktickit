@@ -113,7 +113,7 @@ test.describe('RESP-01: Responsive Layout and Mobile Navigation (AC-47)', () => 
       await page.goto(`/staff/tickets/${testTicketId}`);
       await page.waitForLoadState('networkidle');
 
-      const addBtn = page.getByRole('button', { name: /เพิ่ม action|\+ action/i }).first();
+      const addBtn = page.getByRole('button', { name: /add action|\+ action/i }).first();
       if (await addBtn.isVisible()) {
         await addBtn.click();
         await page.waitForTimeout(200);
@@ -169,7 +169,7 @@ test.describe('RESP-01: Responsive Layout and Mobile Navigation (AC-47)', () => 
     await expect(mobileNav).toBeVisible();
 
     // Verify navigation links are visible inside mobile menu
-    const dashboardLink = mobileNav.getByRole('link', { name: /แดชบอร์ด|dashboard/i });
+    const dashboardLink = mobileNav.getByRole('link', { name: /dashboard/i });
     const ticketsLink = mobileNav.getByRole('link', { name: /my tickets/i });
     await expect(dashboardLink).toBeVisible();
     await expect(ticketsLink).toBeVisible();

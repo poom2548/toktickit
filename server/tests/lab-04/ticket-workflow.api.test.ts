@@ -76,7 +76,6 @@ describe('Ticket Workflow', () => {
   });
 
   afterAll(async () => {
-    await prisma.ticketStatusHistory.deleteMany();
     await resetTestData();
   });
 

@@ -10,14 +10,34 @@ import './StaffTicketQueue.css'
 export function StaffTicketQueuePage() {
   const navigate = useNavigate()
 
+  const getInitialParams = () => {
+    if (typeof window !== 'undefined' && window.location) {
+      const sp = new URLSearchParams(window.location.search);
+      return {
+        statusGroup: sp.get('statusGroup') || '',
+        assignee: sp.get('assignee') || '',
+        status: (sp.get('status') as TicketStatus) || '',
+        priority: (sp.get('priority') as Priority) || '',
+        resolvedWithinDays: sp.get('resolvedWithinDays') || '',
+        search: sp.get('search') || '',
+      };
+    }
+    return { statusGroup: '', assignee: '', status: '' as const, priority: '' as const, resolvedWithinDays: '', search: '' };
+  };
+
+  const initialParams = getInitialParams();
+
   // Filter/sort/pagination state
-  const [search, setSearch]           = useState('')
-  const [statusFilter, setStatus]     = useState<TicketStatus | ''>('')
-  const [priorityFilter, setPriority] = useState<Priority | ''>('')
-  const [reqPriorityFilter, setReqPriority] = useState<Priority | ''>('')
-  const [sortField, setSortField]     = useState<SortField>('createdAt')
-  const [sortDir, setSortDir]         = useState<SortDirection>('desc')
-  const [page, setPage]               = useState(1)
+  const [search, setSearch]                     = useState(initialParams.search)
+  const [statusFilter, setStatus]               = useState<TicketStatus | ''>(initialParams.status)
+  const [priorityFilter, setPriority]           = useState<Priority | ''>(initialParams.priority)
+  const [reqPriorityFilter, setReqPriority]     = useState<Priority | ''>('')
+  const [statusGroup, setStatusGroup]           = useState(initialParams.statusGroup)
+  const [assignee, setAssignee]                 = useState(initialParams.assignee)
+  const [resolvedWithinDays, setResolvedWithinDays] = useState(initialParams.resolvedWithinDays)
+  const [sortField, setSortField]               = useState<SortField>('createdAt')
+  const [sortDir, setSortDir]                   = useState<SortDirection>('desc')
+  const [page, setPage]                         = useState(1)
   const PAGE_SIZE = 20
 
   // Data state
@@ -27,14 +47,14 @@ export function StaffTicketQueuePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState(initialParams.search)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400)
     return () => clearTimeout(timer)
   }, [search])
 
   // Reset to page 1 whenever filters/sort change
-  useEffect(() => { setPage(1) }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, sortField, sortDir])
+  useEffect(() => { setPage(1) }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, statusGroup, assignee, resolvedWithinDays, sortField, sortDir])
 
   // Fetch data
   const fetchTickets = useCallback(async () => {
@@ -46,6 +66,9 @@ export function StaffTicketQueuePage() {
     if (statusFilter)    params.set('status', statusFilter)
     if (priorityFilter)  params.set('priority', priorityFilter)
     if (reqPriorityFilter) params.set('requestedPriority', reqPriorityFilter)
+    if (statusGroup)     params.set('statusGroup', statusGroup)
+    if (assignee)        params.set('assignee', assignee)
+    if (resolvedWithinDays) params.set('resolvedWithinDays', resolvedWithinDays)
     params.set('sort', sortField)
     params.set('direction', sortDir)
     params.set('page', String(page))
@@ -78,7 +101,7 @@ export function StaffTicketQueuePage() {
       setFetchState('error')
       setErrorMessage('Unable to load tickets. Please check your connection and try again.')
     }
-  }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, sortField, sortDir, page])
+  }, [debouncedSearch, statusFilter, priorityFilter, reqPriorityFilter, statusGroup, assignee, resolvedWithinDays, sortField, sortDir, page])
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
 
@@ -95,17 +118,57 @@ export function StaffTicketQueuePage() {
     }
   }
 
+  const handleClearFilters = () => {
+    setSearch('')
+    setStatus('')
+    setPriority('')
+    setReqPriority('')
+    setStatusGroup('')
+    setAssignee('')
+    setResolvedWithinDays('')
+    navigate('/staff/tickets', { replace: true })
+  }
+
+  const hasDrillDown = Boolean(statusGroup || assignee || resolvedWithinDays || (statusFilter && initialParams.status) || (priorityFilter && initialParams.priority))
+
+  const activeChips = hasDrillDown && (
+    <div
+      className="d-flex flex-wrap align-items-center gap-2 mb-3 p-2 px-3 rounded"
+      style={{ backgroundColor: 'var(--zen-color-primary-light, #EAF6EF)', border: '1px solid #c3e6cb' }}
+    >
+      <span className="small fw-bold" style={{ color: 'var(--zen-color-primary-dark, #004d2b)' }}>
+        🔍 Active Filter:
+      </span>
+      {statusGroup && <span className="badge bg-success">Status Group: {statusGroup}</span>}
+      {assignee && <span className="badge bg-primary">Assignee: {assignee === 'me' ? 'Me' : 'Unassigned'}</span>}
+      {statusFilter && <span className="badge bg-secondary">Status: {statusFilter}</span>}
+      {priorityFilter && <span className="badge bg-warning text-dark">Priority: {priorityFilter}</span>}
+      {resolvedWithinDays && <span className="badge bg-info text-dark">Resolved within: {resolvedWithinDays} days</span>}
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-danger ms-auto"
+        style={{ borderRadius: 'var(--zen-radius-md, 8px)', padding: '2px 8px', fontSize: '0.8rem', color: 'var(--zen-color-error, #8b0000)', borderColor: 'var(--zen-color-error, #8b0000)' }}
+        onClick={handleClearFilters}
+      >
+        Clear filters
+      </button>
+    </div>
+  )
+
   const controls = (
-    <QueueControls
-      search={search}
-      onSearchChange={setSearch}
-      statusFilter={statusFilter}
-      onStatusChange={setStatus as any}
-      priorityFilter={priorityFilter}
-      onPriorityChange={setPriority as any}
-      reqPriorityFilter={reqPriorityFilter}
-      onReqPriorityChange={setReqPriority as any}
-    />
+    <>
+      {activeChips}
+      <QueueControls
+        search={search}
+        onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusChange={setStatus as any}
+        priorityFilter={priorityFilter}
+        onPriorityChange={setPriority as any}
+        reqPriorityFilter={reqPriorityFilter}
+        onReqPriorityChange={setReqPriority as any}
+      />
+    </>
   )
 
   if (fetchState === 'loading') {
@@ -144,7 +207,7 @@ export function StaffTicketQueuePage() {
     )
   }
 
-  const filtersActive = debouncedSearch || statusFilter || priorityFilter || reqPriorityFilter
+  const filtersActive = debouncedSearch || statusFilter || priorityFilter || reqPriorityFilter || statusGroup || assignee || resolvedWithinDays
 
   if (fetchState === 'success' && tickets.length === 0 && !filtersActive) {
     return (
@@ -163,7 +226,7 @@ export function StaffTicketQueuePage() {
         {controls}
         <div className="no-results" role="status">
           <p>No tickets match your current search or filters.</p>
-          <button onClick={() => { setSearch(''); setStatus(''); setPriority(''); setReqPriority('') }}>
+          <button onClick={handleClearFilters}>
             Clear filters
           </button>
         </div>

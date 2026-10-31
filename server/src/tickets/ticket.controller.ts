@@ -1,8 +1,13 @@
 import { Request, Response, NextFunction } from "express";
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, Role, TicketStatus } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
 import { generateTicketNumber } from '../utils/ticketNumber.js'
 import { AppError } from "../middlewares/error.middleware.js";
+import {
+  normalizeTicketStatus,
+  OPEN_TICKET_STATUSES,
+  buildRecentlyResolvedWhere,
+} from "../utils/ticketFilters.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -96,22 +101,60 @@ export async function getTickets(
       rawCategoryId !== undefined && !isNaN(Number(rawCategoryId))
         ? Number(rawCategoryId)
         : undefined;
-    const priority = typeof req.query.priority === "string" && VALID_PRIORITIES.includes(req.query.priority as any) ? (req.query.priority.toUpperCase() as any) : undefined;
-    const status = typeof req.query.status === "string" && VALID_STATUSES.includes(req.query.status as any) ? (req.query.status.toUpperCase().replace(" ", "_") as any) : undefined;
+    const priority =
+      typeof req.query.priority === "string" && VALID_PRIORITIES.includes(req.query.priority as any)
+        ? (req.query.priority.toUpperCase() as any)
+        : undefined;
+    const normalizedStatus = normalizeTicketStatus(req.query.status);
+    const isStatusGroupOpen = req.query.statusGroup === "open";
+    const rawDays = parseInt(String(req.query.resolvedWithinDays ?? ""), 10);
+    const resolvedWithinDays =
+      !isNaN(rawDays) && rawDays >= 1 && rawDays <= 365 ? rawDays : undefined;
 
     // Build where clause — always scoped to the authenticated requester
-    const where = {
-      requesterId,
-      ...(categoryId !== undefined && { categoryId }),
-      ...(priority !== undefined && { requestedPriority: priority }),
-      ...(status !== undefined && { status }),
-      ...(search !== undefined && search.length > 0 && {
-        OR: [
-          { summary: { contains: search, mode: "insensitive" as const } },
-          { description: { contains: search, mode: "insensitive" as const } },
-        ],
-      }),
-    };
+    const where: any = { requesterId };
+
+    if (categoryId !== undefined) {
+      where.categoryId = categoryId;
+    }
+
+    if (priority !== undefined) {
+      where.requestedPriority = priority;
+    }
+
+    if (normalizedStatus !== undefined && isStatusGroupOpen) {
+      if (OPEN_TICKET_STATUSES.includes(normalizedStatus)) {
+        where.status = normalizedStatus;
+      } else {
+        where.status = { in: [] };
+      }
+    } else if (normalizedStatus !== undefined) {
+      where.status = normalizedStatus;
+    } else if (isStatusGroupOpen) {
+      where.status = { in: [...OPEN_TICKET_STATUSES] };
+    }
+
+    if (resolvedWithinDays !== undefined) {
+      const cutoffDate = new Date(Date.now() - resolvedWithinDays * 24 * 60 * 60 * 1000);
+      if (where.status !== undefined && where.status !== TicketStatus.RESOLVED) {
+        where.status = { in: [] };
+      } else {
+        where.status = TicketStatus.RESOLVED;
+        where.statusHistory = {
+          some: {
+            toStatus: TicketStatus.RESOLVED,
+            changedAt: { gte: cutoffDate },
+          },
+        };
+      }
+    }
+
+    if (search !== undefined && search.length > 0) {
+      where.OR = [
+        { summary: { contains: search, mode: "insensitive" as const } },
+        { description: { contains: search, mode: "insensitive" as const } },
+      ];
+    }
 
     // ── Query ───────────────────────────────────────────────────────────────
     const [tickets, totalItems] = await Promise.all([

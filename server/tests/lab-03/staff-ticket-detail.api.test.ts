@@ -63,7 +63,16 @@ describe('Staff Ticket Detail API', () => {
         status: "IN_PROGRESS",
         categoryId: baseTicket.categoryId,
         relatedSystemId: baseTicket.relatedSystemId,
-        requesterId: baseTicket.requesterId
+        requesterId: baseTicket.requesterId,
+        ownerId: frankUserId,
+        actions: {
+          create: {
+            actionAt: new Date(),
+            description: 'investigated',
+            result: 'fixed',
+            performedById: frankUserId
+          }
+        }
       }
     });
     inProgressTicketId = inProgressTicket.id;
@@ -98,11 +107,12 @@ describe('Staff Ticket Detail API', () => {
   });
 
   afterAll(async () => {
-    await prisma.ticket.deleteMany({
-      where: {
-        id: { in: [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id) }
-      }
-    });
+    const createdIds = [newStatusTicketId, inProgressTicketId, resolvedTicketId, closedTicketId].filter(id => id);
+    if (createdIds.length > 0) {
+      await prisma.actionTaken.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticketStatusHistory.deleteMany({ where: { ticketId: { in: createdIds } } });
+      await prisma.ticket.deleteMany({ where: { id: { in: createdIds } } });
+    }
   });
 
   describe('GET /staff/tickets/:id', () => {
@@ -156,10 +166,11 @@ describe('Staff Ticket Detail API', () => {
   describe('PATCH /staff/tickets/:id/owner', () => {
     it('updates owner to a valid active IT_STAFF user', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
-        .send({ ownerId: graceUserId });
+        .send({ ownerId: graceUserId, version: ticket!.version });
 
       expect(res.status).toBe(200);
       expect(res.body.owner?.id).toBe(graceUserId);
@@ -167,40 +178,44 @@ describe('Staff Ticket Detail API', () => {
 
     it('unassigns owner when ownerId is null', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
-        .send({ ownerId: null });
+        .send({ ownerId: null, version: ticket!.version });
       expect(res.status).toBe(200);
       expect(res.body.ownerId).toBeNull();
     });
 
     it('returns 422 when ownerId is a REQUESTER user', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
-        .send({ ownerId: aliceUserId });
+        .send({ ownerId: aliceUserId, version: ticket!.version });
       expect(res.status).toBe(422);
       expect(res.body.error).toMatch(/requester/i);
     });
 
     it('returns 422 when ownerId is an inactive IT_STAFF user', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', staffCookie)
-        .send({ ownerId: ivyUserId });
+        .send({ ownerId: ivyUserId, version: ticket!.version });
       expect(res.status).toBe(422);
       expect(res.body.error).toMatch(/inactive/i);
     });
 
     it('returns 403 for REQUESTER', async () => {
       const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/owner`)
         .set('Cookie', requesterCookie)
-        .send({ ownerId: frankUserId });
+        .send({ ownerId: frankUserId, version: ticket!.version });
       expect(res.status).toBe(403);
     });
   });
@@ -238,30 +253,33 @@ describe('Staff Ticket Detail API', () => {
   describe('PATCH /staff/tickets/:id/status', () => {
     it('transitions NEW → OPEN successfully', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: newStatusTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${newStatusTicketId}/status`)
         .set('Cookie', staffCookie)
-        .send({ status: 'OPEN' });
+        .send({ status: 'OPEN', version: ticket!.version });
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('OPEN');
     });
 
     it('transitions IN_PROGRESS → RESOLVED successfully', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: inProgressTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${inProgressTicketId}/status`)
         .set('Cookie', staffCookie)
-        .send({ status: 'RESOLVED' });
+        .send({ status: 'RESOLVED', version: ticket!.version });
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('RESOLVED');
     });
 
     it('returns 422 for RESOLVED → NEW (not a permitted transition)', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: resolvedTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${resolvedTicketId}/status`)
         .set('Cookie', staffCookie)
-        .send({ status: 'NEW' });
+        .send({ status: 'NEW', version: ticket!.version });
       expect(res.status).toBe(422);
       expect(res.body).toHaveProperty('permittedTransitions');
       expect(res.body.permittedTransitions).toContain('CLOSED');
@@ -270,29 +288,32 @@ describe('Staff Ticket Detail API', () => {
 
     it('returns 422 for CLOSED → anything (terminal state)', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: closedTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${closedTicketId}/status`)
         .set('Cookie', staffCookie)
-        .send({ status: 'OPEN' });
+        .send({ status: 'OPEN', version: ticket!.version });
       expect(res.status).toBe(422);
       expect(res.body.permittedTransitions).toHaveLength(0);
     });
 
     it('returns 403 for REQUESTER attempting status change', async () => {
       const requesterCookie = await loginAndGetCookie('alice@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/status`)
         .set('Cookie', requesterCookie)
-        .send({ status: 'OPEN' });
+        .send({ status: 'OPEN', version: ticket!.version });
       expect(res.status).toBe(403);
     });
 
     it('returns 400 for invalid status value', async () => {
       const staffCookie = await loginAndGetCookie('frank@toktick.dev', 'SecurePass@123');
+      const ticket = await prisma.ticket.findUnique({ where: { id: seededTicketId } });
       const res = await request(app)
         .patch(`/staff/tickets/${seededTicketId}/status`)
         .set('Cookie', staffCookie)
-        .send({ status: 'SUPER_RESOLVED' });
+        .send({ status: 'SUPER_RESOLVED', version: ticket!.version });
       expect(res.status).toBe(400);
     });
   });

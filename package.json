@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:baseline": "npm run test --prefix server -- \"tests/lab-01\" \"tests/lab-02\" \"tests/lab-03\" && npm run test --prefix client -- \"src/tests/lab-01\" \"src/tests/lab-03\" && npx playwright test e2e/lab-02 e2e/lab-03",
+    "test:lab4": "npm run test --prefix server -- \"tests/lab-04\" && npm run test --prefix client -- \"src/tests/lab-04 tests\" && npx playwright test e2e/lab-04",
+    "test:all": "npm run test:baseline && npm run test:lab4"
   },
   "repository": {
     "type": "git",
@@ -22,6 +24,7 @@
   },
   "homepage": "https://github.com/poom2548/toktickit#readme",
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.4.0",
     "typescript": "^7.0.2"

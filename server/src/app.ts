@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { requesterRouter } from "./requesters/requester.routes.js";
@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
 import adminRouter from "./routes/admin.js";
+import { dashboardRouter } from "./dashboard/dashboard.routes.js";
 
 export const app = express();
 
@@ -76,11 +77,33 @@ app.use("/api/requesters", requesterRouter);
 app.use("/api/tickets", ticketRouter);
 
 // ---------------------------------------------------------------------------
+// Dashboard routes (auth-guarded inside dashboardRouter)
+// GET /api/dashboard/requester
+// GET /api/dashboard/staff
+// ---------------------------------------------------------------------------
+app.use("/api/dashboard", dashboardRouter);
+
+// ---------------------------------------------------------------------------
 // Attachment routes (auth-guarded inside attachmentRouter)
 // POST   /api/tickets/:ticketId/attachments
 // DELETE /api/attachments/:id
 // ---------------------------------------------------------------------------
 app.use("/api", attachmentRouter);
+
+// ---------------------------------------------------------------------------
+// Unmatched routes catch-all fallback (safe 404 envelope)
+// ---------------------------------------------------------------------------
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith("/test/")) {
+    return next();
+  }
+  res.status(404).json({
+    error: {
+      code: "NOT_FOUND",
+      message: "Route not found.",
+    },
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Global error handler — MUST be last

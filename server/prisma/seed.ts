@@ -159,7 +159,79 @@ async function main() {
     }
   }
 
-  console.log('โ… Seeding complete.')
+
+  // ========================
+  // LAB 4 SEED DATA
+  // ========================
+  
+  // Create TKT-011 for Alice (RESOLVED outside 7 days)
+  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+  const ticket11 = await prisma.ticket.upsert({
+    where: { ticketNumber: 'TKT-011' },
+    update: {},
+    create: {
+      ticketNumber: 'TKT-011',
+      summary: 'Legacy resolved ticket',
+      description: 'Resolved a long time ago',
+      requestedPriority: Priority.LOW,
+      itPriority: Priority.LOW,
+      status: TicketStatus.RESOLVED,
+      requesterId: alice.id,
+      ownerId: grace.id,
+      categoryId: createdCats[0].id,
+      relatedSystemId: createdSys[0].id,
+      createdAt: tenDaysAgo,
+      updatedAt: tenDaysAgo
+    }
+  });
+  
+  // Set requesterMarkedResolvedAt for TKT-010
+  await prisma.ticket.update({
+    where: { ticketNumber: 'TKT-010' },
+    data: { requesterMarkedResolvedAt: new Date() }
+  });
+
+  // Action helpers using stable IDs
+  const createSeedAction = async (id: string, ticketId: number, performedById: string, actionAt: Date, desc: string, result: string, followUp: boolean, followNote: string | null = null, attachNote: string | null = null) => {
+    return prisma.actionTaken.upsert({
+      where: { id },
+      update: {},
+      create: { id, ticketId, performedById, actionAt, description: desc, result, followUpRequired: followUp, followUpNote: followNote, attachmentNotes: attachNote }
+    });
+  };
+
+  const createSeedHistory = async (id: string, ticketId: number, from: TicketStatus | null, to: TicketStatus, changedById: string, changedAt: Date) => {
+    return prisma.ticketStatusHistory.upsert({
+      where: { id },
+      update: {},
+      create: { id, ticketId, fromStatus: from, toStatus: to, changedById, changedAt }
+    });
+  };
+
+  const tkt1Id = tkt1.id;
+  await createSeedHistory('seed-hist-TKT-001-1', tkt1Id, null, TicketStatus.NEW, alice.id, new Date(Date.now() - 3 * 24 * 60 * 60 * 1000));
+  await createSeedHistory('seed-hist-TKT-001-2', tkt1Id, TicketStatus.NEW, TicketStatus.OPEN, frank.id, new Date(Date.now() - 2 * 24 * 60 * 60 * 1000));
+  await createSeedHistory('seed-hist-TKT-001-3', tkt1Id, TicketStatus.OPEN, TicketStatus.IN_PROGRESS, frank.id, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000));
+  
+  await createSeedAction('seed-act-TKT-001-1', tkt1Id, frank.id, new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'Investigated VPN logs', 'Found timeout errors', true, 'Check firewall rules tomorrow', null);
+  await createSeedAction('seed-act-TKT-001-2', tkt1Id, grace.id, new Date(Date.now() - 36 * 60 * 60 * 1000), 'Checked firewall', 'Rules look fine', false, null, 'Attached firewall config');
+  await createSeedAction('seed-act-TKT-001-3', tkt1Id, frank.id, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'Contacted ISP', 'Awaiting response', false, null, null);
+
+  await createSeedHistory('seed-hist-TKT-002-1', createdTickets[1].id, null, TicketStatus.NEW, bob.id, new Date());
+
+  const tkt3Id = tkt3.id;
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  await createSeedHistory('seed-hist-TKT-003-1', tkt3Id, null, TicketStatus.RESOLVED, grace.id, twoDaysAgo);
+  await prisma.ticket.update({ where: { id: tkt3Id }, data: { updatedAt: twoDaysAgo } });
+  await createSeedAction('seed-act-TKT-003-1', tkt3Id, grace.id, twoDaysAgo, 'Reset password in AD', 'Password reset successfully', false, null, null);
+
+  await createSeedHistory('seed-hist-TKT-011-1', ticket11.id, null, TicketStatus.RESOLVED, grace.id, tenDaysAgo);
+  await createSeedAction('seed-act-TKT-011-1', ticket11.id, grace.id, tenDaysAgo, 'Fixed issue', 'Done', false, null, null);
+
+  // Per-table counts summary
+  console.log('Tables: Users=' + await prisma.user.count() + ', Tickets=' + await prisma.ticket.count() + ', Actions=' + await prisma.actionTaken.count() + ', History=' + await prisma.ticketStatusHistory.count());
+
+  console.log('✅ Seeding complete.')
 }
 
 main()

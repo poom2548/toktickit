@@ -12,6 +12,8 @@ import {
 } from "./api";
 import { StatusBadge } from "./components/shared/StatusBadge";
 import { PriorityBadge } from "./components/shared/PriorityBadge";
+import { ActionsTakenSection } from "./components/actions/ActionsTakenSection";
+import { TicketWorkflowControls } from "./components/workflow/TicketWorkflowControls";
 
 // ---------------------------------------------------------------------------
 // Zen Green colour tokens
@@ -46,7 +48,10 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   const [comments, setComments] = useState<PublicComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -136,23 +141,25 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
   }
 
   async function handleDownload(attachmentId: number, filename: string) {
+    setDownloadError(null);
     try {
       await downloadAttachment(attachmentId, filename);
     } catch (err: any) {
-      alert(err.message || "Failed to download attachment");
+      setDownloadError(err.message || "Failed to download attachment");
     }
   }
 
   async function handlePostComment(e: React.FormEvent) {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || postingComment) return;
     setPostingComment(true);
+    setCommentError(null);
     try {
       const comment = await postComment(ticketId, newComment);
       setComments((prev) => [...prev, comment]);
       setNewComment("");
     } catch (err: any) {
-      alert(err.message || "Failed to post comment");
+      setCommentError(err.message || "Failed to post comment");
     } finally {
       setPostingComment(false);
     }
@@ -160,11 +167,12 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
 
   async function handleMarkResolved() {
     setResolving(true);
+    setResolveError(null);
     try {
       const res = await markResolved(ticketId);
       setTicket((prev) => prev ? { ...prev, problemAppearsResolved: res.problemAppearsResolved } : prev);
     } catch (err: any) {
-      alert(err.message || "Failed to mark resolved");
+      setResolveError(err.message || "Failed to mark resolved");
     } finally {
       setResolving(false);
     }
@@ -212,8 +220,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         {/* Read-only form layout */}
         <div className="row g-3">
           <div className="col-md-6">
-            <label className="form-label fw-semibold">Ticket No.</label>
+            <label htmlFor="detail-ticket-number" className="form-label fw-semibold">Ticket No.</label>
             <input
+              id="detail-ticket-number"
               type="text"
               className="form-control"
               value={ticket.ticketNumber}
@@ -222,8 +231,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
             />
           </div>
           <div className="col-md-6">
-            <label className="form-label fw-semibold">Created Date</label>
+            <label htmlFor="detail-created-date" className="form-label fw-semibold">Created Date</label>
             <input
+              id="detail-created-date"
               type="text"
               className="form-control"
               value={createdStr}
@@ -249,13 +259,19 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
                 </button>
               )}
             </div>
+            {resolveError && (
+              <div className="alert alert-danger py-1 px-2 mt-1 small" role="alert">
+                {resolveError}
+              </div>
+            )}
             {ticket.problemAppearsResolved && (
               <small className="text-success mt-1 d-block">User indicated problem is resolved.</small>
             )}
           </div>
           <div className="col-md-4">
-            <label className="form-label fw-semibold">Category</label>
+            <label htmlFor="detail-category" className="form-label fw-semibold">Category</label>
             <input
+              id="detail-category"
               type="text"
               className="form-control"
               value={ticket.category?.name || "Unknown"}
@@ -271,8 +287,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           </div>
 
           <div className="col-12">
-            <label className="form-label fw-semibold">Summary</label>
+            <label htmlFor="detail-summary" className="form-label fw-semibold">Summary</label>
             <input
+              id="detail-summary"
               type="text"
               className="form-control"
               value={ticket.summary}
@@ -282,8 +299,9 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           </div>
 
           <div className="col-12">
-            <label className="form-label fw-semibold">Description</label>
+            <label htmlFor="detail-description" className="form-label fw-semibold">Description</label>
             <textarea
+              id="detail-description"
               className="form-control"
               rows={4}
               value={ticket.description}
@@ -292,6 +310,23 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
             />
           </div>
         </div>
+
+        {/* Workflow controls for Requester: advisory & cancel */}
+        <TicketWorkflowControls
+          ticket={ticket as any}
+          currentUser={{ id: '', name: '', role: 'REQUESTER' }}
+          onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+        />
+
+        {/* Actions Taken Section (Read-only for Requester) */}
+        <ActionsTakenSection
+          ticketId={ticket.id}
+          ticketStatus={ticket.status}
+          ticketVersion={(ticket as any).version ?? 1}
+          isStaff={false}
+          currentUser={{ id: '', name: '', role: 'REQUESTER' }}
+          onTicketUpdate={(updated) => setTicket((prev) => (prev ? { ...prev, ...updated } : prev))}
+        />
 
         <hr className="my-5" />
 
@@ -319,9 +354,17 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           )}
         </div>
 
+        {commentError && (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {commentError}
+          </div>
+        )}
+
         <form onSubmit={handlePostComment} className="mb-4">
           <div className="form-group mb-2">
             <textarea 
+              id="detail-new-comment"
+              aria-label="Add a comment"
               className="form-control" 
               rows={3} 
               placeholder="Add a comment..."
@@ -342,6 +385,13 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
           Attachments
         </h3>
 
+        {/* Download Error */}
+        {downloadError && (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {downloadError}
+          </div>
+        )}
+
         {/* Upload Error / Success */}
         {uploadError && (
           <div className="alert alert-danger py-2" role="alert">
@@ -357,6 +407,8 @@ export default function TicketDetailPage({ ticketId, onBack }: Props) {
         {/* Upload Form */}
         <form onSubmit={handleUpload} className="mb-4 d-flex gap-2 align-items-center flex-wrap">
           <input
+            id="detail-file-upload"
+            aria-label="Upload attachment"
             type="file"
             className="form-control w-auto flex-grow-1"
             accept=".jpg,.jpeg,.png,.webp,.pdf"
